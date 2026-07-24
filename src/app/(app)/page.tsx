@@ -1,7 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   AudioLines,
@@ -54,7 +54,17 @@ const CATEGORY_PRESENTATION: Record<
 const PREVIEW_SRC = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/challenges/image/real/real1.jpg`;
 
 export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeInner />
+    </Suspense>
+  );
+}
+
+function HomeInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const modeParam = searchParams.get('mode');
   const startRun = useGameStore((s) => s.startRun);
 
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -131,6 +141,16 @@ export default function Home() {
 
   const progress = profile ? Math.round(levelProgress(profile.totalXp, XP_CONFIG) * 100) : 0;
   const canStart = selected.length > 0 && starting === null;
+
+  // Sidebar "Play Arcade" / "Training" deep-link here with ?mode=…; auto-launch that mode
+  // once per distinct value (works on first load and on same-page sidebar navigation).
+  const handledModeRef = useRef<string | null>(null);
+  useEffect(() => {
+    if ((modeParam === 'arcade' || modeParam === 'training') && handledModeRef.current !== modeParam) {
+      handledModeRef.current = modeParam;
+      void start(modeParam === 'training' ? 'TRAINING' : 'ARCADE');
+    }
+  }, [modeParam, start]);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
