@@ -1,8 +1,9 @@
 import type { CategoryRenderProps } from './ImageCategory';
+import { NotGlyph } from '@/components/marks';
 
 /**
- * Renders an audio challenge: a native audio player plus a short label. (Dummy audio URLs
- * point at a placeholder domain and will not play until real media is wired in Phase 5.)
+ * Renders an audio challenge: a native audio player plus a short label. (Placeholder audio
+ * URLs won't play until a real dataset is wired in.)
  */
 export function AudioCategory({ question }: CategoryRenderProps) {
   const durationSec =
@@ -11,10 +12,10 @@ export function AudioCategory({ question }: CategoryRenderProps) {
       : undefined;
 
   return (
-    <div className="flex h-full w-full flex-col items-center justify-center gap-4 px-6 text-zinc-700 dark:text-zinc-200">
-      <span className="text-4xl">🎧</span>
-      <span className="text-sm text-zinc-500 dark:text-zinc-400">
-        Listen to the clip{durationSec ? ` (${durationSec}s)` : ''}
+    <div className="text-text flex h-full w-full flex-col items-center justify-center gap-5 px-6">
+      <NotGlyph className="text-muted h-12 w-12" />
+      <span className="text-muted font-mono text-xs tracking-[0.15em] uppercase">
+        Voice clip{durationSec ? ` · ${durationSec}s` : ''}
       </span>
       <audio controls src={question.mediaUrl} className="w-full max-w-md">
         Your browser does not support the audio element.

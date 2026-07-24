@@ -10,9 +10,11 @@ export const metadata = { title: 'Analytics — Bot Or Not' };
 
 function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="flex flex-col rounded-xl border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900">
-      <span className="text-xs text-zinc-500 dark:text-zinc-400">{label}</span>
-      <span className="text-xl font-semibold tabular-nums">{value}</span>
+    <div className="border-edge bg-ink-700 flex flex-col rounded-xl border px-4 py-3">
+      <span className="text-muted font-mono text-[0.65rem] tracking-[0.15em] uppercase">
+        {label}
+      </span>
+      <span className="text-text font-mono text-2xl font-bold tabular-nums">{value}</span>
     </div>
   );
 }
@@ -37,55 +39,60 @@ export default async function AnalyticsPage() {
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 px-6 py-10">
       <header className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">Analytics</h1>
-        <Link href="/" className="text-sm text-zinc-500 hover:underline dark:text-zinc-400">
+        <div>
+          <p className="text-muted font-mono text-xs tracking-[0.2em] uppercase">Case file</p>
+          <h1 className="font-display text-2xl font-extrabold tracking-tight">
+            Your detection record
+          </h1>
+        </div>
+        <Link
+          href="/"
+          className="text-muted hover:text-text font-mono text-xs tracking-wide uppercase transition-colors"
+        >
           ← Home
         </Link>
       </header>
 
       {stats.totalAttempts === 0 ? (
-        <p className="text-zinc-500 dark:text-zinc-400">
-          No games played yet. Play a round and your stats will appear here.
-        </p>
+        <p className="text-muted">No calls on record yet. Play a round to open your file.</p>
       ) : (
         <>
           <section className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            <StatCard label="Overall accuracy" value={`${stats.accuracyPct}%`} />
-            <StatCard label="Best Arcade score" value={stats.bestScore.toLocaleString()} />
-            <StatCard label="Longest combo" value={`${stats.longestCombo}×`} />
-            <StatCard label="Avg response" value={`${avgSpeedS}s`} />
-            <StatCard label="Arcade games" value={stats.gamesArcade} />
-            <StatCard label="Training games" value={stats.gamesTraining} />
+            <StatCard label="Accuracy" value={`${stats.accuracyPct}%`} />
+            <StatCard label="Best score" value={stats.bestScore.toLocaleString()} />
+            <StatCard label="Combo" value={`×${stats.longestCombo}`} />
+            <StatCard label="Avg call" value={`${avgSpeedS}s`} />
+            <StatCard label="Arcade" value={stats.gamesArcade} />
+            <StatCard label="Training" value={stats.gamesTraining} />
           </section>
 
           <section>
-            <h2 className="mb-3 text-lg font-semibold">By category</h2>
-            <div className="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-800">
+            <h2 className="text-muted mb-3 font-mono text-xs tracking-[0.2em] uppercase">
+              By channel
+            </h2>
+            <div className="border-edge overflow-hidden rounded-xl border">
               <table className="w-full text-left text-sm">
-                <thead className="bg-zinc-50 text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
+                <thead className="bg-ink-800 text-muted font-mono text-[0.65rem] tracking-wider uppercase">
                   <tr>
-                    <th className="px-4 py-2 font-medium">Category</th>
-                    <th className="px-4 py-2 font-medium">Attempts</th>
-                    <th className="px-4 py-2 font-medium">Accuracy</th>
-                    <th className="px-4 py-2 font-medium">Avg speed</th>
-                    <th className="px-4 py-2 font-medium">Skill</th>
+                    <th className="px-4 py-2 font-normal">Channel</th>
+                    <th className="px-4 py-2 font-normal">Attempts</th>
+                    <th className="px-4 py-2 font-normal">Accuracy</th>
+                    <th className="px-4 py-2 font-normal">Avg speed</th>
+                    <th className="px-4 py-2 font-normal">Skill</th>
                   </tr>
                 </thead>
                 <tbody>
                   {categories.map((c) => (
-                    <tr
-                      key={c.categoryId}
-                      className="border-t border-zinc-200 dark:border-zinc-800"
-                    >
+                    <tr key={c.categoryId} className="border-edge border-t">
                       <td className="px-4 py-2">
                         {CATEGORY_CONFIG[c.categoryId as CategoryId]?.displayName ?? c.categoryId}
                       </td>
-                      <td className="px-4 py-2 tabular-nums">{c.attempts}</td>
-                      <td className="px-4 py-2 tabular-nums">{c.accuracyPct}%</td>
-                      <td className="px-4 py-2 tabular-nums">
+                      <td className="px-4 py-2 font-mono tabular-nums">{c.attempts}</td>
+                      <td className="px-4 py-2 font-mono tabular-nums">{c.accuracyPct}%</td>
+                      <td className="px-4 py-2 font-mono tabular-nums">
                         {(c.avgSpeedMs / 1000).toFixed(1)}s
                       </td>
-                      <td className="px-4 py-2">{skillRating(c.accuracyPct)}</td>
+                      <td className="text-muted px-4 py-2">{skillRating(c.accuracyPct)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -94,7 +101,9 @@ export default async function AnalyticsPage() {
           </section>
 
           <section>
-            <h2 className="mb-3 text-lg font-semibold">Trends</h2>
+            <h2 className="text-muted mb-3 font-mono text-xs tracking-[0.2em] uppercase">
+              Over time
+            </h2>
             <TrendCharts trends={trends} />
           </section>
         </>

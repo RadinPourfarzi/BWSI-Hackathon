@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useGameEngine } from '@/hooks/useGameEngine';
 import { useScoringTimer } from '@/hooks/useScoringTimer';
 import { useGameStore } from '@/store/gameStore';
@@ -13,6 +14,7 @@ import { HudBar } from '@/components/HudBar';
 import { MediaContainer } from '@/components/MediaContainer';
 import { TimerBar } from '@/components/TimerBar';
 import { AnswerButtons } from '@/components/AnswerButtons';
+import { CallOverlay } from '@/components/CallOverlay';
 import { TrainingResult } from '@/components/TrainingResult';
 import { GameOverSummary } from '@/components/GameOverSummary';
 import { computeRunXp } from '@/lib/progression';
@@ -49,7 +51,7 @@ export default function PlayPage() {
         window.setTimeout(() => {
           setFeedback(null);
           next();
-        }, UI_CONFIG.feedbackHoldMs);
+        }, UI_CONFIG.motion.callMs);
       }
     },
     [status, feedback, answer, next, isTraining],
@@ -135,12 +137,9 @@ export default function PlayPage() {
   if (status === 'idle') {
     return (
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center gap-4 px-6 py-10 text-center">
-        <p className="text-zinc-500 dark:text-zinc-400">No active game.</p>
-        <Link
-          href="/"
-          className="rounded-xl bg-zinc-900 px-5 py-3 font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"
-        >
-          Go to start
+        <p className="text-muted">No active run.</p>
+        <Link href="/" className="bg-text font-display text-ink-900 rounded-xl px-5 py-3 font-bold">
+          Back to start
         </Link>
       </div>
     );
@@ -210,25 +209,24 @@ export default function PlayPage() {
 
       <div className="relative">
         <MediaContainer>
-          <ChallengeMedia question={current} />
+          <motion.div
+            key={current.id}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: UI_CONFIG.motion.questionEnterMs / 1000,
+              ease: UI_CONFIG.motion.ease,
+            }}
+            className="flex h-full w-full items-center justify-center"
+          >
+            <ChallengeMedia question={current} />
+          </motion.div>
         </MediaContainer>
 
-        {/* Arcade shows a brief covering flash; Training keeps the media visible. */}
-        {feedback !== null && !isTraining && (
-          <div
-            className={`absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-xl text-white ${
-              feedback.isCorrect ? 'bg-emerald-600/85' : 'bg-red-600/85'
-            }`}
-          >
-            <span className="text-4xl">{feedback.isCorrect ? '✓' : '✗'}</span>
-            <span className="text-lg font-semibold">
-              {feedback.isCorrect ? `+${feedback.pointsAwarded}` : 'Wrong'}
-            </span>
-            <span className="text-sm opacity-90">
-              It was {feedback.correctIsAi ? 'AI' : 'REAL'}
-            </span>
-          </div>
-        )}
+        {/* "The Call": Arcade shows the fast flash over the media; Training keeps it visible. */}
+        <AnimatePresence>
+          {feedback !== null && !isTraining && <CallOverlay outcome={feedback} />}
+        </AnimatePresence>
       </div>
 
       {/* Timer/decay only exist in Arcade. */}
@@ -246,9 +244,9 @@ export default function PlayPage() {
         <AnswerButtons onAnswer={handleAnswer} disabled={feedback !== null} />
       )}
 
-      <div className="flex items-center justify-between text-sm text-zinc-500 dark:text-zinc-400">
-        <span>Question {engine.questionIndex}</span>
-        <Link href="/" onClick={() => reset()} className="hover:underline">
+      <div className="text-muted flex items-center justify-between font-mono text-xs tracking-[0.15em] uppercase">
+        <span>Q{engine.questionIndex}</span>
+        <Link href="/" onClick={() => reset()} className="hover:text-text">
           Exit
         </Link>
       </div>

@@ -11,6 +11,8 @@ export { DIFFICULTY_TIERS } from './difficulty';
 export { XP_CONFIG } from './xp';
 export { CATEGORY_CONFIG, CATEGORY_IDS } from './categories';
 export { UI_CONFIG } from './ui';
+export type { UiColorKey } from './ui';
+export { feedbackMessage, CORRECT_TIERS, WRONG_MESSAGES } from './messages';
 
 function buildCategoryEntries(): Record<CategoryId, CategoryConfigEntry> {
   const entries = {} as Record<CategoryId, CategoryConfigEntry>;

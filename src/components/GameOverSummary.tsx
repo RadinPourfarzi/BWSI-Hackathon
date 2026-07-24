@@ -13,14 +13,16 @@ interface GameOverSummaryProps {
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="flex flex-col rounded-lg border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900">
-      <span className="text-xs text-zinc-500 dark:text-zinc-400">{label}</span>
-      <span className="text-lg font-semibold tabular-nums">{value}</span>
+    <div className="border-edge bg-ink-700 flex flex-col rounded-xl border px-4 py-3">
+      <span className="text-muted font-mono text-[0.65rem] tracking-[0.15em] uppercase">
+        {label}
+      </span>
+      <span className="text-text font-mono text-lg font-bold tabular-nums">{value}</span>
     </div>
   );
 }
 
-/** End-of-run summary with key stats and next-action buttons. */
+/** End-of-run summary (server-authoritative numbers) with next actions. */
 export function GameOverSummary({
   mode,
   score,
@@ -36,11 +38,11 @@ export function GameOverSummary({
   return (
     <div className="mx-auto flex w-full max-w-md flex-col gap-6">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold">
-          {mode === 'ARCADE' ? 'Game over' : 'Session complete'}
+        <h1 className="font-display text-3xl font-extrabold tracking-tight">
+          {mode === 'ARCADE' ? 'Run over' : 'Session complete'}
         </h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          {mode === 'ARCADE' ? 'Out of lives — here’s how you did.' : 'Nice practice run.'}
+        <p className="text-muted mt-1 text-sm">
+          {mode === 'ARCADE' ? 'Out of lives. Here’s the tape.' : 'Nice practice run.'}
         </p>
       </div>
 
@@ -48,7 +50,7 @@ export function GameOverSummary({
         {mode === 'ARCADE' && <Stat label="Score" value={score.toLocaleString()} />}
         <Stat label="Accuracy" value={`${accuracy}%`} />
         <Stat label="Answered" value={questionsAnswered} />
-        <Stat label="Best combo" value={`${maxCombo}×`} />
+        <Stat label="Best combo" value={`×${maxCombo}`} />
         {mode === 'ARCADE' && <Stat label="XP earned" value={`+${xpAwarded}`} />}
       </div>
 
@@ -56,14 +58,14 @@ export function GameOverSummary({
         <button
           type="button"
           onClick={onPlayAgain}
-          className="flex-1 rounded-xl bg-zinc-900 px-5 py-3 font-medium text-white transition-colors hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          className="bg-text font-display text-ink-900 flex-1 rounded-xl px-5 py-3 font-bold transition-opacity hover:opacity-90"
         >
           Play again
         </button>
         <button
           type="button"
           onClick={onHome}
-          className="flex-1 rounded-xl border border-zinc-300 px-5 py-3 font-medium transition-colors hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
+          className="border-edge font-display text-text hover:bg-ink-700 flex-1 rounded-xl border px-5 py-3 font-bold transition-colors"
         >
           Home
         </button>

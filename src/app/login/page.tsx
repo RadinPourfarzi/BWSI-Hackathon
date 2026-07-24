@@ -3,6 +3,7 @@
 import { Suspense, useActionState, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signIn, signUp, type AuthActionState } from '@/app/auth/actions';
+import { Wordmark } from '@/components/Wordmark';
 
 const initialState: AuthActionState = { error: null };
 
@@ -15,22 +16,21 @@ function LoginForm() {
   const [state, formAction, pending] = useActionState(action, initialState);
 
   const tabClass = (active: boolean) =>
-    `flex-1 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-      active
-        ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
-        : 'text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800'
+    `flex-1 rounded-lg px-4 py-2 font-mono text-sm uppercase tracking-wide transition-colors ${
+      active ? 'bg-text text-ink-900' : 'text-muted hover:text-text'
     }`;
+
+  const field =
+    'rounded-lg border border-edge bg-ink-800 px-3 py-2 text-text outline-none transition-colors focus:border-bot';
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center gap-6 px-6 py-10">
       <div className="text-center">
-        <div className="text-2xl font-semibold tracking-tight">Bot Or Not</div>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Sign in to save your progress.
-        </p>
+        <Wordmark className="text-3xl" />
+        <p className="text-muted mt-2 text-sm">Sign in to keep your record.</p>
       </div>
 
-      <div className="flex gap-1 rounded-xl border border-zinc-200 p-1 dark:border-zinc-800">
+      <div className="border-edge flex gap-1 rounded-xl border p-1">
         <button
           type="button"
           className={tabClass(mode === 'signin')}
@@ -52,45 +52,33 @@ function LoginForm() {
 
         {mode === 'signup' && (
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-zinc-600 dark:text-zinc-300">Username</span>
-            <input
-              name="username"
-              type="text"
-              required
-              autoComplete="username"
-              className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 outline-none focus:border-zinc-500 dark:border-zinc-700"
-            />
+            <span className="text-muted font-mono text-xs tracking-wide uppercase">Username</span>
+            <input name="username" type="text" required autoComplete="username" className={field} />
           </label>
         )}
 
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-zinc-600 dark:text-zinc-300">Email</span>
-          <input
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 outline-none focus:border-zinc-500 dark:border-zinc-700"
-          />
+          <span className="text-muted font-mono text-xs tracking-wide uppercase">Email</span>
+          <input name="email" type="email" required autoComplete="email" className={field} />
         </label>
 
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-zinc-600 dark:text-zinc-300">Password</span>
+          <span className="text-muted font-mono text-xs tracking-wide uppercase">Password</span>
           <input
             name="password"
             type="password"
             required
             autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-            className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 outline-none focus:border-zinc-500 dark:border-zinc-700"
+            className={field}
           />
         </label>
 
-        {state.error && <p className="text-sm text-red-500">{state.error}</p>}
+        {state.error && <p className="text-wrong text-sm">{state.error}</p>}
 
         <button
           type="submit"
           disabled={pending}
-          className="mt-1 rounded-xl bg-zinc-900 px-5 py-3 font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          className="bg-text font-display text-ink-900 mt-1 rounded-xl px-5 py-3 font-bold transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {pending ? 'Please wait…' : mode === 'signin' ? 'Sign in' : 'Create account'}
         </button>

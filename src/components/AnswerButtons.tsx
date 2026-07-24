@@ -1,9 +1,13 @@
 'use client';
 
+import { motion } from 'framer-motion';
+import { BotGlyph, NotGlyph } from './marks';
+import { UI_CONFIG } from '@/config';
+
 /**
- * The two primary answer buttons: AI (left) and REAL (right). Oversized, equal-width, and
- * fixed position so the cursor target never moves. Keyboard shortcuts are handled by the
- * gameplay page (A/← = AI, D/→ = REAL); the hints are shown here.
+ * The two "worlds": BOT / AI (left, synthetic violet) and NOT / REAL (right, human amber).
+ * Equal-width, fixed position so the cursor target never moves. Keyboard hints in mono
+ * (A/← = AI, D/→ = REAL are handled by the gameplay page).
  */
 export function AnswerButtons({
   onAnswer,
@@ -12,32 +16,33 @@ export function AnswerButtons({
   onAnswer: (choiceIsAi: boolean) => void;
   disabled?: boolean;
 }) {
-  const base =
-    'flex flex-1 flex-col items-center justify-center gap-1 rounded-xl border px-6 py-6 text-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+  const press = { scale: 0.97, transition: { duration: UI_CONFIG.motion.buttonPressMs / 1000 } };
 
   return (
     <div className="flex w-full gap-4">
-      <button
+      <motion.button
         type="button"
+        whileTap={press}
         onClick={() => onAnswer(true)}
         disabled={disabled}
-        className={`${base} border-zinc-300 bg-white hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800`}
+        className="group border-bot/40 bg-bot/10 hover:border-bot hover:bg-bot/20 flex flex-1 flex-col items-center justify-center gap-2 rounded-2xl border px-6 py-6 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <span className="text-2xl">🤖</span>
-        <span>AI</span>
-        <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400">A / ←</span>
-      </button>
+        <BotGlyph className="text-bot-bright h-7 w-7" />
+        <span className="font-display text-text text-xl font-bold">BOT / AI</span>
+        <span className="text-muted font-mono text-xs">◄ A</span>
+      </motion.button>
 
-      <button
+      <motion.button
         type="button"
+        whileTap={press}
         onClick={() => onAnswer(false)}
         disabled={disabled}
-        className={`${base} border-zinc-300 bg-white hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800`}
+        className="group border-not/40 bg-not/10 hover:border-not hover:bg-not/20 flex flex-1 flex-col items-center justify-center gap-2 rounded-2xl border px-6 py-6 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <span className="text-2xl">👤</span>
-        <span>REAL</span>
-        <span className="text-xs font-normal text-zinc-500 dark:text-zinc-400">D / →</span>
-      </button>
+        <NotGlyph className="text-not-bright h-7 w-7" />
+        <span className="font-display text-text text-xl font-bold">NOT / REAL</span>
+        <span className="text-muted font-mono text-xs">D ►</span>
+      </motion.button>
     </div>
   );
 }

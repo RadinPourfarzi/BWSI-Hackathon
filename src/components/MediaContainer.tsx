@@ -2,14 +2,13 @@ import type { ReactNode } from 'react';
 import { UI_CONFIG } from '@/config';
 
 /**
- * Fixed-dimension bounding box for gameplay media. Locked height + `object-fit: contain`
- * (applied by children) guarantee the AI/REAL buttons never shift when the media type
- * changes between questions. See project-plan.md §8.
+ * Fixed-dimension "light table" for gameplay media. Locked height + object-fit: contain
+ * (applied by children) keep the answer buttons from shifting between media types.
  */
 export function MediaContainer({ children }: { children: ReactNode }) {
   return (
     <div
-      className="flex w-full items-center justify-center overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900"
+      className="border-edge bg-ink-800 flex w-full items-center justify-center overflow-hidden rounded-2xl border shadow-[inset_0_1px_40px_rgba(0,0,0,0.4)]"
       style={{ height: `${UI_CONFIG.mediaBox.heightPx}px` }}
     >
       {children}

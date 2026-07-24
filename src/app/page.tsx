@@ -8,6 +8,8 @@ import { useGameStore } from '@/store/gameStore';
 import { fetchActiveConfig, fetchQuestionBatch } from '@/lib/questions';
 import { signOut } from '@/app/auth/actions';
 import { levelProgress } from '@/lib/progression';
+import { Wordmark } from '@/components/Wordmark';
+import { SparkMark } from '@/components/marks';
 import { CATEGORY_CONFIG, CATEGORY_IDS, GAME_CONFIG, GAME_DEFAULTS, XP_CONFIG } from '@/config';
 import type { CategoryId, GameMode, Profile } from '@/types/models';
 
@@ -92,27 +94,24 @@ export default function Home() {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-10 px-6 py-10">
       <header className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-xl">🕵️</span>
-          <span className="text-lg font-semibold tracking-tight">Bot Or Not</span>
-        </div>
-        <div className="flex items-center gap-3 text-sm">
-          <span className="rounded-md bg-zinc-100 px-2 py-1 dark:bg-zinc-800">
-            Level {profile?.currentLevel ?? 1}
+        <Wordmark className="text-lg" />
+        <div className="flex items-center gap-2 font-mono text-xs">
+          <span className="border-edge text-muted rounded-md border px-2 py-1 tracking-wide uppercase">
+            LV {String(profile?.currentLevel ?? 1).padStart(2, '0')}
           </span>
-          <span className="rounded-md bg-zinc-100 px-2 py-1 dark:bg-zinc-800">
-            🔥 {profile?.dailyStreak ?? 0}
+          <span className="border-edge text-muted inline-flex items-center gap-1 rounded-md border px-2 py-1">
+            <SparkMark className="text-not h-3 w-3" />×{profile?.dailyStreak ?? 0}
           </span>
           <Link
             href="/analytics"
-            className="rounded-md px-2 py-1 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            className="border-edge text-muted hover:text-text rounded-md border px-2 py-1 tracking-wide uppercase transition-colors"
           >
-            📊 Analytics
+            Record
           </Link>
           <form action={signOut}>
             <button
               type="submit"
-              className="rounded-md px-2 py-1 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+              className="text-muted hover:text-text rounded-md px-2 py-1 tracking-wide uppercase transition-colors"
             >
               Sign out
             </button>
@@ -120,22 +119,29 @@ export default function Home() {
         </div>
       </header>
 
-      <div className="text-center">
-        <h1 className="text-3xl font-semibold tracking-tight">Spot the fake.</h1>
-        <p className="mt-2 text-zinc-500 dark:text-zinc-400">
+      <div>
+        <p className="text-muted font-mono text-xs tracking-[0.2em] uppercase">
+          Detect the machine
+        </p>
+        <h1 className="font-display mt-3 text-5xl leading-[1.05] font-extrabold tracking-tight">
+          Can you tell
+          <br />
+          what&apos;s <span className="text-not">real</span>?
+        </h1>
+        <p className="text-muted mt-4 max-w-md">
           {loadingProfile
-            ? 'Loading your profile…'
-            : `Welcome back${profile ? `, ${profile.username}` : ''}. Real or AI?`}
+            ? 'Loading your file…'
+            : `Split-second calls on machine-made media${profile ? `, ${profile.username}` : ''}. Real photo or AI dream. Signal or scam.`}
         </p>
         {profile && (
-          <div className="mx-auto mt-4 max-w-xs">
-            <div className="mb-1 flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
+          <div className="mt-5 max-w-xs">
+            <div className="text-muted mb-1 flex justify-between font-mono text-[0.7rem] tracking-wider uppercase">
               <span>Level {profile.currentLevel}</span>
-              <span>{profile.totalXp} XP</span>
+              <span>{profile.totalXp.toLocaleString()} XP</span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+            <div className="bg-edge h-1.5 overflow-hidden rounded-full">
               <div
-                className="h-full rounded-full bg-zinc-800 dark:bg-zinc-200"
+                className="from-bot to-not h-full rounded-full bg-gradient-to-r"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -148,22 +154,32 @@ export default function Home() {
           type="button"
           onClick={() => start('ARCADE')}
           disabled={selected.length === 0 || starting !== null}
-          className="rounded-xl bg-zinc-900 px-6 py-4 text-lg font-semibold text-white transition-colors hover:bg-zinc-700 disabled:opacity-50 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
+          className="group border-bot/40 bg-bot/10 hover:border-bot hover:bg-bot/20 flex items-center justify-between rounded-2xl border px-6 py-5 text-left transition-colors disabled:opacity-50"
         >
-          {starting === 'ARCADE' ? 'Starting…' : '⚡ Play Arcade'}
+          <span className="font-display text-text text-xl font-bold">
+            {starting === 'ARCADE' ? 'Starting…' : 'Play Arcade'}
+          </span>
+          <span className="text-muted font-mono text-xs tracking-wider uppercase">
+            3 lives · decay
+          </span>
         </button>
         <button
           type="button"
           onClick={() => start('TRAINING')}
           disabled={selected.length === 0 || starting !== null}
-          className="rounded-xl border border-zinc-300 px-6 py-4 text-lg font-semibold transition-colors hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+          className="group border-edge hover:border-not hover:bg-not/10 flex items-center justify-between rounded-2xl border px-6 py-5 text-left transition-colors disabled:opacity-50"
         >
-          {starting === 'TRAINING' ? 'Starting…' : '🎯 Training Mode'}
+          <span className="font-display text-text text-xl font-bold">
+            {starting === 'TRAINING' ? 'Starting…' : 'Training'}
+          </span>
+          <span className="text-muted font-mono text-xs tracking-wider uppercase">
+            learn the tells
+          </span>
         </button>
       </div>
 
       <div>
-        <div className="mb-2 text-sm font-medium text-zinc-500 dark:text-zinc-400">Categories</div>
+        <div className="text-muted mb-2 font-mono text-xs tracking-[0.2em] uppercase">Detect</div>
         <div className="flex flex-wrap gap-2">
           {CATEGORY_IDS.map((id) => {
             const active = selected.includes(id);
@@ -173,22 +189,21 @@ export default function Home() {
                 type="button"
                 onClick={() => toggle(id)}
                 aria-pressed={active}
-                className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                className={`rounded-lg border px-3 py-2 font-mono text-sm tracking-wide uppercase transition-colors ${
                   active
-                    ? 'border-zinc-900 bg-zinc-900 text-white dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900'
-                    : 'border-zinc-300 text-zinc-600 hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800'
+                    ? 'border-not bg-not/15 text-text'
+                    : 'border-edge text-muted hover:border-muted hover:text-text'
                 }`}
               >
-                {active ? '✓ ' : ''}
                 {CATEGORY_CONFIG[id].displayName}
               </button>
             );
           })}
         </div>
         {selected.length === 0 && (
-          <p className="mt-2 text-sm text-red-500">Select at least one category to play.</p>
+          <p className="text-wrong mt-2 text-sm">Pick at least one channel to play.</p>
         )}
-        {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+        {error && <p className="text-wrong mt-2 text-sm">{error}</p>}
       </div>
     </div>
   );

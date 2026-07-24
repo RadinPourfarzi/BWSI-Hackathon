@@ -4,9 +4,9 @@ import { LivesIndicator } from './LivesIndicator';
 import { ComboBadge } from './ComboBadge';
 
 /**
- * Top gameplay HUD. Arcade shows run score (left) and lives + combo (center). Training has
- * no score/lives/combo pressure, so it shows a correct-count instead. Both show the current
- * category badge (right). See project-plan.md §6, §8.
+ * Top gameplay HUD as an instrument readout (mono numerals). Arcade shows score + lives +
+ * combo; Training shows a correct/answered count (no score pressure). Both show the current
+ * channel badge.
  */
 export function HudBar({
   score,
@@ -30,12 +30,12 @@ export function HudBar({
   const isTraining = mode === 'TRAINING';
 
   return (
-    <div className="flex w-full items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="border-edge bg-ink-800 flex w-full items-center justify-between gap-4 rounded-xl border px-4 py-3">
       <div className="flex flex-col">
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+        <span className="text-muted font-mono text-[0.65rem] tracking-[0.15em] uppercase">
           {isTraining ? 'Correct' : 'Score'}
         </span>
-        <span className="text-xl font-semibold tabular-nums">
+        <span className="text-text font-mono text-xl font-bold tabular-nums">
           {isTraining ? `${correct}/${answered}` : score.toLocaleString()}
         </span>
       </div>
@@ -48,10 +48,10 @@ export function HudBar({
       )}
 
       <div className="flex flex-col items-end">
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+        <span className="text-muted font-mono text-[0.65rem] tracking-[0.15em] uppercase">
           {isTraining ? 'Training' : 'Arcade'}
         </span>
-        <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-sm font-medium tracking-wide uppercase dark:bg-zinc-800">
+        <span className="text-text font-mono text-sm font-bold tracking-wide uppercase">
           {CATEGORY_CONFIG[categoryId].displayName}
         </span>
       </div>
