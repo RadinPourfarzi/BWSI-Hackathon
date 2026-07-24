@@ -83,8 +83,8 @@ export function CategorySelector({
   return (
     <div className="mx-auto max-w-4xl">
       <div className="mb-7 text-center">
-        <span className="mx-auto grid size-12 place-items-center rounded-2xl border border-[var(--pink)]/30 bg-[var(--pink)]/10">
-          <ModeIcon className="size-5 text-[var(--pink)]" />
+        <span className="mx-auto grid size-12 place-items-center rounded-2xl border border-[var(--orange)]/30 bg-[var(--orange)]/10">
+          <ModeIcon className="size-5 text-[var(--orange)]" />
         </span>
         <h2 className="mt-4 text-2xl font-black tracking-tight">
           Build your signal mix

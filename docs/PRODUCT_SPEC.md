@@ -134,8 +134,8 @@ committed corpus contains 14 images, 12 emails, and 12 voice clips.
   Home, Analytics, Profile, and Settings
 - Level, XP progress, and daily streak values populated from Supabase statistics
 - Reusable button, card, progress, dialog, loading, error, and empty states
-- Responsive black/blue/white visual system with a restrained pink accent,
-  subtle transitions, and minimal gradients
+- Responsive blue/orange visual system with persistent light and dark modes,
+  the `#ED9121` orange accent, subtle transitions, and minimal gradients
 
 ### Analytics and progression
 

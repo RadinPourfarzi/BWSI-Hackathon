@@ -39,7 +39,7 @@ export function PreferenceEffects({ settings }: { settings: PlayerSettings }) {
 
   return (
     <div
-      className="fixed right-4 bottom-4 z-50 flex max-w-sm items-center gap-3 rounded-xl border border-[#a47627]/45 bg-[#21190d] px-4 py-3 text-sm text-[#f1d09a] shadow-2xl"
+      className="fixed right-4 bottom-4 z-50 flex max-w-sm items-center gap-3 rounded-xl border border-[var(--warning-border)]/45 bg-[var(--warning-surface)] px-4 py-3 text-sm text-[var(--warning-foreground)] shadow-2xl"
       role="status"
     >
       <WifiOff className="size-4 shrink-0" />

@@ -115,7 +115,7 @@ export default async function AnalyticsPage() {
 
       {!analytics.available ? (
         <div
-          className="mt-6 rounded-xl border border-[#a47627]/40 bg-[#a47627]/10 px-5 py-4 text-sm text-[#e8c98f]"
+          className="mt-6 rounded-xl border border-[var(--warning-border)]/40 bg-[var(--warning-surface)] px-5 py-4 text-sm text-[var(--warning-foreground)]"
           role="alert"
         >
           Analytics are temporarily unavailable. Gameplay still works; apply the
@@ -159,7 +159,7 @@ export default async function AnalyticsPage() {
       <section className="mt-5 grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
         <Card>
           <CardHeader className="flex flex-row items-center gap-3">
-            <BarChart3 className="size-5 text-[var(--pink)]" />
+            <BarChart3 className="size-5 text-[var(--orange)]" />
             <div>
               <h2 className="font-black">Accuracy by category</h2>
               <p className="mt-1 text-xs text-[var(--muted)]">

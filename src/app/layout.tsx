@@ -4,6 +4,23 @@ import type { CSSProperties } from "react";
 import { animationConfig } from "@/config/animation";
 import "./globals.css";
 
+const themeInitializationScript = `
+  (() => {
+    try {
+      const savedTheme = window.localStorage.getItem("bot-or-not-theme");
+      const preferredTheme = window.matchMedia("(prefers-color-scheme: light)").matches
+        ? "light"
+        : "dark";
+      document.documentElement.dataset.theme =
+        savedTheme === "light" || savedTheme === "dark"
+          ? savedTheme
+          : preferredTheme;
+    } catch {
+      document.documentElement.dataset.theme = "dark";
+    }
+  })();
+`;
+
 export const metadata: Metadata = {
   title: {
     default: "Bot or Not",
@@ -35,6 +52,12 @@ export default function RootLayout({
       style={animationVariables}
       suppressHydrationWarning
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{ __html: themeInitializationScript }}
+          id="theme-initializer"
+        />
+      </head>
       <body suppressHydrationWarning>{children}</body>
     </html>
   );

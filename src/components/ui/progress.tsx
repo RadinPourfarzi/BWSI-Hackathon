@@ -20,7 +20,7 @@ export function Progress({
         aria-valuemax={max}
         aria-valuemin={0}
         aria-valuenow={value}
-        className="h-2 overflow-hidden rounded-full bg-white/8"
+        className="h-2 overflow-hidden rounded-full bg-[var(--surface-hover)]"
         role="progressbar"
       >
         <div

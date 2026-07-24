@@ -62,7 +62,7 @@ export function ImageRenderer({
           />
         )}
       </div>
-      <details className="mt-2 rounded-lg border border-[var(--border)] bg-white/2 px-3 py-2 text-xs text-[var(--muted)]">
+      <details className="mt-2 rounded-lg border border-[var(--border)] bg-[var(--surface-subtle)] px-3 py-2 text-xs text-[var(--muted)]">
         <summary className="cursor-pointer font-bold text-[var(--foreground)]">
           Source and attribution
         </summary>

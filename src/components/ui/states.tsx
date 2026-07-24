@@ -60,7 +60,9 @@ export function ErrorState({
         <AlertCircle className="mt-0.5 size-5 shrink-0 text-[var(--danger)]" />
         <div>
           <h2 className="font-bold text-[var(--danger)]">{title}</h2>
-          <p className="mt-1 text-sm leading-6 text-[#d8a5a8]">{description}</p>
+          <p className="mt-1 text-sm leading-6 text-[var(--danger-foreground)]">
+            {description}
+          </p>
         </div>
       </div>
     </div>

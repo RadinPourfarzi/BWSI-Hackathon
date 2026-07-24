@@ -15,6 +15,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { BrandLogo } from "@/components/brand-logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { signOut } from "@/features/auth/actions";
@@ -51,8 +52,8 @@ function NavigationLinks({ guest }: { guest: boolean }) {
             className={cn(
               "group flex h-11 items-center gap-3 rounded-xl px-3 text-sm font-bold transition-colors",
               active
-                ? "bg-[var(--blue)]/13 text-white"
-                : "text-[var(--muted)] hover:bg-white/5 hover:text-white",
+                ? "bg-[var(--blue)]/13 text-[var(--foreground)]"
+                : "text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]",
             )}
             href={item.href}
             key={item.href}
@@ -60,7 +61,7 @@ function NavigationLinks({ guest }: { guest: boolean }) {
             <Icon
               className={cn(
                 "size-5",
-                active ? "text-[var(--blue)]" : "text-[#66738a]",
+                active ? "text-[var(--blue)]" : "text-[var(--icon-muted)]",
               )}
             />
             {item.label}
@@ -96,7 +97,7 @@ export function AppNav({
 
   return (
     <>
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-[var(--border)] bg-[#080b12]/95 px-4 py-5 backdrop-blur lg:flex lg:flex-col">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-[var(--border)] bg-[var(--surface-nav)] px-4 py-5 backdrop-blur lg:flex lg:flex-col">
         <Link
           className="flex items-center gap-3 px-2 font-black"
           href={brandHref}
@@ -108,6 +109,7 @@ export function AppNav({
           <NavigationLinks guest={guest} />
         </div>
         <div className="mt-auto">
+          <ThemeToggle className="mb-3 w-full" showLabel />
           {guest ? (
             <div className="rounded-xl border border-[var(--blue)]/25 bg-[var(--blue)]/8 p-4">
               <p className="text-sm font-black">Playing as guest</p>
@@ -126,7 +128,7 @@ export function AppNav({
             </div>
           ) : (
             <>
-              <div className="rounded-xl border border-[var(--border)] bg-white/3 p-3">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] p-3">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold">Level {level}</span>
                   <span className="text-[var(--muted)]">
@@ -144,7 +146,7 @@ export function AppNav({
                 <div className="min-w-0">
                   <p className="truncate text-sm font-bold">{displayName}</p>
                   <p className="mt-0.5 flex items-center gap-1 text-xs text-[var(--muted)]">
-                    <Flame className="size-3.5 text-[#ff9b52]" />
+                    <Flame className="size-3.5 text-[var(--orange)]" />
                     {streak} day streak
                   </p>
                 </div>
@@ -164,46 +166,49 @@ export function AppNav({
         </div>
       </aside>
 
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--border)] bg-[#080b12]/92 px-4 backdrop-blur lg:hidden">
+      <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--border)] bg-[var(--surface-nav)] px-4 backdrop-blur lg:hidden">
         <Link className="flex items-center gap-2 font-black" href={brandHref}>
           <BrandLogo priority size={34} />
           Bot or Not
         </Link>
-        <details className="group relative">
-          <summary className="list-none rounded-lg border border-[var(--border)] px-3 py-2 text-sm font-bold">
-            Menu
-          </summary>
-          <div className="absolute top-12 right-0 w-64 rounded-xl border border-[var(--border)] bg-[#0b101a] p-3 shadow-2xl">
-            <NavigationLinks guest={guest} />
-            {guest ? (
-              <div className="mt-2 border-t border-[var(--border)] pt-2">
-                <Link
-                  className={buttonClassName({
-                    className: "w-full",
-                    variant: "secondary",
-                  })}
-                  href="/sign-in?next=%2Fapp%2Fplay"
+        <div className="flex items-center gap-2">
+          <ThemeToggle className="size-10 px-0" />
+          <details className="group relative">
+            <summary className="list-none rounded-lg border border-[var(--border)] px-3 py-2 text-sm font-bold">
+              Menu
+            </summary>
+            <div className="absolute top-12 right-0 w-64 rounded-xl border border-[var(--border)] bg-[var(--surface-overlay)] p-3 shadow-2xl">
+              <NavigationLinks guest={guest} />
+              {guest ? (
+                <div className="mt-2 border-t border-[var(--border)] pt-2">
+                  <Link
+                    className={buttonClassName({
+                      className: "w-full",
+                      variant: "secondary",
+                    })}
+                    href="/sign-in?next=%2Fapp%2Fplay"
+                  >
+                    Sign in to save
+                  </Link>
+                </div>
+              ) : (
+                <form
+                  action={signOut}
+                  className="mt-2 border-t border-[var(--border)] pt-2"
                 >
-                  Sign in to save
-                </Link>
-              </div>
-            ) : (
-              <form
-                action={signOut}
-                className="mt-2 border-t border-[var(--border)] pt-2"
-              >
-                <Button
-                  className="w-full justify-start"
-                  type="submit"
-                  variant="ghost"
-                >
-                  <LogOut className="size-4" />
-                  Sign out
-                </Button>
-              </form>
-            )}
-          </div>
-        </details>
+                  <Button
+                    className="w-full justify-start"
+                    type="submit"
+                    variant="ghost"
+                  >
+                    <LogOut className="size-4" />
+                    Sign out
+                  </Button>
+                </form>
+              )}
+            </div>
+          </details>
+        </div>
       </header>
     </>
   );

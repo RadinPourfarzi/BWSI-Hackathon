@@ -48,7 +48,7 @@ export function AuthForm({
           <input
             aria-describedby="displayName-error"
             autoComplete="name"
-            className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[#090d15] px-4 text-sm placeholder:text-[#59657a]"
+            className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[var(--input)] px-4 text-sm placeholder:text-[var(--placeholder)]"
             id="displayName"
             name="displayName"
             placeholder="How players will see you"
@@ -68,7 +68,7 @@ export function AuthForm({
         <input
           aria-describedby="email-error"
           autoComplete="email"
-          className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[#090d15] px-4 text-sm placeholder:text-[#59657a]"
+          className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[var(--input)] px-4 text-sm placeholder:text-[var(--placeholder)]"
           id="email"
           name="email"
           placeholder="you@example.com"
@@ -85,7 +85,7 @@ export function AuthForm({
         <input
           aria-describedby="password-error"
           autoComplete={signingUp ? "new-password" : "current-password"}
-          className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[#090d15] px-4 text-sm placeholder:text-[#59657a]"
+          className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[var(--input)] px-4 text-sm placeholder:text-[var(--placeholder)]"
           id="password"
           minLength={signingUp ? 8 : 1}
           name="password"
@@ -101,7 +101,7 @@ export function AuthForm({
       {!signingUp ? (
         <div className="-mt-1 text-right">
           <Link
-            className="text-xs font-bold text-[var(--blue)] hover:text-white"
+            className="text-xs font-bold text-[var(--blue)] hover:text-[var(--foreground)]"
             href="/forgot-password"
           >
             Forgot password?
@@ -111,7 +111,7 @@ export function AuthForm({
 
       {state.error ? (
         <p
-          className="rounded-xl border border-[var(--danger)]/25 bg-[var(--danger)]/8 px-4 py-3 text-sm leading-6 text-[#efb4b7]"
+          className="rounded-xl border border-[var(--danger)]/25 bg-[var(--danger)]/8 px-4 py-3 text-sm leading-6 text-[var(--danger-foreground)]"
           role="alert"
         >
           {state.error}
@@ -120,7 +120,7 @@ export function AuthForm({
 
       {state.message ? (
         <p
-          className="rounded-xl border border-[var(--success)]/25 bg-[var(--success)]/8 px-4 py-3 text-sm leading-6 text-[#a8ead3]"
+          className="rounded-xl border border-[var(--success)]/25 bg-[var(--success)]/8 px-4 py-3 text-sm leading-6 text-[var(--success-foreground)]"
           role="status"
         >
           {state.message}
@@ -133,7 +133,7 @@ export function AuthForm({
       </Button>
 
       <div className="relative py-1 text-center">
-        <span className="relative z-10 bg-[#090d15] px-3 text-xs font-bold tracking-wider text-[var(--muted)] uppercase">
+        <span className="relative z-10 bg-[var(--background)] px-3 text-xs font-bold tracking-wider text-[var(--muted)] uppercase">
           or
         </span>
         <span className="absolute top-1/2 right-0 left-0 border-t border-[var(--border)]" />
@@ -156,7 +156,7 @@ export function AuthForm({
       <p className="text-center text-sm text-[var(--muted)]">
         {signingUp ? "Already have an account?" : "New to the game?"}{" "}
         <Link
-          className="font-bold text-[var(--blue)] hover:text-white"
+          className="font-bold text-[var(--blue)] hover:text-[var(--foreground)]"
           href={`${signingUp ? "/sign-in" : "/sign-up"}?next=${encodeURIComponent(nextPath)}`}
         >
           {signingUp ? "Sign in" : "Create one"}

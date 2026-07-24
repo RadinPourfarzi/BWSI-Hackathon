@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function ResetPasswordPage() {
   return (
     <div className="animate-enter">
-      <p className="text-sm font-bold tracking-[0.18em] text-[var(--pink)] uppercase">
+      <p className="text-sm font-bold tracking-[0.18em] text-[var(--orange-ink)] uppercase">
         Secure reset
       </p>
       <h1 className="mt-3 text-4xl font-black tracking-tight">

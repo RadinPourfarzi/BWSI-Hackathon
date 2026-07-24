@@ -15,6 +15,27 @@ test("home page presents the game and authentication routes", async ({
   await expect(page.getByText("The GeoGuessr of AI detection")).toBeVisible();
 });
 
+test("theme choice persists across page loads", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => {
+    window.localStorage.setItem("bot-or-not-theme", "dark");
+  });
+  await page.reload();
+
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await page
+    .getByRole("button", { name: "Switch to light mode" })
+    .first()
+    .click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(
+    page.getByRole("button", { name: "Switch to dark mode" }).first(),
+  ).toBeVisible();
+});
+
 test("guest can start a Supabase-backed Arcade round", async ({ page }) => {
   test.skip(
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||

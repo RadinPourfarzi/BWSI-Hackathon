@@ -38,21 +38,21 @@ export default async function SignInPage({
         Sign in to play and keep your accuracy, XP, and streak history.
       </p>
       {!authConfigured || parameters.error === "configuration" ? (
-        <p className="mt-5 rounded-xl border border-[#a47627]/40 bg-[#a47627]/10 px-4 py-3 text-sm leading-6 text-[#e8c98f]">
+        <p className="mt-5 rounded-xl border border-[var(--warning-border)]/40 bg-[var(--warning-surface)] px-4 py-3 text-sm leading-6 text-[var(--warning-foreground)]">
           Account login needs a local <code>.env.local</code> file containing
           the two public Supabase values. Files named <code>env.download</code>{" "}
           are not loaded by Next.js. Guest play is available below.
         </p>
       ) : null}
       {parameters.error === "callback" ? (
-        <p className="mt-5 rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/8 px-4 py-3 text-sm text-[#efb4b7]">
+        <p className="mt-5 rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/8 px-4 py-3 text-sm text-[var(--danger-foreground)]">
           The confirmation link could not be completed. Request a new link or
           try signing in.
         </p>
       ) : null}
       {parameters.message === "password-updated" ? (
         <p
-          className="mt-5 rounded-xl border border-[var(--success)]/25 bg-[var(--success)]/8 px-4 py-3 text-sm text-[#a8ead3]"
+          className="mt-5 rounded-xl border border-[var(--success)]/25 bg-[var(--success)]/8 px-4 py-3 text-sm text-[var(--success-foreground)]"
           role="status"
         >
           Your password was updated. Sign in with the new password.

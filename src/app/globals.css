@@ -4,14 +4,80 @@
   --background: #06080d;
   --surface: #0d111b;
   --surface-raised: #141a27;
+  --surface-deep: #090d15;
+  --surface-nav: rgb(8 11 18 / 95%);
+  --surface-overlay: #0b101a;
+  --surface-subtle: rgb(255 255 255 / 4%);
+  --surface-hover: rgb(255 255 255 / 6%);
+  --input: #090d15;
   --border: #263044;
+  --border-strong: #34425b;
   --foreground: #f5f7fb;
   --muted: #9aa5b8;
+  --muted-strong: #71809a;
+  --placeholder: #59657a;
+  --icon-muted: #66738a;
   --blue: #4f8cff;
   --blue-strong: #2f6ff4;
-  --pink: #ff4fa3;
+  --blue-soft: #a9c5ff;
+  --orange: #ed9121;
+  --orange-ink: #ffad4a;
   --success: #35d39a;
+  --success-foreground: #a8ead3;
+  --success-surface: #0d1c19;
+  --success-muted: #8ba49b;
   --danger: #ff6b72;
+  --danger-foreground: #efb4b7;
+  --warning-border: #a47627;
+  --warning-surface: #21190d;
+  --warning-foreground: #e8c98f;
+  --chart-grid: #263044;
+  --tooltip-background: #141a27;
+  --tooltip-foreground: #f5f7fb;
+  --body-blue-glow: rgb(47 111 244 / 12%);
+  --body-orange-glow: rgb(237 145 33 / 8%);
+  --card-shadow: rgb(0 0 0 / 20%);
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --background: #ffffff;
+  --surface: #ffffff;
+  --surface-raised: #f2f5fa;
+  --surface-deep: #f7f9fc;
+  --surface-nav: rgb(255 255 255 / 95%);
+  --surface-overlay: #ffffff;
+  --surface-subtle: #f3f6fa;
+  --surface-hover: #e9eef5;
+  --input: #f7f9fc;
+  --border: #d7dee8;
+  --border-strong: #aeb9c8;
+  --foreground: #0a0a0a;
+  --muted: #526075;
+  --muted-strong: #647187;
+  --placeholder: #748197;
+  --icon-muted: #667085;
+  --blue: #3e7cf9;
+  --blue-strong: #2f6ff4;
+  --blue-soft: #2458b7;
+  --orange: #ed9121;
+  --orange-ink: #995000;
+  --success: #16835f;
+  --success-foreground: #11684c;
+  --success-surface: #eaf8f2;
+  --success-muted: #347562;
+  --danger: #c83e46;
+  --danger-foreground: #9f2f36;
+  --warning-border: #d58a2c;
+  --warning-surface: #fff4e3;
+  --warning-foreground: #7b490b;
+  --chart-grid: #d7dee8;
+  --tooltip-background: #ffffff;
+  --tooltip-foreground: #0a0a0a;
+  --body-blue-glow: rgb(62 124 249 / 10%);
+  --body-orange-glow: rgb(237 145 33 / 9%);
+  --card-shadow: rgb(24 39 75 / 12%);
+  color-scheme: light;
 }
 
 * {
@@ -20,15 +86,18 @@
 
 html {
   background: var(--background);
-  color-scheme: dark;
   scroll-behavior: smooth;
 }
 
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 12% 8%, rgb(47 111 244 / 12%), transparent 32rem),
-    radial-gradient(circle at 88% 24%, rgb(255 79 163 / 7%), transparent 26rem),
+    radial-gradient(circle at 12% 8%, var(--body-blue-glow), transparent 32rem),
+    radial-gradient(
+      circle at 88% 24%,
+      var(--body-orange-glow),
+      transparent 26rem
+    ),
     var(--background);
   color: var(--foreground);
   font-family:
@@ -40,6 +109,9 @@ body {
     "Segoe UI",
     sans-serif;
   text-rendering: optimizeLegibility;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
 }
 
 button,

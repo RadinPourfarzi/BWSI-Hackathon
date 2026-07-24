@@ -12,6 +12,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { BrandLogo } from "@/components/brand-logo";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -36,6 +37,7 @@ export default function Home() {
           <span className="hidden sm:inline">{uiConfig.appName}</span>
         </Link>
         <nav className="flex items-center gap-2">
+          <ThemeToggle className="size-9 px-0" />
           <Link
             className={buttonClassName({ size: "sm", variant: "ghost" })}
             href="/sign-in"
@@ -50,7 +52,7 @@ export default function Home() {
 
       <section className="mx-auto grid max-w-7xl items-center gap-14 px-5 pt-16 pb-20 sm:px-8 lg:grid-cols-[1.02fr_0.98fr] lg:pt-24 lg:pb-28">
         <div className="animate-enter">
-          <Badge className="border-[var(--blue)]/30 bg-[var(--blue)]/10 text-[#a9c5ff]">
+          <Badge className="border-[var(--blue)]/30 bg-[var(--blue)]/10 text-[var(--blue-soft)]">
             <Sparkles className="mr-1.5 size-3.5" />
             The GeoGuessr of AI detection
           </Badge>
@@ -92,10 +94,10 @@ export default function Home() {
 
         <div className="relative mx-auto w-full max-w-xl lg:mx-0">
           <div className="absolute -inset-8 -z-10 rounded-[3rem] bg-[var(--blue)]/8 blur-3xl" />
-          <Card className="overflow-hidden border-[#34425b] bg-[#0a0e16]">
+          <Card className="overflow-hidden border-[var(--border-strong)] bg-[var(--surface-deep)]">
             <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-4">
               <div>
-                <p className="text-xs font-bold tracking-[0.18em] text-[var(--pink)] uppercase">
+                <p className="text-xs font-bold tracking-[0.18em] text-[var(--orange-ink)] uppercase">
                   Live challenge
                 </p>
                 <p className="mt-1 text-sm font-semibold text-[var(--muted)]">
@@ -115,25 +117,27 @@ export default function Home() {
               />
             </div>
             <div className="grid grid-cols-2 gap-3 p-4">
-              <div className="rounded-xl border border-[var(--blue)]/50 bg-[var(--blue)]/12 py-4 text-center font-black text-[#b9ceff]">
+              <div className="rounded-xl border border-[var(--blue)]/50 bg-[var(--blue)]/12 py-4 text-center font-black text-[var(--blue-soft)]">
                 AI
               </div>
-              <div className="rounded-xl border border-[var(--border)] bg-white/4 py-4 text-center font-black">
+              <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] py-4 text-center font-black">
                 Real
               </div>
             </div>
           </Card>
-          <div className="absolute -right-3 -bottom-5 rounded-xl border border-[var(--success)]/30 bg-[#0d1c19] px-4 py-3 shadow-2xl sm:-right-7">
+          <div className="absolute -right-3 -bottom-5 rounded-xl border border-[var(--success)]/30 bg-[var(--success-surface)] px-4 py-3 shadow-2xl sm:-right-7">
             <p className="text-xs font-bold text-[var(--success)]">
               +1,174 points
             </p>
-            <p className="mt-0.5 text-xs text-[#8ba49b]">Look at the signs.</p>
+            <p className="mt-0.5 text-xs text-[var(--success-muted)]">
+              Look at the signs.
+            </p>
           </div>
         </div>
       </section>
 
       <section
-        className="border-y border-[var(--border)] bg-[#080b12]/85"
+        className="border-y border-[var(--border)] bg-[var(--surface-nav)]"
         id="how-it-works"
       >
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
@@ -173,7 +177,7 @@ export default function Home() {
                     <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
                       {category.description}
                     </p>
-                    <p className="mt-5 text-xs font-bold tracking-wide text-[#71809a] uppercase">
+                    <p className="mt-5 text-xs font-bold tracking-wide text-[var(--muted-strong)] uppercase">
                       {category.optionA} vs {category.optionB}
                     </p>
                   </CardContent>

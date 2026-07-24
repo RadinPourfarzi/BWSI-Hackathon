@@ -39,7 +39,7 @@ export function AudioRenderer({
   }
 
   return (
-    <div className="grid h-[min(52vh,30rem)] place-items-center rounded-xl border border-[var(--border)] bg-[#0a0e16] px-6 py-10">
+    <div className="grid h-[min(52vh,30rem)] place-items-center rounded-xl border border-[var(--border)] bg-[var(--surface-deep)] px-6 py-10">
       <div className="w-full max-w-md text-center">
         <div className="mx-auto grid size-20 place-items-center rounded-full border border-[var(--blue)]/30 bg-[var(--blue)]/10">
           <AudioLines className="size-9 text-[var(--blue)]" />

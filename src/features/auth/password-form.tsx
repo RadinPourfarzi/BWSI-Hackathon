@@ -43,7 +43,7 @@ export function PasswordForm({ mode }: { mode: "request" | "update" }) {
           <input
             aria-describedby="email-error"
             autoComplete="email"
-            className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[#090d15] px-4 text-sm placeholder:text-[#59657a]"
+            className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[var(--input)] px-4 text-sm placeholder:text-[var(--placeholder)]"
             id="email"
             name="email"
             placeholder="you@example.com"
@@ -61,7 +61,7 @@ export function PasswordForm({ mode }: { mode: "request" | "update" }) {
             <input
               aria-describedby="password-error"
               autoComplete="new-password"
-              className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[#090d15] px-4 text-sm placeholder:text-[#59657a]"
+              className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[var(--input)] px-4 text-sm placeholder:text-[var(--placeholder)]"
               id="password"
               minLength={8}
               name="password"
@@ -81,7 +81,7 @@ export function PasswordForm({ mode }: { mode: "request" | "update" }) {
             <input
               aria-describedby="confirmPassword-error"
               autoComplete="new-password"
-              className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[#090d15] px-4 text-sm placeholder:text-[#59657a]"
+              className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[var(--input)] px-4 text-sm placeholder:text-[var(--placeholder)]"
               id="confirmPassword"
               minLength={8}
               name="confirmPassword"
@@ -99,7 +99,7 @@ export function PasswordForm({ mode }: { mode: "request" | "update" }) {
 
       {state.error ? (
         <p
-          className="rounded-xl border border-[var(--danger)]/25 bg-[var(--danger)]/8 px-4 py-3 text-sm leading-6 text-[#efb4b7]"
+          className="rounded-xl border border-[var(--danger)]/25 bg-[var(--danger)]/8 px-4 py-3 text-sm leading-6 text-[var(--danger-foreground)]"
           role="alert"
         >
           {state.error}
@@ -108,7 +108,7 @@ export function PasswordForm({ mode }: { mode: "request" | "update" }) {
 
       {state.message ? (
         <p
-          className="rounded-xl border border-[var(--success)]/25 bg-[var(--success)]/8 px-4 py-3 text-sm leading-6 text-[#a8ead3]"
+          className="rounded-xl border border-[var(--success)]/25 bg-[var(--success)]/8 px-4 py-3 text-sm leading-6 text-[var(--success-foreground)]"
           role="status"
         >
           {state.message}
@@ -122,7 +122,7 @@ export function PasswordForm({ mode }: { mode: "request" | "update" }) {
 
       <p className="text-center text-sm text-[var(--muted)]">
         <Link
-          className="font-bold text-[var(--blue)] hover:text-white"
+          className="font-bold text-[var(--blue)] hover:text-[var(--foreground)]"
           href="/sign-in"
         >
           Return to sign in

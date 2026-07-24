@@ -28,7 +28,7 @@ export function Dialog({
 
   return (
     <dialog
-      className="m-auto w-[min(92vw,34rem)] rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-0 text-white shadow-2xl backdrop:bg-black/70"
+      className="m-auto w-[min(92vw,34rem)] rounded-2xl border border-[var(--border)] bg-[var(--surface-raised)] p-0 text-[var(--foreground)] shadow-2xl backdrop:bg-black/70"
       onCancel={onClose}
       onClose={onClose}
       ref={dialogRef}

@@ -28,7 +28,7 @@ export default async function SignUpPage({
         <BrandLogo priority size={40} />
         Bot or Not
       </Link>
-      <p className="mt-10 text-sm font-bold tracking-[0.18em] text-[var(--pink)] uppercase lg:mt-0">
+      <p className="mt-10 text-sm font-bold tracking-[0.18em] text-[var(--orange-ink)] uppercase lg:mt-0">
         Create your profile
       </p>
       <h1 className="mt-3 text-4xl font-black tracking-tight">
@@ -39,7 +39,7 @@ export default async function SignUpPage({
         or continue as a guest.
       </p>
       {!authConfigured ? (
-        <p className="mt-5 rounded-xl border border-[#a47627]/40 bg-[#a47627]/10 px-4 py-3 text-sm leading-6 text-[#e8c98f]">
+        <p className="mt-5 rounded-xl border border-[var(--warning-border)]/40 bg-[var(--warning-surface)] px-4 py-3 text-sm leading-6 text-[var(--warning-foreground)]">
           Account creation needs a local <code>.env.local</code> file containing
           the two public Supabase values. Files named <code>env.download</code>{" "}
           are not loaded by Next.js. Guest play is available below.

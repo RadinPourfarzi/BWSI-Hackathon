@@ -24,7 +24,7 @@ export function ProfileForm({ displayName }: { displayName: string }) {
       </label>
       <div className="mt-2 flex flex-col gap-3 sm:flex-row">
         <input
-          className="h-11 min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[#090d15] px-4 text-sm"
+          className="h-11 min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-[var(--input)] px-4 text-sm"
           defaultValue={displayName}
           id="displayName"
           maxLength={40}

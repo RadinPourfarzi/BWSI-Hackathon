@@ -50,7 +50,7 @@ export const categoryConfig: Record<CategoryId, CategoryConfiguration> = {
     optionB: "Legitimate",
     rendererKey: "email",
     icon: MailWarning,
-    accent: "#ff4fa3",
+    accent: "#ed9121",
     plateauMs: 3_000,
     timeLimitMs: 15_000,
     decayBeta: 1.25,

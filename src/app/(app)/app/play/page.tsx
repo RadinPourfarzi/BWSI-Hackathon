@@ -23,7 +23,7 @@ export default async function ArcadePage() {
     <div className="animate-enter">
       {!user ? <GuestNotice returnPath="/app/play" /> : null}
       <div className="mb-6">
-        <p className="text-xs font-bold tracking-[0.18em] text-[var(--pink)] uppercase">
+        <p className="text-xs font-bold tracking-[0.18em] text-[var(--orange-ink)] uppercase">
           Arcade
         </p>
         <h1 className="mt-2 text-3xl font-black tracking-tight">

@@ -121,8 +121,8 @@ function Lives({ lives }: { lives: number }) {
           className={cn(
             "size-4",
             index < lives
-              ? "fill-[var(--pink)] text-[var(--pink)]"
-              : "text-[#465168]",
+              ? "fill-[var(--orange)] text-[var(--orange)]"
+              : "text-[var(--icon-muted)]",
           )}
           key={index}
         />
@@ -212,7 +212,7 @@ function SaveMessage({
   if (guest) {
     return (
       <div className="mt-5 rounded-xl border border-[var(--blue)]/25 bg-[var(--blue)]/8 p-4 text-sm">
-        <p className="font-bold text-[#b9ceff]">Guest run complete</p>
+        <p className="font-bold text-[var(--blue-soft)]">Guest run complete</p>
         <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
           This result stays on this screen only. Create an account to save
           future XP, streaks, scores, and analytics.
@@ -253,7 +253,7 @@ function SaveMessage({
       className="mt-5 rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/8 p-4 text-sm"
       role="alert"
     >
-      <p className="text-[#efb4b7]">{error}</p>
+      <p className="text-[var(--danger-foreground)]">{error}</p>
       <Button className="mt-3" onClick={onRetry} size="sm" variant="secondary">
         Retry save
       </Button>
@@ -298,7 +298,7 @@ function GameOver({
           <span className="mx-auto grid size-20 place-items-center rounded-full bg-[#ffd166]/10">
             <Trophy className="size-9 text-[#ffd166]" />
           </span>
-          <p className="mt-6 text-xs font-bold tracking-[0.2em] text-[var(--pink)] uppercase">
+          <p className="mt-6 text-xs font-bold tracking-[0.2em] text-[var(--orange-ink)] uppercase">
             {engine.mode === "arcade"
               ? "Arcade run complete"
               : "Training summary"}
@@ -336,7 +336,7 @@ function GameOver({
             ],
           ].map(([label, value]) => (
             <div
-              className="rounded-xl border border-[var(--border)] bg-white/3 p-4 text-center"
+              className="rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] p-4 text-center"
               key={label}
             >
               <p className="text-xl font-black">{value}</p>
@@ -347,7 +347,7 @@ function GameOver({
 
         {Object.keys(summary.categoryBreakdown).length > 0 ? (
           <div className="mt-7 overflow-hidden rounded-xl border border-[var(--border)]">
-            <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-[var(--border)] bg-white/3 px-4 py-3 text-xs font-bold text-[var(--muted)]">
+            <div className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-[var(--border)] bg-[var(--surface-subtle)] px-4 py-3 text-xs font-bold text-[var(--muted)]">
               <span>Category</span>
               <span>Correct</span>
               <span>Accuracy</span>
@@ -640,7 +640,7 @@ export function GameBoard({
               Combo
             </p>
             <p className="mt-1 flex items-center gap-1 text-sm font-black">
-              <Flame className="size-3.5 text-[#ff9b52]" />
+              <Flame className="size-3.5 text-[var(--orange)]" />
               {combo} · {comboMultiplier}×
             </p>
           </div>
@@ -680,7 +680,7 @@ export function GameBoard({
       </div>
 
       {batchStatus === "error" ? (
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#a47627]/35 bg-[#a47627]/10 px-4 py-3 text-xs leading-5 text-[#e8c98f]">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--warning-border)]/35 bg-[var(--warning-surface)] px-4 py-3 text-xs leading-5 text-[var(--warning-foreground)]">
           <span className="flex items-center gap-2">
             <CircleAlert className="size-4 shrink-0" />
             Refill paused: {batchError}
@@ -722,7 +722,7 @@ export function GameBoard({
                 {(remainingMs / 1_000).toFixed(1)}s
               </Badge>
               {engine.mode === "arcade" ? (
-                <Badge className="border-[var(--blue)]/30 bg-[var(--blue)]/8 text-[#aac6ff]">
+                <Badge className="border-[var(--blue)]/30 bg-[var(--blue)]/8 text-[var(--blue-soft)]">
                   {formatNumber(obtainablePoints)} available
                 </Badge>
               ) : null}
@@ -759,18 +759,18 @@ export function GameBoard({
                   className={cn(
                     "relative min-h-16 rounded-xl border px-4 text-base font-black transition-all",
                     !answered &&
-                      "border-[var(--border)] bg-white/4 hover:-translate-y-0.5 hover:border-[var(--blue)]/60 hover:bg-[var(--blue)]/8",
+                      "border-[var(--border)] bg-[var(--surface-subtle)] hover:-translate-y-0.5 hover:border-[var(--blue)]/60 hover:bg-[var(--blue)]/8",
                     answered &&
                       correct &&
-                      "border-[var(--success)] bg-[var(--success)]/12 text-[#a8ead3]",
+                      "border-[var(--success)] bg-[var(--success)]/12 text-[var(--success-foreground)]",
                     answered &&
                       selected &&
                       !correct &&
-                      "border-[var(--danger)] bg-[var(--danger)]/10 text-[#efb4b7]",
+                      "border-[var(--danger)] bg-[var(--danger)]/10 text-[var(--danger-foreground)]",
                     answered &&
                       !selected &&
                       !correct &&
-                      "border-[var(--border)] bg-white/2 text-[#657087]",
+                      "border-[var(--border)] bg-[var(--surface-subtle)] text-[var(--muted-strong)]",
                   )}
                   disabled={answered}
                   key={choice}

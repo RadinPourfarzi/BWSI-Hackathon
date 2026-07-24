@@ -12,7 +12,7 @@ type RegisteredRenderer = ({
 
 function InvalidPayload() {
   return (
-    <p className="rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/8 p-5 text-sm text-[#efb4b7]">
+    <p className="rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/8 p-5 text-sm text-[var(--danger-foreground)]">
       This challenge payload does not match its registered renderer.
     </p>
   );

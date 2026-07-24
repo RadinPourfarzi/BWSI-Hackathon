@@ -42,7 +42,7 @@ export default async function DashboardPage() {
     <div className="animate-enter">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <Badge className="border-[#ff9b52]/25 bg-[#ff9b52]/8 text-[#ffc08c]">
+          <Badge className="border-[var(--orange)]/25 bg-[var(--orange)]/8 text-[var(--orange-ink)]">
             <Flame className="mr-1.5 size-3.5" />
             {profile.currentStreak} day streak
           </Badge>
@@ -60,7 +60,7 @@ export default async function DashboardPage() {
       </div>
 
       <section className="mt-8 grid gap-4 md:grid-cols-[1.5fr_1fr]">
-        <Card className="overflow-hidden border-[var(--blue)]/25 bg-[#0b1220]">
+        <Card className="overflow-hidden border-[var(--blue)]/25 bg-[var(--surface-deep)]">
           <CardContent className="relative min-h-64 p-7 sm:p-9">
             <div className="absolute top-0 right-0 h-full w-1/2 bg-[radial-gradient(circle_at_center,rgb(79_140_255/0.15),transparent_62%)]" />
             <div className="relative max-w-xl">
@@ -95,8 +95,8 @@ export default async function DashboardPage() {
         <Card>
           <CardContent className="p-7">
             <div className="flex items-center gap-3">
-              <span className="grid size-11 place-items-center rounded-xl bg-[var(--pink)]/10">
-                <BrainCircuit className="size-5 text-[var(--pink)]" />
+              <span className="grid size-11 place-items-center rounded-xl bg-[var(--orange)]/10">
+                <BrainCircuit className="size-5 text-[var(--orange)]" />
               </span>
               <div>
                 <p className="font-black">Training mode</p>
@@ -146,7 +146,7 @@ export default async function DashboardPage() {
             label: "Longest streak",
             value: `${profile.longestStreak} days`,
             icon: Flame,
-            color: "text-[#ff9b52]",
+            color: "text-[var(--orange)]",
           },
         ].map((stat) => (
           <Card key={stat.label}>

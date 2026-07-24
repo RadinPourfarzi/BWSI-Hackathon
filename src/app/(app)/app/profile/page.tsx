@@ -63,7 +63,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="animate-enter">
-      <p className="text-xs font-bold tracking-[0.18em] text-[var(--pink)] uppercase">
+      <p className="text-xs font-bold tracking-[0.18em] text-[var(--orange-ink)] uppercase">
         Profile
       </p>
       <h1 className="mt-2 text-3xl font-black tracking-tight">
@@ -71,7 +71,7 @@ export default async function ProfilePage() {
       </h1>
 
       <Card className="mt-8 overflow-hidden">
-        <div className="h-28 bg-[radial-gradient(circle_at_20%_0%,rgb(79_140_255/0.28),transparent_55%),#0b1220]" />
+        <div className="h-28 bg-[radial-gradient(circle_at_20%_0%,rgb(79_140_255/0.28),transparent_55%),var(--surface-deep)]" />
         <CardContent className="-mt-10 p-7">
           <span className="grid size-20 place-items-center rounded-2xl border-4 border-[var(--surface)] bg-[var(--blue-strong)]">
             <UserRound className="size-9" />
@@ -87,7 +87,7 @@ export default async function ProfilePage() {
                 Joined {dateLabel(profile.joinDate)}
               </p>
             </div>
-            <Badge className="w-fit border-[var(--blue)]/30 bg-[var(--blue)]/10 text-[#a9c5ff]">
+            <Badge className="w-fit border-[var(--blue)]/30 bg-[var(--blue)]/10 text-[var(--blue-soft)]">
               Level {profile.level}
             </Badge>
           </div>
@@ -150,7 +150,7 @@ export default async function ProfilePage() {
               <ol className="space-y-3">
                 {profile.recentActivity.map((activity) => (
                   <li
-                    className="flex items-center justify-between gap-4 rounded-xl border border-[var(--border)] bg-white/2 px-4 py-3"
+                    className="flex items-center justify-between gap-4 rounded-xl border border-[var(--border)] bg-[var(--surface-subtle)] px-4 py-3"
                     key={activity.id}
                   >
                     <div>

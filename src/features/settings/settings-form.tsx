@@ -135,7 +135,7 @@ export function SettingsForm({
                     "relative cursor-pointer rounded-xl border p-4 transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--blue)]",
                     selected
                       ? "border-[var(--blue)] bg-[var(--blue)]/8"
-                      : "border-[var(--border)] bg-white/2",
+                      : "border-[var(--border)] bg-[var(--surface-subtle)]",
                   )}
                   key={category}
                 >
@@ -201,7 +201,7 @@ export function SettingsForm({
               Follow the device setting, always reduce, or allow animations.
             </p>
             <select
-              className="mt-3 h-11 w-full rounded-xl border border-[var(--border)] bg-[#090d15] px-3 text-sm"
+              className="mt-3 h-11 w-full rounded-xl border border-[var(--border)] bg-[var(--input)] px-3 text-sm"
               defaultValue={initialSettings.reducedMotion}
               id="reducedMotion"
               name="reducedMotion"
@@ -234,7 +234,7 @@ export function SettingsForm({
 
       {state.error ? (
         <p
-          className="rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/8 px-4 py-3 text-sm text-[#efb4b7]"
+          className="rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/8 px-4 py-3 text-sm text-[var(--danger-foreground)]"
           role="alert"
         >
           {state.error}
@@ -242,7 +242,7 @@ export function SettingsForm({
       ) : null}
       {state.message ? (
         <p
-          className="rounded-xl border border-[var(--success)]/30 bg-[var(--success)]/8 px-4 py-3 text-sm text-[#a8ead3]"
+          className="rounded-xl border border-[var(--success)]/30 bg-[var(--success)]/8 px-4 py-3 text-sm text-[var(--success-foreground)]"
           role="status"
         >
           {state.message}

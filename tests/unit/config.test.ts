@@ -30,6 +30,10 @@ describe("game configuration", () => {
     );
   });
 
+  it("uses the approved orange for email accents", () => {
+    expect(categoryConfig.email.accent).toBe("#ed9121");
+  });
+
   it("defines exact 1x through 4x combo tiers", () => {
     expect(scoringConfig.comboSteps.map((step) => step.multiplier)).toEqual([
       1, 2, 3, 4,

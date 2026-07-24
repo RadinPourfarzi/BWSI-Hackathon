@@ -57,31 +57,31 @@ export function AccuracyChart({
             margin={{ top: 10, right: 8, left: -20, bottom: 0 }}
           >
             <CartesianGrid
-              stroke="#263044"
+              stroke="var(--chart-grid)"
               strokeDasharray="4 6"
               vertical={false}
             />
             <XAxis
               axisLine={false}
               dataKey="category"
-              stroke="#9aa5b8"
+              stroke="var(--muted)"
               tickLine={false}
             />
             <YAxis
               axisLine={false}
               domain={[0, 100]}
-              stroke="#9aa5b8"
+              stroke="var(--muted)"
               tickFormatter={(value: number) => `${value}%`}
               tickLine={false}
             />
             <Tooltip
               contentStyle={{
-                background: "#141a27",
-                border: "1px solid #263044",
+                background: "var(--tooltip-background)",
+                border: "1px solid var(--chart-grid)",
                 borderRadius: "12px",
-                color: "#f5f7fb",
+                color: "var(--tooltip-foreground)",
               }}
-              cursor={{ fill: "rgba(255,255,255,0.03)" }}
+              cursor={{ fill: "var(--surface-subtle)" }}
               formatter={(value, _name, item) => [
                 `${String(value)}% (${String(item.payload.correct)}/${String(item.payload.answered)})`,
                 "Accuracy",

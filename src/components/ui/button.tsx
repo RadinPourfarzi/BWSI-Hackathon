@@ -11,8 +11,9 @@ const variants = {
   primary:
     "bg-[var(--blue-strong)] text-white hover:bg-[var(--blue)] shadow-[0_10px_30px_rgb(47_111_244/0.2)]",
   secondary:
-    "border border-[var(--border)] bg-[var(--surface-raised)] text-white hover:border-[#3a4964] hover:bg-[#192131]",
-  ghost: "text-[var(--muted)] hover:bg-white/5 hover:text-white",
+    "border border-[var(--border)] bg-[var(--surface-raised)] text-[var(--foreground)] hover:border-[var(--border-strong)] hover:bg-[var(--surface-hover)]",
+  ghost:
+    "text-[var(--muted)] hover:bg-[var(--surface-hover)] hover:text-[var(--foreground)]",
   danger:
     "border border-[var(--danger)]/40 bg-[var(--danger)]/10 text-[var(--danger)] hover:bg-[var(--danger)]/15",
 } as const;

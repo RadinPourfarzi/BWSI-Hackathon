@@ -33,7 +33,7 @@ const chartDefinitions: Array<{
     field: "overallAccuracy",
     title: "Overall accuracy over time",
     description: "Accuracy for each completed session",
-    color: "#4f8cff",
+    color: "var(--blue)",
     percentage: true,
   },
   {
@@ -47,14 +47,14 @@ const chartDefinitions: Array<{
     field: "emailAccuracy",
     title: "Email accuracy over time",
     description: "Sessions containing email challenges",
-    color: "#ff4fa3",
+    color: "var(--orange)",
     percentage: true,
   },
   {
     field: "voiceAccuracy",
     title: "Audio accuracy over time",
     description: "Sessions containing voice challenges",
-    color: "#35d39a",
+    color: "var(--success)",
     percentage: true,
   },
   {
@@ -132,7 +132,7 @@ function TrendChart({
                   margin={{ top: 8, right: 8, left: -18, bottom: 0 }}
                 >
                   <CartesianGrid
-                    stroke="#263044"
+                    stroke="var(--chart-grid)"
                     strokeDasharray="4 6"
                     vertical={false}
                   />
@@ -140,14 +140,14 @@ function TrendChart({
                     axisLine={false}
                     dataKey="date"
                     minTickGap={24}
-                    stroke="#9aa5b8"
+                    stroke="var(--muted)"
                     tickFormatter={dateLabel}
                     tickLine={false}
                   />
                   <YAxis
                     axisLine={false}
                     domain={definition.percentage ? [0, 100] : ["auto", "auto"]}
-                    stroke="#9aa5b8"
+                    stroke="var(--muted)"
                     tickFormatter={(value: number) =>
                       formatValue(value, definition)
                     }
@@ -155,10 +155,10 @@ function TrendChart({
                   />
                   <Tooltip
                     contentStyle={{
-                      background: "#141a27",
-                      border: "1px solid #263044",
+                      background: "var(--tooltip-background)",
+                      border: "1px solid var(--chart-grid)",
                       borderRadius: "12px",
-                      color: "#f5f7fb",
+                      color: "var(--tooltip-foreground)",
                     }}
                     formatter={(value) => [
                       formatValue(Number(value), definition),
