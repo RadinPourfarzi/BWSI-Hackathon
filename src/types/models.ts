@@ -161,6 +161,7 @@ export interface AttemptRecord {
   questionIndex: number;
   isCorrect: boolean;
   responseTimeMs: number;
+  /** 1-based consecutive-correct streak this answer produced (0 if wrong). */
   comboAtAnswer: number;
   /** Optional; client display only — server recomputes. */
   pointsAwarded?: number;

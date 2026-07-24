@@ -214,6 +214,7 @@ export interface AttemptRecord {
   questionIndex: number;         // position in the run; selects the difficulty tier
   isCorrect: boolean;
   responseTimeMs: number;
+  /** 1-based consecutive-correct streak this answer produced; 0 if wrong. */
   comboAtAnswer: number;
   pointsAwarded?: number;        // optional; client display only — server recomputes
 }
