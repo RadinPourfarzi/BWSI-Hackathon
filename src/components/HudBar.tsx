@@ -4,8 +4,9 @@ import { LivesIndicator } from './LivesIndicator';
 import { ComboBadge } from './ComboBadge';
 
 /**
- * Top gameplay HUD: run score (left), lives + combo (center), and the current category
- * badge (right). See project-plan.md §8, Screen 2.
+ * Top gameplay HUD. Arcade shows run score (left) and lives + combo (center). Training has
+ * no score/lives/combo pressure, so it shows a correct-count instead. Both show the current
+ * category badge (right). See project-plan.md §6, §8.
  */
 export function HudBar({
   score,
@@ -14,6 +15,8 @@ export function HudBar({
   combo,
   mode,
   categoryId,
+  correct = 0,
+  answered = 0,
 }: {
   score: number;
   lives: number;
@@ -21,22 +24,32 @@ export function HudBar({
   combo: number;
   mode: GameMode;
   categoryId: CategoryId;
+  correct?: number;
+  answered?: number;
 }) {
+  const isTraining = mode === 'TRAINING';
+
   return (
     <div className="flex w-full items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900">
       <div className="flex flex-col">
-        <span className="text-xs text-zinc-500 dark:text-zinc-400">Score</span>
-        <span className="text-xl font-semibold tabular-nums">{score.toLocaleString()}</span>
+        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+          {isTraining ? 'Correct' : 'Score'}
+        </span>
+        <span className="text-xl font-semibold tabular-nums">
+          {isTraining ? `${correct}/${answered}` : score.toLocaleString()}
+        </span>
       </div>
 
-      <div className="flex items-center gap-3">
-        <LivesIndicator lives={lives} maxLives={maxLives} />
-        <ComboBadge combo={combo} />
-      </div>
+      {!isTraining && (
+        <div className="flex items-center gap-3">
+          <LivesIndicator lives={lives} maxLives={maxLives} />
+          <ComboBadge combo={combo} />
+        </div>
+      )}
 
       <div className="flex flex-col items-end">
         <span className="text-xs text-zinc-500 dark:text-zinc-400">
-          {mode === 'ARCADE' ? 'Arcade' : 'Training'}
+          {isTraining ? 'Training' : 'Arcade'}
         </span>
         <span className="rounded-md bg-zinc-100 px-2 py-0.5 text-sm font-medium tracking-wide uppercase dark:bg-zinc-800">
           {CATEGORY_CONFIG[categoryId].displayName}

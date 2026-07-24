@@ -115,4 +115,12 @@ describe('training mode', () => {
     expect(store().status).toBe('running');
     expect(store().lives).toBe(Number.POSITIVE_INFINITY);
   });
+
+  it('keeps score at 0 even for correct answers (no competitive scoring)', () => {
+    store().startRun({ mode: 'TRAINING', pool: DUMMY_QUESTIONS, enabledCategories: ALL, now: T0 });
+    const q = store().current!;
+    const out = store().answer(q.isAi, T0)!;
+    expect(out.isCorrect).toBe(true);
+    expect(store().score).toBe(0);
+  });
 });

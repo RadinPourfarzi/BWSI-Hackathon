@@ -31,6 +31,7 @@ const IDLE: ScoringTimerState = {
  */
 export function useScoringTimer(): ScoringTimerState {
   const status = useGameStore((s) => s.status);
+  const mode = useGameStore((s) => s.mode);
   const questionStartedAt = useGameStore((s) => s.questionStartedAt);
   const questionIndex = useGameStore((s) => s.questionIndex);
   const current = useGameStore((s) => s.current);
@@ -39,7 +40,8 @@ export function useScoringTimer(): ScoringTimerState {
   const [nowMs, setNowMs] = useState(() => Date.now());
 
   useEffect(() => {
-    if (status !== 'running' || questionStartedAt === null) {
+    // Training mode has no timer or score decay (project-plan.md §6).
+    if (status !== 'running' || questionStartedAt === null || mode === 'TRAINING') {
       return;
     }
     let raf = 0;
@@ -49,10 +51,15 @@ export function useScoringTimer(): ScoringTimerState {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [status, questionStartedAt, questionIndex]);
+  }, [status, questionStartedAt, questionIndex, mode]);
 
   return useMemo(() => {
-    if (status !== 'running' || questionStartedAt === null || current === null) {
+    if (
+      mode === 'TRAINING' ||
+      status !== 'running' ||
+      questionStartedAt === null ||
+      current === null
+    ) {
       return IDLE;
     }
     const tier = selectTier(questionIndex, config.difficultyTiers);
@@ -67,5 +74,5 @@ export function useScoringTimer(): ScoringTimerState {
     );
     const fraction = tier.timerMs > 0 ? remainingMs / tier.timerMs : 0;
     return { elapsedMs, remainingMs, obtainablePoints, fraction, tier };
-  }, [status, questionStartedAt, questionIndex, current, config, nowMs]);
+  }, [mode, status, questionStartedAt, questionIndex, current, config, nowMs]);
 }

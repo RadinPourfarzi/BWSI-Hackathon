@@ -11,6 +11,7 @@ import { HudBar } from '@/components/HudBar';
 import { MediaContainer } from '@/components/MediaContainer';
 import { TimerBar } from '@/components/TimerBar';
 import { AnswerButtons } from '@/components/AnswerButtons';
+import { TrainingResult } from '@/components/TrainingResult';
 import { GameOverSummary } from '@/components/GameOverSummary';
 import { DUMMY_QUESTIONS } from '@/lib/dummyQuestions';
 import { computeRunXp } from '@/lib/progression';
@@ -25,6 +26,7 @@ export default function PlayPage() {
   const enabledCategories = useGameStore((s) => s.enabledCategories);
 
   const { status, current, answer, next, reset } = engine;
+  const isTraining = engine.mode === 'TRAINING';
   const [feedback, setFeedback] = useState<AnswerOutcome | null>(null);
 
   const handleAnswer = useCallback(
@@ -37,18 +39,33 @@ export default function PlayPage() {
         return;
       }
       setFeedback(outcome);
-      window.setTimeout(() => {
-        setFeedback(null);
-        next();
-      }, UI_CONFIG.feedbackHoldMs);
+      // Arcade auto-advances after a brief flash; Training waits for a manual Next.
+      if (!isTraining) {
+        window.setTimeout(() => {
+          setFeedback(null);
+          next();
+        }, UI_CONFIG.feedbackHoldMs);
+      }
     },
-    [status, feedback, answer, next],
+    [status, feedback, answer, next, isTraining],
   );
 
-  // Keyboard shortcuts: A / ArrowLeft = AI, D / ArrowRight = REAL.
+  const goNext = useCallback(() => {
+    setFeedback(null);
+    next();
+  }, [next]);
+
+  // Keyboard: A/← = AI, D/→ = REAL. In Training, Enter/Space advances after answering.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
+      if (feedback !== null) {
+        if (isTraining && (key === 'enter' || key === ' ' || key === 'arrowright')) {
+          e.preventDefault();
+          goNext();
+        }
+        return;
+      }
       if (key === 'arrowleft' || key === 'a') {
         handleAnswer(true);
       } else if (key === 'arrowright' || key === 'd') {
@@ -57,7 +74,7 @@ export default function PlayPage() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [handleAnswer]);
+  }, [handleAnswer, goNext, feedback, isTraining]);
 
   // No active run (e.g. hard refresh) — send the player back to start one.
   if (status === 'idle') {
@@ -116,6 +133,8 @@ export default function PlayPage() {
         combo={engine.combo}
         mode={engine.mode}
         categoryId={current.categoryId}
+        correct={engine.attempts.filter((a) => a.isCorrect).length}
+        answered={engine.attempts.length}
       />
 
       <div className="relative">
@@ -123,7 +142,8 @@ export default function PlayPage() {
           <ChallengeMedia question={current} />
         </MediaContainer>
 
-        {feedback !== null && (
+        {/* Arcade shows a brief covering flash; Training keeps the media visible. */}
+        {feedback !== null && !isTraining && (
           <div
             className={`absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-xl text-white ${
               feedback.isCorrect ? 'bg-emerald-600/85' : 'bg-red-600/85'
@@ -140,13 +160,20 @@ export default function PlayPage() {
         )}
       </div>
 
-      <TimerBar
-        fraction={timer.fraction}
-        remainingMs={timer.remainingMs}
-        obtainablePoints={timer.obtainablePoints}
-      />
+      {/* Timer/decay only exist in Arcade. */}
+      {!isTraining && (
+        <TimerBar
+          fraction={timer.fraction}
+          remainingMs={timer.remainingMs}
+          obtainablePoints={timer.obtainablePoints}
+        />
+      )}
 
-      <AnswerButtons onAnswer={handleAnswer} disabled={feedback !== null} />
+      {isTraining && feedback !== null ? (
+        <TrainingResult outcome={feedback} explanation={current.explanationText} onNext={goNext} />
+      ) : (
+        <AnswerButtons onAnswer={handleAnswer} disabled={feedback !== null} />
+      )}
 
       <div className="flex items-center justify-between text-sm text-zinc-500 dark:text-zinc-400">
         <span>Question {engine.questionIndex}</span>
