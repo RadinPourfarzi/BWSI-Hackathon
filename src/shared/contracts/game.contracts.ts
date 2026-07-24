@@ -31,6 +31,12 @@ export interface StartGameResponse {
   challenge: PublicQuestion;
 }
 
+export interface GetGameSessionResponse {
+  state: PublicGameState;
+  config: ActiveGameConfig;
+  challenge: PublicQuestion;
+}
+
 export interface SubmitAnswerRequest {
   sessionId: string;
   challengeId: string;
@@ -83,6 +89,20 @@ export interface LeaderboardEntry {
 }
 
 export interface PlayerAnalytics {
+  attempts: number;
+  correct: number;
+  accuracyPercent: number;
+  averageResponseTimeMs: number;
+  averageArcadeScore: number;
+  bestArcadeScore: number;
+  leaderboardRank: number | null;
+  strongestCategory: CategoryId | null;
+  weakestCategory: CategoryId | null;
+  byCategory: CategoryAnalytics[];
+}
+
+export interface CategoryAnalytics {
+  categoryId: CategoryId;
   attempts: number;
   correct: number;
   accuracyPercent: number;

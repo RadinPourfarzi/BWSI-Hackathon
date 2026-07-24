@@ -1,9 +1,5 @@
 import type { GameEvent } from "@/shared/contracts/game.contracts";
-import type {
-  ActiveGameConfig,
-  CategoryId,
-  GameMode,
-} from "@/shared/types/game.types";
+import type { ActiveGameConfig, CategoryId, GameMode } from "@/shared/types/game.types";
 import { calculateScore } from "@/server/game/scoring";
 import { updateCombo } from "@/server/game/combo";
 import { shouldEndGame, updateLives } from "@/server/game/lives";

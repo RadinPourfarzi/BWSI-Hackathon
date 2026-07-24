@@ -8,7 +8,12 @@ export async function GET(request: Request) {
     const rawLimit = Number(url.searchParams.get("limit") ?? 20);
     const limit = Number.isFinite(rawLimit) ? rawLimit : 20;
     const leaderboard = await container.leaderboard.getLeaderboard(limit);
-    return NextResponse.json({ entries: leaderboard });
+    return NextResponse.json(
+      { entries: leaderboard },
+      {
+        headers: { "Cache-Control": "public, s-maxage=30, stale-while-revalidate=60" },
+      },
+    );
   } catch (error) {
     return apiError(error);
   }

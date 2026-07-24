@@ -1,8 +1,9 @@
 # Database integration notes
 
-This starter maps the supplied `database-schema.md` and `data-formats.md` into
-server-owned TypeScript contracts. Before production, the database and server
-developers should reconcile the following points.
+This implementation maps the supplied `database-schema.md` and
+`data-formats.md` into server-owned TypeScript contracts. The changes below are
+implemented by `supabase/migrations/202607240001_server_engine.sql`; the
+database and server developers should review that migration together.
 
 ## 1. Keep `questions.is_ai` private
 
@@ -10,7 +11,7 @@ The architecture PDF requires the answer key to remain server-side. The current
 database draft permits authenticated users to select active `questions`, which
 also exposes `is_ai`.
 
-Recommended change:
+Implemented change:
 
 - Do not grant browser clients direct `SELECT` access to the `questions` table.
 - Read questions inside Next.js route handlers using a protected server client.
@@ -46,8 +47,9 @@ The server:
 6. Calculates points, combo, lives, and XP.
 7. Persists the derived attempt and completed run.
 
-`submit_run` should therefore be callable only by the server, or it should be
-replaced by repository operations that receive already-validated server data.
+The supplied browser-callable `submit_run` is replaced by the server-only
+`persist_completed_game` function. Execute permission is granted only to the
+service role.
 
 ## 3. Tighten write policies
 
@@ -55,7 +57,7 @@ Owner-only `FOR ALL` policies still permit owners to forge their own session and
 attempt rows. Likewise, unrestricted profile updates can allow a client to
 modify progression fields.
 
-For an authoritative server design:
+The migration enforces:
 
 - Browser users may `SELECT` their own profiles, sessions, and attempts.
 - Browser users must not directly write `final_score`, `xp_awarded`,
@@ -64,7 +66,7 @@ For an authoritative server design:
 - If users can edit a username, expose a narrow RPC or separate editable field
   policy instead of granting general profile updates.
 
-## 4. Add durable active-session storage
+## 4. Durable active-session storage
 
 `game_sessions` currently describes completed runs. The live engine also needs
 authoritative temporary state:
@@ -78,31 +80,26 @@ authoritative temporary state:
 - attempt accumulator
 - configuration version
 
-The included `InMemoryActiveSessionStore` is appropriate for tests and a
-single-process local demo. For Vercel, add a durable implementation backed by:
-
-- a dedicated `active_game_sessions` table,
-- Redis, or
-- another shared low-latency store.
-
-Whichever implementation is chosen must support atomic updates or optimistic
-version checks so two simultaneous answer submissions cannot both succeed.
+`InMemoryActiveSessionStore` is used in mock mode. Supabase mode uses
+`SupabaseActiveSessionStore` and the server-only `active_game_sessions` table.
+Its `version` column provides optimistic compare-and-swap updates so two
+simultaneous answer submissions cannot both succeed.
 
 ## 5. Database naming map
 
 All snake_case conversion stays under `src/database/supabase/`.
 
-| Database | TypeScript |
-| --- | --- |
-| `category_id` | `categoryId` |
-| `media_url` | `mediaUrl` |
-| `is_ai` | `isAi` |
+| Database            | TypeScript         |
+| ------------------- | ------------------ |
+| `category_id`       | `categoryId`       |
+| `media_url`         | `mediaUrl`         |
+| `is_ai`             | `isAi`             |
 | `difficulty_rating` | `difficultyRating` |
-| `explanation_text` | `explanationText` |
-| `total_xp` | `totalXp` |
-| `current_level` | `currentLevel` |
-| `daily_streak` | `dailyStreak` |
-| `last_played_at` | `lastPlayedAt` |
+| `explanation_text`  | `explanationText`  |
+| `total_xp`          | `totalXp`          |
+| `current_level`     | `currentLevel`     |
+| `daily_streak`      | `dailyStreak`      |
+| `last_played_at`    | `lastPlayedAt`     |
 
 The rest of the application should never receive raw database rows.
 

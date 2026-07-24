@@ -3,6 +3,18 @@ import { ZodError } from "zod";
 import { GameError } from "@/server/errors/game.errors";
 
 export function apiError(error: unknown): NextResponse {
+  if (error instanceof SyntaxError) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "INVALID_JSON",
+          message: "The request body must contain valid JSON.",
+        },
+      },
+      { status: 400 },
+    );
+  }
+
   if (error instanceof ZodError) {
     return NextResponse.json(
       {
@@ -17,8 +29,12 @@ export function apiError(error: unknown): NextResponse {
   }
 
   if (error instanceof GameError) {
+    const message =
+      error.code === "SERVICE_UNAVAILABLE"
+        ? "A required service is temporarily unavailable."
+        : error.message;
     return NextResponse.json(
-      { error: { code: error.code, message: error.message } },
+      { error: { code: error.code, message } },
       { status: error.status },
     );
   }

@@ -7,7 +7,8 @@ export class GameError extends Error {
       | "FORBIDDEN"
       | "NOT_FOUND"
       | "CONFLICT"
-      | "SESSION_ENDED",
+      | "SESSION_ENDED"
+      | "SERVICE_UNAVAILABLE",
     readonly status: number,
   ) {
     super(message);

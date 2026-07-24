@@ -21,6 +21,7 @@ export interface ServerAttempt {
 }
 
 export interface ServerGameState {
+  version: number;
   sessionId: string;
   userId: string;
   status: SessionStatus;

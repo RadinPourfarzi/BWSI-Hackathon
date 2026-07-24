@@ -1,9 +1,11 @@
-# Server build order
+# Server integration order
 
 Use the same branch, `radin/feat/server-engine-foundation`, with small commits in
 this order.
 
-## Phase 1 — Contracts and pure rules
+The server code is implemented. Use these phases to review and integrate it.
+
+## Phase 1 — Contracts and pure rules (implemented)
 
 - Review `src/shared` with the UI and database developers.
 - Finalize combo, timeout, completion-bonus, and Training rules.
@@ -12,7 +14,7 @@ this order.
 Exit condition: `npm run typecheck` and `npm test` pass without Next.js or a
 database running.
 
-## Phase 2 — Complete session loop
+## Phase 2 — Complete session loop (implemented)
 
 - Test starting sessions.
 - Test ownership checks.
@@ -23,26 +25,24 @@ database running.
 
 Exit condition: a complete game works against `MockGameRepository`.
 
-## Phase 3 — UI integration
+## Phase 3 — UI integration (team action)
 
 - Give the UI developer the request/response types from `src/shared/contracts`.
 - Keep API routes thin.
 - Do not expose `QuestionRecord` or any repository type to the UI.
 - Add end-to-end request tests once the basic gameplay screen exists.
 
-## Phase 4 — Supabase
+## Phase 4 — Supabase (code implemented; project setup required)
 
-- Generate database types with the Supabase CLI.
-- Implement `SupabaseGameRepository`.
-- Add real authentication.
-- Add a durable `ActiveSessionStore`.
-- Apply restrictive RLS policies.
+- Have the database teammate review and apply the included migration.
+- Replace the handwritten minimal database row types with generated types if
+  desired.
+- Add the real Supabase project environment settings.
 - Verify the client cannot read answer keys or write authoritative values.
 
-## Phase 5 — Analytics and polish
+## Phase 5 — Analytics and polish (implemented, with optional extensions)
 
-- Implement leaderboard queries.
-- Implement player/category accuracy.
-- Add structured server logging.
-- Add rate limits.
-- Add idempotency/version checks for answer submission.
+- Leaderboard and category analytics are implemented.
+- Idempotency and optimistic session versions are implemented.
+- Optional after the hackathon: structured log aggregation and a distributed
+  rate limiter.

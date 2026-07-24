@@ -25,8 +25,6 @@ export function calculateLevel(totalXp: number, config: ActiveGameConfig): numbe
   }
 
   return (
-    Math.floor(
-      Math.pow(totalXp / config.xp.xpCurveBase, 1 / config.xp.xpCurveExp),
-    ) + 1
+    Math.floor(Math.pow(totalXp / config.xp.xpCurveBase, 1 / config.xp.xpCurveExp)) + 1
   );
 }

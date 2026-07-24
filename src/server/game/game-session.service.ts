@@ -1,6 +1,8 @@
 import { randomUUID } from "node:crypto";
 import type {
   EndGameRequest,
+  GameEvent,
+  GetGameSessionResponse,
   GameSummary,
   PublicGameState,
   StartGameRequest,
@@ -21,16 +23,19 @@ import { GameRuleEngine } from "@/server/game/rule-engine";
 import { calculateXp } from "@/server/game/xp";
 import type { GameRepository } from "@/server/repositories/game.repository";
 import type { ActiveSessionStore } from "@/server/sessions/active-session.store";
-import { PlayerProgressionService } from "@/server/players/player-progression.service";
 
 export interface GameSessionServiceDependencies {
   repository: GameRepository;
   sessions: ActiveSessionStore;
   selector: QuestionSelector;
   rules: GameRuleEngine;
-  progression: PlayerProgressionService;
   nowMs?: () => number;
   createId?: () => string;
+}
+
+interface FinalizationResult {
+  summary: GameSummary;
+  events: GameEvent[];
 }
 
 export class GameSessionService {
@@ -42,7 +47,10 @@ export class GameSessionService {
     this.createId = dependencies.createId ?? randomUUID;
   }
 
-  async startGame(userId: string, request: StartGameRequest): Promise<StartGameResponse> {
+  async startGame(
+    userId: string,
+    request: StartGameRequest,
+  ): Promise<StartGameResponse> {
     const config = await this.dependencies.repository.getActiveConfig();
     const categories = [...new Set(request.categories)].filter(
       (category) => config.categories[category]?.isActive,
@@ -62,6 +70,7 @@ export class GameSessionService {
     });
     const now = this.nowMs();
     const session: ServerGameState = {
+      version: 0,
       sessionId: this.createId(),
       userId,
       status: "active",
@@ -84,7 +93,7 @@ export class GameSessionService {
       summary: null,
     };
 
-    await this.dependencies.sessions.set(session);
+    await this.dependencies.sessions.create(session);
     return {
       state: this.toPublicState(session),
       config,
@@ -154,19 +163,19 @@ export class GameSessionService {
         ];
 
     if (result.gameEnded) {
-      const summary = await this.finishSession(session, true);
+      const finalization = await this.finishSession(session, true);
       return {
         wasCorrect: result.effectiveCorrectness,
         correctAnswer: evaluation.correctAnswer,
         explanation:
           session.mode === "TRAINING"
-            ? challenge.explanationText ?? undefined
+            ? (challenge.explanationText ?? undefined)
             : undefined,
         awardedPoints: result.awardedPoints,
         responseTimeMs,
         state: this.toPublicState(session),
-        events,
-        summary,
+        events: [...events, ...finalization.events],
+        summary: finalization.summary,
       };
     }
 
@@ -179,14 +188,15 @@ export class GameSessionService {
       session.currentChallenge = nextChallenge;
       session.challengeStartedAtMs = now;
       session.shownChallengeIds.push(nextChallenge.id);
-      await this.dependencies.sessions.set(session);
+      const expectedVersion = session.version;
+      await this.dependencies.sessions.save(session, expectedVersion);
 
       return {
         wasCorrect: result.effectiveCorrectness,
         correctAnswer: evaluation.correctAnswer,
         explanation:
           session.mode === "TRAINING"
-            ? challenge.explanationText ?? undefined
+            ? (challenge.explanationText ?? undefined)
             : undefined,
         awardedPoints: result.awardedPoints,
         responseTimeMs,
@@ -199,26 +209,44 @@ export class GameSessionService {
         throw error;
       }
       events.push({ type: "game-ended" });
-      const summary = await this.finishSession(session, true);
+      const finalization = await this.finishSession(session, true);
       return {
         wasCorrect: result.effectiveCorrectness,
         correctAnswer: evaluation.correctAnswer,
         explanation:
           session.mode === "TRAINING"
-            ? challenge.explanationText ?? undefined
+            ? (challenge.explanationText ?? undefined)
             : undefined,
         awardedPoints: result.awardedPoints,
         responseTimeMs,
         state: this.toPublicState(session),
-        events,
-        summary,
+        events: [...events, ...finalization.events],
+        summary: finalization.summary,
       };
     }
   }
 
+  async getGame(userId: string, sessionId: string): Promise<GetGameSessionResponse> {
+    const session = await this.getOwnedActiveSession(userId, sessionId);
+    if (!session.currentChallenge) {
+      throw new GameError(
+        "The active session does not have a current challenge.",
+        "CONFLICT",
+        409,
+      );
+    }
+
+    return {
+      state: this.toPublicState(session),
+      config: session.config,
+      challenge: toPublicQuestion(session.currentChallenge),
+    };
+  }
+
   async endGame(userId: string, request: EndGameRequest): Promise<GameSummary> {
     const session = await this.getOwnedActiveSession(userId, request.sessionId);
-    return this.finishSession(session, false);
+    const finalization = await this.finishSession(session, false);
+    return finalization.summary;
   }
 
   private async getOwnedActiveSession(
@@ -241,7 +269,7 @@ export class GameSessionService {
   private async finishSession(
     session: ServerGameState,
     completed: boolean,
-  ): Promise<GameSummary> {
+  ): Promise<FinalizationResult> {
     const endedAtMs = this.nowMs();
     const xpAwarded = calculateXp(
       {
@@ -265,22 +293,27 @@ export class GameSessionService {
       endedAt: new Date(endedAtMs).toISOString(),
     };
 
+    const expectedVersion = session.version;
     session.status = completed ? "completed" : "abandoned";
     session.endedAtMs = endedAtMs;
     session.summary = summary;
-    await this.dependencies.progression.applyCompletedGame(
-      session.userId,
-      xpAwarded,
+    await this.dependencies.sessions.save(session, expectedVersion);
+    const completion = await this.dependencies.repository.completeGame(
+      {
+        summary,
+        status: session.status === "completed" ? "completed" : "abandoned",
+        userId: session.userId,
+        categoriesPlayed: session.enabledCategories,
+        attempts: session.attempts,
+      },
       session.config,
     );
-    await this.dependencies.repository.saveCompletedGame({
-      summary,
-      userId: session.userId,
-      categoriesPlayed: session.enabledCategories,
-      attempts: session.attempts,
-    });
     await this.dependencies.sessions.delete(session.sessionId);
-    return summary;
+    const events: GameEvent[] =
+      completion.profile.currentLevel > completion.previousLevel
+        ? [{ type: "level-up", newLevel: completion.profile.currentLevel }]
+        : [];
+    return { summary, events };
   }
 
   private toPublicState(session: ServerGameState): PublicGameState {

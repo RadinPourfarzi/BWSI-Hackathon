@@ -9,7 +9,10 @@ export async function POST(request: Request) {
     const userId = await requireAuthenticatedUserId(request);
     const body = startGameSchema.parse(await request.json());
     const response = await container.gameSessions.startGame(userId, body);
-    return NextResponse.json(response, { status: 201 });
+    return NextResponse.json(response, {
+      status: 201,
+      headers: { "Cache-Control": "no-store" },
+    });
   } catch (error) {
     return apiError(error);
   }

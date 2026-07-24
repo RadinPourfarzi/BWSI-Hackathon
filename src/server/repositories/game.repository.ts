@@ -18,9 +18,15 @@ export interface QuestionQuery {
 
 export interface CompletedGame {
   summary: GameSummary;
+  status: "completed" | "abandoned";
   userId: string;
   categoriesPlayed: CategoryId[];
   attempts: ServerAttempt[];
+}
+
+export interface CompletionResult {
+  profile: Profile;
+  previousLevel: number;
 }
 
 /**
@@ -31,9 +37,11 @@ export interface GameRepository {
   getActiveConfig(): Promise<ActiveGameConfig>;
   listQuestions(query: QuestionQuery): Promise<QuestionRecord[]>;
   getQuestion(questionId: string): Promise<QuestionRecord | null>;
-  saveCompletedGame(game: CompletedGame): Promise<void>;
+  completeGame(
+    game: CompletedGame,
+    config: ActiveGameConfig,
+  ): Promise<CompletionResult>;
   getProfile(userId: string): Promise<Profile>;
-  saveProfile(profile: Profile): Promise<void>;
   getAnalytics(userId: string): Promise<PlayerAnalytics>;
   getLeaderboard(limit: number): Promise<LeaderboardEntry[]>;
 }

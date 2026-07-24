@@ -2,6 +2,7 @@ import { DEFAULT_GAME_CONFIG } from "@/config/game.config";
 import type {
   GameRepository,
   CompletedGame,
+  CompletionResult,
   QuestionQuery,
 } from "@/server/repositories/game.repository";
 import type {
@@ -13,6 +14,7 @@ import type {
   LeaderboardEntry,
   PlayerAnalytics,
 } from "@/shared/contracts/game.contracts";
+import { calculateLevel } from "@/server/game/xp";
 
 const QUESTIONS: QuestionRecord[] = [
   {
@@ -96,8 +98,42 @@ export class MockGameRepository implements GameRepository {
     return question ? structuredClone(question) : null;
   }
 
-  async saveCompletedGame(game: CompletedGame): Promise<void> {
+  async completeGame(
+    game: CompletedGame,
+    config: ActiveGameConfig,
+  ): Promise<CompletionResult> {
+    const duplicate = this.games.find(
+      (existing) => existing.summary.sessionId === game.summary.sessionId,
+    );
+    const profile = await this.getProfile(game.userId);
+    if (duplicate) {
+      return { profile, previousLevel: profile.currentLevel };
+    }
+
+    const previousLevel = profile.currentLevel;
+    const playedAt = new Date(game.summary.endedAt);
+    const previousPlayedAt = profile.lastPlayedAt
+      ? new Date(profile.lastPlayedAt)
+      : null;
+    const dayMs = 86_400_000;
+    const toUtcDay = (date: Date) =>
+      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+
+    if (
+      previousPlayedAt === null ||
+      toUtcDay(playedAt) - toUtcDay(previousPlayedAt) > dayMs
+    ) {
+      profile.dailyStreak = 1;
+    } else if (toUtcDay(playedAt) - toUtcDay(previousPlayedAt) === dayMs) {
+      profile.dailyStreak += 1;
+    }
+
+    profile.totalXp += game.summary.xpAwarded;
+    profile.currentLevel = calculateLevel(profile.totalXp, config);
+    profile.lastPlayedAt = playedAt.toISOString();
+    this.profiles.set(profile.id, structuredClone(profile));
     this.games.push(structuredClone(game));
+    return { profile: structuredClone(profile), previousLevel };
   }
 
   async getProfile(userId: string): Promise<Profile> {
@@ -119,19 +155,49 @@ export class MockGameRepository implements GameRepository {
     return structuredClone(profile);
   }
 
-  async saveProfile(profile: Profile): Promise<void> {
-    this.profiles.set(profile.id, structuredClone(profile));
-  }
-
   async getAnalytics(userId: string): Promise<PlayerAnalytics> {
-    const attempts = this.games
-      .filter((game) => game.userId === userId)
-      .flatMap((game) => game.attempts);
+    const playerGames = this.games.filter((game) => game.userId === userId);
+    const attempts = playerGames.flatMap((game) => game.attempts);
     const correct = attempts.filter((attempt) => attempt.isCorrect).length;
     const totalResponseTime = attempts.reduce(
       (sum, attempt) => sum + attempt.responseTimeMs,
       0,
     );
+
+    const categories = ["image", "email", "audio"] as const;
+    const byCategory = categories
+      .map((categoryId) => {
+        const categoryAttempts = attempts.filter(
+          (attempt) => attempt.categoryId === categoryId,
+        );
+        const categoryCorrect = categoryAttempts.filter(
+          (attempt) => attempt.isCorrect,
+        ).length;
+        return {
+          categoryId,
+          attempts: categoryAttempts.length,
+          correct: categoryCorrect,
+          accuracyPercent:
+            categoryAttempts.length === 0
+              ? 0
+              : (categoryCorrect / categoryAttempts.length) * 100,
+          averageResponseTimeMs:
+            categoryAttempts.length === 0
+              ? 0
+              : categoryAttempts.reduce(
+                  (sum, attempt) => sum + attempt.responseTimeMs,
+                  0,
+                ) / categoryAttempts.length,
+        };
+      })
+      .filter((category) => category.attempts > 0);
+    const rankedCategories = [...byCategory].sort(
+      (left, right) => right.accuracyPercent - left.accuracyPercent,
+    );
+    const arcadeScores = playerGames
+      .filter((game) => game.summary.mode === "ARCADE")
+      .map((game) => game.summary.finalScore);
+    const leaderboard = await this.getLeaderboard(100);
 
     return {
       attempts: attempts.length,
@@ -139,6 +205,16 @@ export class MockGameRepository implements GameRepository {
       accuracyPercent: attempts.length === 0 ? 0 : (correct / attempts.length) * 100,
       averageResponseTimeMs:
         attempts.length === 0 ? 0 : totalResponseTime / attempts.length,
+      averageArcadeScore:
+        arcadeScores.length === 0
+          ? 0
+          : arcadeScores.reduce((sum, score) => sum + score, 0) / arcadeScores.length,
+      bestArcadeScore: arcadeScores.length === 0 ? 0 : Math.max(...arcadeScores),
+      leaderboardRank:
+        leaderboard.find((entry) => entry.userId === userId)?.rank ?? null,
+      strongestCategory: rankedCategories.at(0)?.categoryId ?? null,
+      weakestCategory: rankedCategories.at(-1)?.categoryId ?? null,
+      byCategory,
     };
   }
 

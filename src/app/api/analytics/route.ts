@@ -7,7 +7,9 @@ export async function GET(request: Request) {
   try {
     const userId = await requireAuthenticatedUserId(request);
     const analytics = await container.analytics.getPlayerAnalytics(userId);
-    return NextResponse.json(analytics);
+    return NextResponse.json(analytics, {
+      headers: { "Cache-Control": "private, no-store" },
+    });
   } catch (error) {
     return apiError(error);
   }

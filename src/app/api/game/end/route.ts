@@ -9,7 +9,9 @@ export async function POST(request: Request) {
     const userId = await requireAuthenticatedUserId(request);
     const body = endGameSchema.parse(await request.json());
     const summary = await container.gameSessions.endGame(userId, body);
-    return NextResponse.json(summary);
+    return NextResponse.json(summary, {
+      headers: { "Cache-Control": "no-store" },
+    });
   } catch (error) {
     return apiError(error);
   }
