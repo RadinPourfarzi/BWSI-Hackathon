@@ -120,8 +120,8 @@ dataset.
 
 `getChallengeBatch` reads both the current `categories`/`challenges` catalog and
 the legacy `questions` catalog. It normalizes `audio` to `voice`, maps legacy
-metadata into typed payloads, resolves relative Storage paths, and fills an
-undersized database batch from the bundled manifest.
+metadata into typed payloads, and resolves relative Storage paths. It returns
+only database rows and rejects local media paths.
 
 Keeping batch selection behind `getChallengeBatch` means that adaptive
 difficulty, classroom sets, and category weighting can change without changing
@@ -198,11 +198,12 @@ session.
 `client_run_id` is unique per user, making completion retries idempotent. The
 service-role ingestion script is server-only.
 
-Media is bundled locally for a reliable fallback. The ingestion command can
-upload the same hashed files to `challenge-media` and records each object path
-in metadata. The runtime media adapter issues signed URLs for those objects and
-also resolves legacy `questions.media_url` paths from the `challenges` bucket.
-Remote image rendering is restricted to the configured Supabase Storage host.
+Media under `public/datasets` is retained for reproducible ingestion and
+validation, not runtime gameplay. The ingestion command uploads hashed files to
+`challenge-media` and records each object path in metadata. The runtime media
+adapter issues signed URLs for those objects and also resolves legacy
+`questions.media_url` paths from the `challenges` bucket. Remote image rendering
+is restricted to the configured Supabase Storage host.
 
 ## Authentication flow
 
@@ -220,10 +221,11 @@ accepts existing passwords independently of the stronger sign-up policy, and
 provider errors are mapped to non-enumerating user messages.
 
 Arcade and Training are deliberate guest exceptions. The challenge API returns
-bounded database rows when catalog policies permit them, then fills from the
-same validated local manifest used by ingestion. The client runs the identical
-engine and renderers but skips persistence; account Home, Analytics, Profile,
-Settings, and password reset remain protected.
+only bounded Supabase rows permitted by catalog policies. If Supabase is
+unconfigured, empty, or blocked by RLS, the API fails clearly and does not
+substitute local examples. The client runs the identical engine and renderers
+but skips persistence; account Home, Analytics, Profile, Settings, and password
+reset remain protected.
 
 Signed-in completion prefers `finalize_game_run_v2`. If the connected project
 still exposes the legacy schema, a narrowly scoped adapter calls `submit_run`

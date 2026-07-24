@@ -158,9 +158,9 @@ hosted deployments need a path to managed media.
 `public/datasets`. Offer idempotent, content-addressed Supabase Storage uploads
 and retain object paths in challenge metadata.
 
-**Consequences:** The repository remains self-contained and lightweight. The
-runtime media adapter can switch between local media, signed current-schema
-Storage objects, and legacy Storage paths without changing the challenge model.
+**Consequences:** The repository remains reproducible and lightweight. Local
+media supports ingestion and tests, while runtime gameplay accepts only
+database records and non-local media resolved from the connected catalog.
 
 ## ADR-009: Manifest is the dataset contract
 
@@ -190,7 +190,7 @@ HTML injection.
 mail client or exposing unsafe content. It is unsuitable for raw-corpus
 benchmark claims.
 
-## ADR-011: Bounded guest gameplay fallback
+## ADR-011: Database-backed guest gameplay
 
 **Status:** Accepted
 
@@ -198,11 +198,11 @@ benchmark claims.
 demo must remain playable while authentication or database setup is
 unavailable.
 
-**Decision:** Allow unauthenticated access only to Arcade and Training. Prefer
-readable Supabase catalog rows, fill partial batches from the validated bundled
-manifest, keep active run recovery in the existing browser snapshot, and skip
-every persistence RPC. Keep account Home, Analytics, Profile, Settings, and
-password reset protected.
+**Decision:** Allow unauthenticated access only to Arcade and Training. Require
+readable Supabase catalog rows, keep active run recovery in the existing
+browser snapshot, and skip every persistence RPC. Never substitute bundled
+examples. Keep account Home, Analytics, Profile, Settings, and password reset
+protected.
 
 **Consequences:** The core learning loop works without cloud configuration and
 never invents a user identity. Guest XP, streaks, high scores, and analytics are
@@ -292,8 +292,8 @@ discard working content and block signed-in play.
 
 **Decision:** Query both catalog contracts behind the server batch service,
 normalize either into the Zod challenge model, resolve media at the same
-boundary, and prefer database content before the bundled fallback. Use the
-legacy `submit_run` RPC only when the current completion function is absent.
+boundary, and return database content exclusively. Use the legacy `submit_run`
+RPC only when the current completion function is absent.
 
 **Consequences:** Current database media appears in both modes without a
 one-time content copy, logged-in users can play against either schema, and a

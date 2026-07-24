@@ -74,7 +74,7 @@ async function persistLegacyGameRun(
 
   if (compatibleAttempts.length === 0) {
     throw new Error(
-      "This run used fallback challenges that are not installed in the connected database, so account progress could not be saved.",
+      "This run references questions that are not installed in the connected database, so account progress could not be saved.",
     );
   }
 

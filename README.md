@@ -16,9 +16,8 @@ deployment-ready Supabase and Vercel configuration.
   auto-advance feedback, high scores, and XP.
 - **Training:** unlimited practice, category selection, explanations, signal
   tags, and a persisted learning summary.
-- **Guest play:** Arcade and Training prefer the readable Supabase catalog and
-  fill missing categories from the bundled validated corpus. Guest results are
-  intentionally not added to account analytics.
+- **Guest play:** Arcade and Training read the public, active Supabase catalog.
+  Guest results are intentionally not added to account analytics.
 - **Analytics:** overall and category accuracy, question/game totals, response
   time, score, levels, XP, streaks, category insights, and six historical
   charts. Histories are bounded to 120 sessions and small samples are labeled.
@@ -59,7 +58,7 @@ src/types/               Generated-style database types
 supabase/migrations/     Schema, RLS, secure functions, settings, analytics
 scripts/                 Dataset preparation, validation, and ingestion
 data/                    Machine-readable dataset manifest
-public/datasets/         Lightweight bundled media
+public/datasets/         Ingestion and validation source media
 docs/                    Architecture, decisions, sources, and demo guide
 tests/                   Unit, integration, and Playwright tests
 ```
@@ -86,8 +85,7 @@ per-item attribution are in [Data sources](docs/DATA_SOURCES.md) and
 
 - Node.js 22 or newer
 - npm with lockfile support
-- A Supabase project for authentication and persistent gameplay; optional for
-  guest-only play
+- A Supabase project for all gameplay, authentication, and persistence
 - Supabase CLI for command-line migrations
 - Playwright Chromium for browser tests
 - `ffmpeg` with the Flite filter only when regenerating bundled audio
@@ -106,8 +104,8 @@ per-item attribution are in [Data sources](docs/DATA_SOURCES.md) and
    cp .env.example .env.local
    ```
 
-3. To use accounts and cloud persistence, fill in the Supabase values. Never
-   expose or commit the service-role key. You may skip this step for guest play.
+3. Fill in the public Supabase values so Arcade and Training can load the
+   database catalog. Never expose or commit the service-role key.
 
 4. Link the Supabase project and apply all four migrations.
 
@@ -117,16 +115,17 @@ per-item attribution are in [Data sources](docs/DATA_SOURCES.md) and
    npx supabase@latest db push
    ```
 
-5. Validate and seed the starter catalog.
+5. Validate, seed, and upload the starter catalog when using the current
+   `challenges` schema.
 
    ```bash
    npm run data:validate
-   npm run data:seed
+   npm run data:upload
    ```
 
-   Use `npm run data:upload` to copy media into the `challenge-media` bucket as
-   well. Runtime batches resolve those Storage objects to signed URLs and use
-   bundled `/public` media when database content is unavailable.
+   Existing projects using the legacy `questions` schema can keep their current
+   rows and `challenges` Storage bucket. Runtime gameplay never serves the
+   repository’s `/public/datasets` files.
 
 6. Start the application.
 
@@ -167,11 +166,10 @@ links exchange their short-lived code through `/auth/callback`. Redirect
 validation rejects absolute, protocol-relative, backslash, and control-character
 destinations.
 
-Without a configured session, `/app/play` and `/app/training` remain public.
-They use readable database challenges first and the local validated manifest
-as a bounded fallback. Guest sessions keep only the active refresh-recovery
-snapshot and never call an account persistence RPC. Analytics, Profile,
-Settings, and the account home remain protected.
+Without a configured session, `/app/play` and `/app/training` remain public but
+still load challenges exclusively from Supabase. Guest sessions keep only the
+active refresh-recovery snapshot and never call an account persistence RPC.
+Analytics, Profile, Settings, and the account home remain protected.
 
 ## Catalog and database compatibility
 
@@ -184,9 +182,9 @@ The batch service accepts both project catalog layouts:
 
 Every database row is converted to the same validated game contract. Legacy
 `audio` rows become the app’s `voice` category, email screenshots render with
-their metadata, and relative Storage paths become playable URLs. Database
-challenges are preferred; the bundled manifest fills the rest of a requested
-batch so a partial or temporarily unavailable catalog never blocks play.
+their metadata, and relative Storage paths become playable URLs. Only validated
+Supabase rows are returned; an unavailable or empty catalog produces a clear
+setup error instead of silently substituting bundled examples.
 
 The compatibility migration grants read-only guest access to active catalog
 rows and only the two challenge-media buckets. User profiles, sessions,
@@ -223,10 +221,11 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-The public Playwright journey runs without credentials. The authenticated
-journey runs when `E2E_EMAIL` and `E2E_PASSWORD` are present; otherwise it is
-reported as skipped. GitHub Actions executes the complete quality gate on
-pushes and pull requests with npm caching and lockfile enforcement.
+The guest Playwright journey uses the two public Supabase values. The
+authenticated journey runs when `E2E_EMAIL` and `E2E_PASSWORD` are present;
+otherwise it is reported as skipped. GitHub Actions executes the complete
+quality gate on pushes and pull requests with npm caching and lockfile
+enforcement.
 
 To enable the authenticated CI journey, add
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `E2E_EMAIL`, and
@@ -289,8 +288,9 @@ sign-out. Record the verified production URL here only after those checks pass.
   unique `(user_id, client_run_id)` value.
 - Scam-email content is rendered only as React text. No HTML, scripts, links,
   forms, trackers, or attachments execute.
-- Challenge media reads are limited to the `challenges` and `challenge-media`
-  buckets; all writes remain server-managed.
+- Runtime challenges must come from Supabase rows, and local media paths are
+  rejected. Storage reads are limited to `challenges` and `challenge-media`;
+  all writes remain server-managed.
 - Provider and database errors are converted to safe user-facing messages.
 - Security headers disable framing, MIME sniffing, unnecessary browser
   capabilities, and cross-origin opener sharing.
@@ -342,7 +342,8 @@ The complete presenter script is in [DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
   allow-list entries, and restart Next.js after changing `.env.local`.
 - **Analytics/settings unavailable:** apply the Phase 3 migration with
   `npx supabase@latest db push`.
-- **No challenges:** run `npm run data:validate` and `npm run data:seed`.
+- **No challenges:** apply the compatibility migration, verify active rows and
+  Storage objects, then run `npm run data:upload` for the current schema.
 - **Database media missing for guests:** apply
   `20260724234000_database_media_compatibility.sql`; if migration history is
   out of sync, run that file once in the Supabase SQL Editor.

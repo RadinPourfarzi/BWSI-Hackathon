@@ -1,8 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
-import datasetManifest from "../../data/dataset-manifest.json";
-
 import {
   categoryConfig,
   categoryIds,
@@ -10,10 +8,7 @@ import {
 } from "@/config/categories";
 import type { DifficultyId } from "@/config/difficulty";
 import { gameConfig } from "@/config/game";
-import {
-  challengeSchema,
-  datasetManifestSchema,
-} from "@/features/game/schemas";
+import { challengeSchema } from "@/features/game/schemas";
 import type { Challenge } from "@/features/game/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { Database, Json } from "@/types/database";
@@ -48,8 +43,6 @@ const legacyQuestionSchema = z.object({
   is_active: z.boolean().optional().default(true),
   metadata: z.unknown().optional().nullable(),
 });
-
-const parsedGuestManifest = datasetManifestSchema.safeParse(datasetManifest);
 
 function randomize<T>(values: T[]): T[] {
   const copy = [...values];
@@ -218,6 +211,29 @@ function legacyCategoryIds(categories: CategoryId[]): string[] {
 function contentHashFromUuid(id: string): string {
   const compact = id.replaceAll("-", "").toLowerCase();
   return `${compact}${compact}`;
+}
+
+function usesLocalMedia(challenge: Challenge): boolean {
+  if (
+    challenge.payload.kind === "image" ||
+    challenge.payload.kind === "audio"
+  ) {
+    return challenge.payload.src.startsWith("/");
+  }
+
+  return challenge.payload.screenshotSrc?.startsWith("/") ?? false;
+}
+
+function hasResolvableStoragePath(metadataValue: unknown): boolean {
+  const storagePath = metadataString(metadataRecord(metadataValue), [
+    "storagePath",
+    "storage_path",
+  ]);
+
+  return Boolean(
+    storagePath &&
+    (validHttpUrl(storagePath) !== null || !storagePath.startsWith("/")),
+  );
 }
 
 export function mapLegacyQuestionToChallenge(
@@ -453,6 +469,10 @@ async function getModernCatalogBatch(
       const category = categoryById.get(row.category_id);
       const difficultyMetadata = metadataRecord(row.difficulty_metadata);
       const signals = metadataStrings(difficultyMetadata, ["signals"]);
+      const metadata = {
+        ...metadataRecord(row.metadata),
+        catalogSource: "modern-supabase",
+      };
       const parsed = challengeSchema.safeParse({
         id: row.id,
         category,
@@ -474,7 +494,7 @@ async function getModernCatalogBatch(
         attribution: row.attribution,
         contentHash: row.content_hash,
         active: row.active,
-        metadata: row.metadata,
+        metadata,
       });
 
       return parsed.success
@@ -489,8 +509,12 @@ async function getModernCatalogBatch(
         metadata: Json;
       } => item !== null,
     );
+  const playable = validated.filter(
+    ({ challenge, metadata }) =>
+      !usesLocalMedia(challenge) || hasResolvableStoragePath(metadata),
+  );
   const selected = randomize(
-    validated.filter(({ challenge }) => !request.excludeIds.has(challenge.id)),
+    playable.filter(({ challenge }) => !request.excludeIds.has(challenge.id)),
   ).slice(0, request.limit);
   const challenges = await Promise.all(
     selected.map(({ challenge, metadata }) =>
@@ -504,11 +528,11 @@ async function getModernCatalogBatch(
 
   return {
     challenges,
-    availableCount: validated.length,
+    availableCount: playable.length,
     exhausted:
       challenges.length === 0 &&
-      validated.length > 0 &&
-      validated.every(({ challenge }) => request.excludeIds.has(challenge.id)),
+      playable.length > 0 &&
+      playable.every(({ challenge }) => request.excludeIds.has(challenge.id)),
   };
 }
 
@@ -534,8 +558,12 @@ async function getLegacyCatalogBatch(
     .map((row) => legacyQuestionSchema.safeParse(row))
     .filter((result) => result.success)
     .map((result) => result.data);
+  const playableRows = validatedRows.filter(
+    (row) =>
+      validHttpUrl(row.media_url) !== null || !row.media_url.startsWith("/"),
+  );
   const selectedRows = randomize(
-    validatedRows.filter((row) => !request.excludeIds.has(row.id)),
+    playableRows.filter((row) => !request.excludeIds.has(row.id)),
   ).slice(0, request.limit);
   const challenges = (
     await Promise.all(
@@ -561,69 +589,11 @@ async function getLegacyCatalogBatch(
 
   return {
     challenges,
-    availableCount: validatedRows.length,
+    availableCount: playableRows.length,
     exhausted:
       challenges.length === 0 &&
-      validatedRows.length > 0 &&
-      validatedRows.every((row) => request.excludeIds.has(row.id)),
-  };
-}
-
-export function getGuestChallengeBatch({
-  limit,
-  categories = [...categoryIds],
-  excludeIds = [],
-}: {
-  limit: number;
-  categories?: CategoryId[];
-  excludeIds?: string[];
-}): ChallengeBatchResult {
-  const normalized = normalizeBatchRequest({
-    limit,
-    categories,
-    excludeIds,
-  });
-
-  if (normalized.categories.length === 0) {
-    return {
-      challenges: [],
-      error: "Select at least one valid challenge category.",
-      exhausted: false,
-      availableCount: 0,
-    };
-  }
-
-  if (!parsedGuestManifest.success) {
-    return {
-      challenges: [],
-      error: "The bundled challenges could not be validated.",
-      exhausted: false,
-      availableCount: 0,
-    };
-  }
-
-  const available = parsedGuestManifest.data.challenges.filter(
-    (challenge) =>
-      challenge.active && normalized.categories.includes(challenge.category),
-  );
-  const challenges = randomize(
-    available.filter((challenge) => !normalized.excludeIds.has(challenge.id)),
-  ).slice(0, normalized.limit);
-  const exhausted =
-    challenges.length === 0 &&
-    available.length > 0 &&
-    available.every((challenge) => normalized.excludeIds.has(challenge.id));
-
-  return {
-    challenges,
-    error:
-      challenges.length > 0
-        ? null
-        : exhausted
-          ? "Every bundled challenge in this selection has been used."
-          : "No bundled challenges are available for this selection.",
-    exhausted,
-    availableCount: available.length,
+      playableRows.length > 0 &&
+      playableRows.every((row) => request.excludeIds.has(row.id)),
   };
 }
 
@@ -651,13 +621,16 @@ export async function getChallengeBatch({
     };
   }
 
-  const localBatch = getGuestChallengeBatch({
-    categories: normalized.categories,
-    excludeIds,
-    limit: normalized.limit,
-  });
   const supabase = await createServerSupabaseClient();
-  if (!supabase) return localBatch;
+  if (!supabase) {
+    return {
+      challenges: [],
+      error:
+        "Supabase is not configured. Add the public Supabase URL and anon key, restart the app, and try again.",
+      exhausted: false,
+      availableCount: 0,
+    };
+  }
 
   const [modernBatch, legacyBatch] = await Promise.all([
     getModernCatalogBatch(supabase, normalized),
@@ -669,51 +642,37 @@ export async function getChallengeBatch({
     ...modernBatch.challenges,
     ...legacyBatch.challenges,
   ]) {
+    if (usesLocalMedia(challenge)) continue;
+
     if (!databaseChallenges.has(challenge.id)) {
       databaseChallenges.set(challenge.id, challenge);
     }
   }
 
-  const selectedDatabase = [...databaseChallenges.values()].slice(
+  const challenges = [...databaseChallenges.values()].slice(
     0,
     normalized.limit,
   );
-  const remaining = normalized.limit - selectedDatabase.length;
-  const databaseIds = new Set(
-    selectedDatabase.map((challenge) => challenge.id),
-  );
-  const localFill =
-    remaining > 0
-      ? localBatch.challenges
-          .filter((challenge) => !databaseIds.has(challenge.id))
-          .slice(0, remaining)
-      : [];
-  const challenges = [...selectedDatabase, ...localFill];
+  const availableCount =
+    modernBatch.availableCount + legacyBatch.availableCount;
 
   if (challenges.length > 0) {
     return {
       challenges,
       error: null,
       exhausted: false,
-      availableCount: Math.max(
-        challenges.length,
-        modernBatch.availableCount +
-          legacyBatch.availableCount +
-          localBatch.availableCount,
-      ),
+      availableCount: Math.max(challenges.length, availableCount),
     };
   }
 
+  const exhausted = modernBatch.exhausted || legacyBatch.exhausted;
+
   return {
     challenges: [],
-    error:
-      localBatch.error ??
-      "No database or bundled challenges are available for this selection.",
-    exhausted:
-      localBatch.exhausted || modernBatch.exhausted || legacyBatch.exhausted,
-    availableCount:
-      modernBatch.availableCount +
-      legacyBatch.availableCount +
-      localBatch.availableCount,
+    error: exhausted
+      ? "Every active Supabase challenge in this selection has been used."
+      : "No active Supabase challenges are available for this selection. Check the catalog policies, media migration, and database rows.",
+    exhausted,
+    availableCount,
   };
 }
