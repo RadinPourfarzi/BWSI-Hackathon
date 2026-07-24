@@ -1,0 +1,1434 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-07-24T16:00:00.000Z",
+  "sources": [
+    {
+      "id": "project-ai-images",
+      "name": "Project-generated AI image starter set",
+      "url": "https://openai.com/index/image-generation-api/",
+      "license": "CC0-1.0 project data release",
+      "accessDate": "2026-07-24",
+      "bundled": true,
+      "notes": "Seven project-specific generated images are included; DiffusionDB is the documented expansion source."
+    },
+    {
+      "id": "scikit-image",
+      "name": "scikit-image sample data v0.25.2",
+      "url": "https://github.com/scikit-image/scikit-image/tree/v0.25.2/skimage/data",
+      "license": "Public domain or CC0-1.0 per source image",
+      "accessDate": "2026-07-24",
+      "bundled": true,
+      "notes": "Seven public-domain or CC0 reference photographs with per-item attribution."
+    },
+    {
+      "id": "spamassassin",
+      "name": "stdlib-js SpamAssassin public mail corpus",
+      "url": "https://github.com/stdlib-js/datasets-spam-assassin",
+      "license": "PDDL-1.0 database; CC0-1.0 contents",
+      "accessDate": "2026-07-24",
+      "bundled": true,
+      "notes": "Twelve samples are safely condensed; addresses, live links, HTML, and identifying details are removed."
+    },
+    {
+      "id": "flite",
+      "name": "Flite synthetic speech",
+      "url": "https://github.com/festvox/flite",
+      "license": "BSD-style Flite license; CC0-1.0 project phrases and outputs",
+      "accessDate": "2026-07-24",
+      "bundled": true,
+      "notes": "Six reproducibly generated synthetic speech clips."
+    },
+    {
+      "id": "speechbrain",
+      "name": "SpeechBrain ASR test samples",
+      "url": "https://github.com/speechbrain/speechbrain/tree/e5cb1f65b940634215650aa1171e0440d0808123/tests/samples/ASR",
+      "license": "Apache-2.0",
+      "accessDate": "2026-07-24",
+      "bundled": true,
+      "notes": "Six short human speech clips converted to lightweight Opus."
+    },
+    {
+      "id": "diffusiondb",
+      "name": "DiffusionDB",
+      "url": "https://huggingface.co/datasets/poloclub/diffusiondb",
+      "license": "CC0-1.0",
+      "accessDate": "2026-07-24",
+      "bundled": false,
+      "notes": "Optional expansion source for generated images; archives are not committed."
+    },
+    {
+      "id": "wavefake",
+      "name": "WaveFake",
+      "url": "https://zenodo.org/records/5642694",
+      "license": "CC-BY-SA-4.0",
+      "accessDate": "2026-07-24",
+      "bundled": false,
+      "notes": "Optional expansion source for benchmark synthetic speech."
+    },
+    {
+      "id": "ljspeech",
+      "name": "LJSpeech 1.1",
+      "url": "https://keithito.com/LJ-Speech-Dataset/",
+      "license": "Public domain",
+      "accessDate": "2026-07-24",
+      "bundled": false,
+      "notes": "Optional expansion source for human reference speech."
+    }
+  ],
+  "challenges": [
+    {
+      "id": "00000000-0000-4000-8000-101000000001",
+      "category": "image",
+      "contentType": "image",
+      "payload": {
+        "kind": "image",
+        "src": "/datasets/images/ai/breakfast.webp",
+        "alt": "A sunlit breakfast table with pancakes, berries, tea, and cutlery.",
+        "width": 768,
+        "height": 768
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": [
+          "utensil geometry",
+          "repeated berry shapes",
+          "reflection continuity"
+        ]
+      },
+      "explanation": "The fork geometry, repeated berry forms, and inconsistent reflections reveal a generated scene.",
+      "sourceDataset": "Project-generated AI image starter set",
+      "originalSourceUrl": "https://openai.com/index/image-generation-api/",
+      "license": "CC0-1.0 project data release",
+      "attribution": "Generated for Signal or Synthetic; released with the starter data.",
+      "contentHash": "3bacbbb010575afcc3632009c2faaa0243574173b565adc8b69796f57716705c",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "generator": "OpenAI image generation",
+        "promptSummary": "Breakfast table"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-101000000002",
+      "category": "image",
+      "contentType": "image",
+      "payload": {
+        "kind": "image",
+        "src": "/datasets/images/ai/diner.webp",
+        "alt": "A retro diner glowing beside a desert road at blue hour.",
+        "width": 768,
+        "height": 768
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": [
+          "blank signage",
+          "over-regular symmetry",
+          "reflection mismatch"
+        ]
+      },
+      "explanation": "The unusually blank signs, near-perfect symmetry, and mismatched reflections are generation clues.",
+      "sourceDataset": "Project-generated AI image starter set",
+      "originalSourceUrl": "https://openai.com/index/image-generation-api/",
+      "license": "CC0-1.0 project data release",
+      "attribution": "Generated for Signal or Synthetic; released with the starter data.",
+      "contentHash": "574ffe03244c9d4f419a23169dff641e67bfe9fb32b12b869e9b4e0593f2841d",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "generator": "OpenAI image generation",
+        "promptSummary": "Retro-futurist roadside diner"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-101000000003",
+      "category": "image",
+      "contentType": "image",
+      "payload": {
+        "kind": "image",
+        "src": "/datasets/images/ai/greenhouse.webp",
+        "alt": "A glass greenhouse filled with tropical plants after rain.",
+        "width": 768,
+        "height": 768
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": ["leaf continuity", "roof beam joins", "pot handle shapes"]
+      },
+      "explanation": "Several leaves merge unnaturally, roof beams terminate inconsistently, and pot handles deform.",
+      "sourceDataset": "Project-generated AI image starter set",
+      "originalSourceUrl": "https://openai.com/index/image-generation-api/",
+      "license": "CC0-1.0 project data release",
+      "attribution": "Generated for Signal or Synthetic; released with the starter data.",
+      "contentHash": "595dfb15cfedf3bf3d63dac5de30050e24b9c2ddcc76722c607b85eb821a888a",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "generator": "OpenAI image generation",
+        "promptSummary": "Rainy botanical greenhouse"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-101000000004",
+      "category": "image",
+      "contentType": "image",
+      "payload": {
+        "kind": "image",
+        "src": "/datasets/images/ai/market.webp",
+        "alt": "An overhead view of produce baskets at a farmers market.",
+        "width": 768,
+        "height": 768
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": ["repeated produce", "basket weave", "floating label cards"]
+      },
+      "explanation": "Repeated fruit patterns and inconsistent basket weaving are common synthetic-image artifacts.",
+      "sourceDataset": "Project-generated AI image starter set",
+      "originalSourceUrl": "https://openai.com/index/image-generation-api/",
+      "license": "CC0-1.0 project data release",
+      "attribution": "Generated for Signal or Synthetic; released with the starter data.",
+      "contentHash": "ea3c3c8df1f352600f46b1da5c71f3a3e47ed89afac939d56bcb4b996f42ef2a",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "generator": "OpenAI image generation",
+        "promptSummary": "Farmers market produce stall"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-101000000005",
+      "category": "image",
+      "contentType": "image",
+      "payload": {
+        "kind": "image",
+        "src": "/datasets/images/ai/owl.webp",
+        "alt": "A small owl perched on a mossy branch in a misty forest.",
+        "width": 768,
+        "height": 768
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": ["talon contact", "feather symmetry", "twig continuity"]
+      },
+      "explanation": "The talons do not grip the branch consistently, and feather patterns repeat too neatly.",
+      "sourceDataset": "Project-generated AI image starter set",
+      "originalSourceUrl": "https://openai.com/index/image-generation-api/",
+      "license": "CC0-1.0 project data release",
+      "attribution": "Generated for Signal or Synthetic; released with the starter data.",
+      "contentHash": "9486b3ff0e4c67721d0647855d2753f410255167352ebe278c2ff665e82f3558",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "generator": "OpenAI image generation",
+        "promptSummary": "Woodland owl portrait"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-101000000006",
+      "category": "image",
+      "contentType": "image",
+      "payload": {
+        "kind": "image",
+        "src": "/datasets/images/ai/station.webp",
+        "alt": "A snow-covered mountain railway station with several tracks.",
+        "width": 768,
+        "height": 768
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "easy",
+        "signals": [
+          "impossible rail junctions",
+          "support repetition",
+          "track termination"
+        ]
+      },
+      "explanation": "The rails split and reconnect impossibly, making this generated scene easier to identify.",
+      "sourceDataset": "Project-generated AI image starter set",
+      "originalSourceUrl": "https://openai.com/index/image-generation-api/",
+      "license": "CC0-1.0 project data release",
+      "attribution": "Generated for Signal or Synthetic; released with the starter data.",
+      "contentHash": "529faeab9975aad4d02bf2d25d0d0b8484c7cdb25068d58316a98421eef999da",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "generator": "OpenAI image generation",
+        "promptSummary": "Snowy mountain railway station"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-101000000007",
+      "category": "image",
+      "contentType": "image",
+      "payload": {
+        "kind": "image",
+        "src": "/datasets/images/ai/workspace.webp",
+        "alt": "A warm home workspace with a keyboard, headphones, clock, and plant.",
+        "width": 768,
+        "height": 768
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": ["keyboard layout", "cable continuity", "clock markings"]
+      },
+      "explanation": "Key spacing changes across the keyboard, cables disconnect, and the clock markings drift.",
+      "sourceDataset": "Project-generated AI image starter set",
+      "originalSourceUrl": "https://openai.com/index/image-generation-api/",
+      "license": "CC0-1.0 project data release",
+      "attribution": "Generated for Signal or Synthetic; released with the starter data.",
+      "contentHash": "a1d52309518914ec1b6086fe22f4d3add766cd1f28d8dad4cd5ed2cbc179fac6",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "generator": "OpenAI image generation",
+        "promptSummary": "Cozy technology workspace"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-102000000001",
+      "category": "image",
+      "contentType": "image",
+      "payload": {
+        "kind": "image",
+        "src": "/datasets/images/real/astronaut.webp",
+        "alt": "NASA astronaut Eileen Collins in a space suit.",
+        "width": 768,
+        "height": 768
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": [
+          "natural fabric folds",
+          "consistent insignia geometry",
+          "camera grain"
+        ]
+      },
+      "explanation": "Consistent suit hardware, natural fabric folds, and coherent camera detail support a real photograph.",
+      "sourceDataset": "scikit-image sample data v0.25.2",
+      "originalSourceUrl": "https://github.com/scikit-image/scikit-image/tree/v0.25.2/skimage/data",
+      "license": "Public domain or CC0-1.0 per source image",
+      "attribution": "NASA photograph of Eileen Collins; public domain.",
+      "contentHash": "b39774d258ecee5580a31eae271fab708a134b618c3bc71953a194010d79c81f",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceFile": "astronaut.png",
+        "sourceCommit": "v0.25.2"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-102000000002",
+      "category": "image",
+      "contentType": "image",
+      "payload": {
+        "kind": "image",
+        "src": "/datasets/images/real/cat.webp",
+        "alt": "Chelsea the cat looking toward the camera.",
+        "width": 768,
+        "height": 768
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": ["whisker continuity", "fur texture", "eye reflections"]
+      },
+      "explanation": "Whiskers, fur direction, and eye reflections remain physically consistent across the frame.",
+      "sourceDataset": "scikit-image sample data v0.25.2",
+      "originalSourceUrl": "https://github.com/scikit-image/scikit-image/tree/v0.25.2/skimage/data",
+      "license": "Public domain or CC0-1.0 per source image",
+      "attribution": "Photograph by Stefan van der Walt; CC0-1.0.",
+      "contentHash": "3ee47e0c715d84eaf8d8d416a954ac34b4374f209d6de2f73e77ffa665ad38bb",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceFile": "chelsea.png",
+        "sourceCommit": "v0.25.2"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-102000000003",
+      "category": "image",
+      "contentType": "image",
+      "payload": {
+        "kind": "image",
+        "src": "/datasets/images/real/coffee.webp",
+        "alt": "A coffee cup on a wooden table beside a pastry.",
+        "width": 768,
+        "height": 768
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": ["elliptical rim", "wood grain", "natural crumbs"]
+      },
+      "explanation": "The cup rim, shadows, wood grain, and irregular crumbs all remain spatially coherent.",
+      "sourceDataset": "scikit-image sample data v0.25.2",
+      "originalSourceUrl": "https://github.com/scikit-image/scikit-image/tree/v0.25.2/skimage/data",
+      "license": "Public domain or CC0-1.0 per source image",
+      "attribution": "Photograph by Rachel Michetti; CC0-1.0.",
+      "contentHash": "860a64a1ba734dcfdbe402d9eb3745e2c205ad61c386863b71413cb809e7e018",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceFile": "coffee.png",
+        "sourceCommit": "v0.25.2"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-102000000004",
+      "category": "image",
+      "contentType": "image",
+      "payload": {
+        "kind": "image",
+        "src": "/datasets/images/real/deep-field.webp",
+        "alt": "The Hubble eXtreme Deep Field showing distant galaxies.",
+        "width": 768,
+        "height": 768
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": [
+          "sensor noise",
+          "varied galaxy profiles",
+          "optical point spread"
+        ]
+      },
+      "explanation": "The varied galaxy shapes and telescope imaging characteristics match a real scientific observation.",
+      "sourceDataset": "scikit-image sample data v0.25.2",
+      "originalSourceUrl": "https://github.com/scikit-image/scikit-image/tree/v0.25.2/skimage/data",
+      "license": "Public domain or CC0-1.0 per source image",
+      "attribution": "NASA/ESA Hubble eXtreme Deep Field; public domain.",
+      "contentHash": "7f5f8810c701d4c253bb01f2ef1cfce80115b1f4c3e0dd3d78e8f65b3463fdc5",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceFile": "hubble_deep_field.jpg",
+        "sourceCommit": "v0.25.2"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-102000000005",
+      "category": "image",
+      "contentType": "image",
+      "payload": {
+        "kind": "image",
+        "src": "/datasets/images/real/moon.webp",
+        "alt": "A detailed monochrome photograph of the Moon surface.",
+        "width": 768,
+        "height": 768
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": ["crater overlap", "illumination direction", "surface noise"]
+      },
+      "explanation": "Crater overlap and illumination remain geologically and optically consistent.",
+      "sourceDataset": "scikit-image sample data v0.25.2",
+      "originalSourceUrl": "https://github.com/scikit-image/scikit-image/tree/v0.25.2/skimage/data",
+      "license": "Public domain or CC0-1.0 per source image",
+      "attribution": "NASA Moon imagery distributed with scikit-image; public domain.",
+      "contentHash": "70f44ee2d7a91de21f1babfcc2de9f916edcbbcaada7d8adffdb5d307397affb",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceFile": "moon.png",
+        "sourceCommit": "v0.25.2"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-102000000006",
+      "category": "image",
+      "contentType": "image",
+      "payload": {
+        "kind": "image",
+        "src": "/datasets/images/real/retina.webp",
+        "alt": "A clinical photograph of a healthy human retina.",
+        "width": 768,
+        "height": 768
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": [
+          "vessel branching",
+          "illumination falloff",
+          "anatomical structure"
+        ]
+      },
+      "explanation": "Natural vessel branching and clinically consistent anatomy support a real capture.",
+      "sourceDataset": "scikit-image sample data v0.25.2",
+      "originalSourceUrl": "https://github.com/scikit-image/scikit-image/tree/v0.25.2/skimage/data",
+      "license": "Public domain or CC0-1.0 per source image",
+      "attribution": "Mikael Häggström clinical image; CC0-1.0.",
+      "contentHash": "c52079a518f621fc7bab1762291225feaeac85f567a774c75b67257c0c13f947",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceFile": "retina.jpg",
+        "sourceCommit": "v0.25.2"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-102000000007",
+      "category": "image",
+      "contentType": "image",
+      "payload": {
+        "kind": "image",
+        "src": "/datasets/images/real/rocket.webp",
+        "alt": "A SpaceX Falcon 9 rocket launching with a bright exhaust plume.",
+        "width": 768,
+        "height": 768
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": ["plume physics", "structure edges", "atmospheric haze"]
+      },
+      "explanation": "The exhaust, haze, and vehicle structure remain consistent with a real launch photograph.",
+      "sourceDataset": "scikit-image sample data v0.25.2",
+      "originalSourceUrl": "https://github.com/scikit-image/scikit-image/tree/v0.25.2/skimage/data",
+      "license": "Public domain or CC0-1.0 per source image",
+      "attribution": "SpaceX launch photograph; public domain.",
+      "contentHash": "418784269622aa106c7b9ab400905553c3fd401c210efb129ec9355bb5350980",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceFile": "rocket.jpg",
+        "sourceCommit": "v0.25.2"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-201000000001",
+      "category": "email",
+      "contentType": "email",
+      "payload": {
+        "kind": "email",
+        "senderName": "Life Quote Savings",
+        "senderAddress": "offers@quote-mail.example",
+        "subject": "Life Insurance — Why Pay More?",
+        "body": "Save up to 70% on life insurance. Complete our short form today to receive an immediate quote and protect your family.",
+        "receivedAt": "Today"
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "Scam",
+        "optionB": "Legitimate"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": [
+          "unsolicited financial offer",
+          "large savings claim",
+          "unknown sender"
+        ]
+      },
+      "explanation": "An unsolicited financial offer uses a large savings promise and pushes the reader to submit information.",
+      "sourceDataset": "stdlib-js SpamAssassin public mail corpus",
+      "license": "PDDL-1.0 database; CC0-1.0 contents",
+      "attribution": "SpamAssassin public corpus, redistributed by stdlib-js; identifying data removed and text safely condensed.",
+      "originalSourceUrl": "https://github.com/stdlib-js/datasets-spam-assassin/blob/de215192f2eb3eb158b810d7e1ad2a56f5bec5ec/data/spam-1/00001.7848dde101aa985090474a91ec93fcf0.json",
+      "contentHash": "18af635caa6299704fe2a6cb6080ec619b076ea939a5fec6e42ef0a609ae621a",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceId": "spam-1/00001",
+        "sanitized": true,
+        "condensation": "PII, live links, markup, and unsafe content removed"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-201000000002",
+      "category": "email",
+      "contentType": "email",
+      "payload": {
+        "kind": "email",
+        "senderName": "Private Program",
+        "senderAddress": "founders@cash-circle.example",
+        "subject": "RE: Your Bank Account Information",
+        "body": "You have been privately invited to a gifting program. Join the founders now and receive thousands in cash as early as today.",
+        "receivedAt": "Today"
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "Scam",
+        "optionB": "Legitimate"
+      },
+      "difficulty": {
+        "tier": "easy",
+        "signals": ["money promise", "false exclusivity", "bank-themed subject"]
+      },
+      "explanation": "The sender borrows a bank-related subject, promises rapid cash, and uses false exclusivity.",
+      "sourceDataset": "stdlib-js SpamAssassin public mail corpus",
+      "license": "PDDL-1.0 database; CC0-1.0 contents",
+      "attribution": "SpamAssassin public corpus, redistributed by stdlib-js; identifying data removed and text safely condensed.",
+      "originalSourceUrl": "https://github.com/stdlib-js/datasets-spam-assassin/blob/de215192f2eb3eb158b810d7e1ad2a56f5bec5ec/data/spam-1/00006.5ab5620d3d7c6c0db76234556a16f6c1.json",
+      "contentHash": "319d564b5d660cb5dbea1d953dec86e7039c7192f2c1712dd21009cc2c14a25c",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceId": "spam-1/00006",
+        "sanitized": true,
+        "condensation": "PII, live links, markup, and unsafe content removed"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-201000000003",
+      "category": "email",
+      "contentType": "email",
+      "payload": {
+        "kind": "email",
+        "senderName": "Home Careers Team",
+        "senderAddress": "recruiting@remote-fortune.example",
+        "subject": "Fortune 500 Company Hiring At-Home Reps",
+        "body": "A fast-growing company needs home representatives immediately. No experience is required, and high weekly earnings are available.",
+        "receivedAt": "Today"
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "Scam",
+        "optionB": "Legitimate"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": ["unnamed employer", "vague role", "unrealistic earnings"]
+      },
+      "explanation": "The employer and job are vague while the message emphasizes urgency and unusually easy earnings.",
+      "sourceDataset": "stdlib-js SpamAssassin public mail corpus",
+      "license": "PDDL-1.0 database; CC0-1.0 contents",
+      "attribution": "SpamAssassin public corpus, redistributed by stdlib-js; identifying data removed and text safely condensed.",
+      "originalSourceUrl": "https://github.com/stdlib-js/datasets-spam-assassin/blob/de215192f2eb3eb158b810d7e1ad2a56f5bec5ec/data/spam-1/00007.d8521faf753ff9ee989122f6816f87d7.json",
+      "contentHash": "d115247eba461027a6e231306c7ede283beac7ae7cc782aa11772d6de515006e",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceId": "spam-1/00007",
+        "sanitized": true,
+        "condensation": "PII, live links, markup, and unsafe content removed"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-201000000004",
+      "category": "email",
+      "contentType": "email",
+      "payload": {
+        "kind": "email",
+        "senderName": "Account Growth Desk",
+        "senderAddress": "alerts@fast-cash.example",
+        "subject": "Important Information Concerning Your Bank Account",
+        "body": "Stop losing money. This expert system can generate thousands in cash flow today. Secure your position before enrollment closes.",
+        "receivedAt": "Today"
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "Scam",
+        "optionB": "Legitimate"
+      },
+      "difficulty": {
+        "tier": "easy",
+        "signals": ["account alarm", "guaranteed profit", "artificial deadline"]
+      },
+      "explanation": "A frightening account subject masks a guaranteed-profit pitch and an artificial deadline.",
+      "sourceDataset": "stdlib-js SpamAssassin public mail corpus",
+      "license": "PDDL-1.0 database; CC0-1.0 contents",
+      "attribution": "SpamAssassin public corpus, redistributed by stdlib-js; identifying data removed and text safely condensed.",
+      "originalSourceUrl": "https://github.com/stdlib-js/datasets-spam-assassin/blob/de215192f2eb3eb158b810d7e1ad2a56f5bec5ec/data/spam-1/00009.027bf6e0b0c4ab34db3ce0ea4bf2edab.json",
+      "contentHash": "5410c777656b19d8c40aa2bd7b3c7a052184e2d019df73235d67157c36a88f45",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceId": "spam-1/00009",
+        "sanitized": true,
+        "condensation": "PII, live links, markup, and unsafe content removed"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-201000000005",
+      "category": "email",
+      "contentType": "email",
+      "payload": {
+        "kind": "email",
+        "senderName": "Direct Reach",
+        "senderAddress": "sales@bulk-reach.example",
+        "subject": "Multiply Your Customer Base!",
+        "body": "Promote your business to one million email addresses for one low price. Send the attached order form to begin immediately.",
+        "receivedAt": "Today"
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "Scam",
+        "optionB": "Legitimate"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": [
+          "unsolicited bulk service",
+          "attachment request",
+          "implausible scale"
+        ]
+      },
+      "explanation": "The message advertises abusive bulk email, makes an implausible reach claim, and asks for an order form.",
+      "sourceDataset": "stdlib-js SpamAssassin public mail corpus",
+      "license": "PDDL-1.0 database; CC0-1.0 contents",
+      "attribution": "SpamAssassin public corpus, redistributed by stdlib-js; identifying data removed and text safely condensed.",
+      "originalSourceUrl": "https://github.com/stdlib-js/datasets-spam-assassin/blob/de215192f2eb3eb158b810d7e1ad2a56f5bec5ec/data/spam-1/00010.445affef4c70feec58f9198cfbc22997.json",
+      "contentHash": "44449bbaca404a727650a8521263fb883479ffb16c4d3803e9617c8bc3ec4588",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceId": "spam-1/00010",
+        "sanitized": true,
+        "condensation": "PII, live links, markup, and unsafe content removed"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-201000000006",
+      "category": "email",
+      "contentType": "email",
+      "payload": {
+        "kind": "email",
+        "senderName": "Mobile Accessory Depot",
+        "senderAddress": "deals@phone-clearance.example",
+        "subject": "Cell Phone Belt Clips for $1.95",
+        "body": "Wholesale phone accessories start under two dollars. Inventory is moving quickly, so order chargers, cases, and antennas now.",
+        "receivedAt": "Today"
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "Scam",
+        "optionB": "Legitimate"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": [
+          "unexpected sales email",
+          "pressure language",
+          "unverified storefront"
+        ]
+      },
+      "explanation": "This is an unsolicited sales message from an unverified storefront that uses low prices and pressure.",
+      "sourceDataset": "stdlib-js SpamAssassin public mail corpus",
+      "license": "PDDL-1.0 database; CC0-1.0 contents",
+      "attribution": "SpamAssassin public corpus, redistributed by stdlib-js; identifying data removed and text safely condensed.",
+      "originalSourceUrl": "https://github.com/stdlib-js/datasets-spam-assassin/blob/de215192f2eb3eb158b810d7e1ad2a56f5bec5ec/data/spam-1/00011.61816b9ad167657773a427d890d0468e.json",
+      "contentHash": "7960e3ba247dfd28de4ccde4c4ffd7aa25be8eb9d9f7de01f8a0706466c733df",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceId": "spam-1/00011",
+        "sanitized": true,
+        "condensation": "PII, live links, markup, and unsafe content removed"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-202000000001",
+      "category": "email",
+      "contentType": "email",
+      "payload": {
+        "kind": "email",
+        "senderName": "Developer Mailing List",
+        "senderAddress": "developers@list.example",
+        "subject": "Re: New Sequences Window",
+        "body": "I can reproduce the error every time. The command works when run manually, so I am checking the profile settings and debug log.",
+        "receivedAt": "Today"
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "Scam",
+        "optionB": "Legitimate"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": [
+          "specific context",
+          "no credential request",
+          "technical detail"
+        ]
+      },
+      "explanation": "The reply contains specific shared context and technical detail without requesting money, credentials, or a link visit.",
+      "sourceDataset": "stdlib-js SpamAssassin public mail corpus",
+      "license": "PDDL-1.0 database; CC0-1.0 contents",
+      "attribution": "SpamAssassin public corpus, redistributed by stdlib-js; identifying data removed and text safely condensed.",
+      "originalSourceUrl": "https://github.com/stdlib-js/datasets-spam-assassin/blob/de215192f2eb3eb158b810d7e1ad2a56f5bec5ec/data/easy-ham-1/00001.7c53336b37003a9286aba55d2945844c.json",
+      "contentHash": "30c469f318ee741b092fe2aac5b4a5a4231879f271daf7c6f09939d3a277acec",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceId": "easy-ham-1/00001",
+        "sanitized": true,
+        "condensation": "PII, live links, markup, and unsafe content removed"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-202000000002",
+      "category": "email",
+      "contentType": "email",
+      "payload": {
+        "kind": "email",
+        "senderName": "Community News List",
+        "senderAddress": "discussion@community-list.example",
+        "subject": "RE: Alexander Monument Proposal",
+        "body": "A member shared an article about a proposed limestone monument near Salonika. The group is discussing the site and materials.",
+        "receivedAt": "Today"
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "Scam",
+        "optionB": "Legitimate"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": [
+          "ongoing thread",
+          "informational tone",
+          "no action pressure"
+        ]
+      },
+      "explanation": "This is a contextual discussion post with an informational tone and no risky request.",
+      "sourceDataset": "stdlib-js SpamAssassin public mail corpus",
+      "license": "PDDL-1.0 database; CC0-1.0 contents",
+      "attribution": "SpamAssassin public corpus, redistributed by stdlib-js; identifying data removed and text safely condensed.",
+      "originalSourceUrl": "https://github.com/stdlib-js/datasets-spam-assassin/blob/de215192f2eb3eb158b810d7e1ad2a56f5bec5ec/data/easy-ham-1/00002.9c4069e25e1ef370c078db7ee85ff9ac.json",
+      "contentHash": "0e78b94844802f8aaade975674d949286080fe859a3527f5918aefb23293ad5f",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceId": "easy-ham-1/00002",
+        "sanitized": true,
+        "condensation": "PII, live links, markup, and unsafe content removed"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-202000000003",
+      "category": "email",
+      "contentType": "email",
+      "payload": {
+        "kind": "email",
+        "senderName": "Technology Newsletter",
+        "senderAddress": "editor@tech-news.example",
+        "subject": "Klez: The Virus That Will Not Die",
+        "body": "The latest issue summarizes how the Klez computer virus continues to spread and lists defensive steps for system administrators.",
+        "receivedAt": "Today"
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "Scam",
+        "optionB": "Legitimate"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": [
+          "descriptive subject",
+          "educational content",
+          "known newsletter format"
+        ]
+      },
+      "explanation": "Although the topic sounds alarming, the message is a descriptive newsletter summary rather than a demand.",
+      "sourceDataset": "stdlib-js SpamAssassin public mail corpus",
+      "license": "PDDL-1.0 database; CC0-1.0 contents",
+      "attribution": "SpamAssassin public corpus, redistributed by stdlib-js; identifying data removed and text safely condensed.",
+      "originalSourceUrl": "https://github.com/stdlib-js/datasets-spam-assassin/blob/de215192f2eb3eb158b810d7e1ad2a56f5bec5ec/data/easy-ham-1/00004.864220c5b6930b209cc287c361c99af1.json",
+      "contentHash": "be033ad2b3970f74aa9c696f17e3a9779310f92a0fb976623569d4c134a7b2c8",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceId": "easy-ham-1/00004",
+        "sanitized": true,
+        "condensation": "PII, live links, markup, and unsafe content removed"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-202000000004",
+      "category": "email",
+      "contentType": "email",
+      "payload": {
+        "kind": "email",
+        "senderName": "Cooking Discussion List",
+        "senderAddress": "members@food-list.example",
+        "subject": "Re: Nothing Like Mama Used to Make",
+        "body": "I wanted to join the discussion about carbonara. I usually combine egg and cheese with the hot pasta rather than adding cream.",
+        "receivedAt": "Today"
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "Scam",
+        "optionB": "Legitimate"
+      },
+      "difficulty": {
+        "tier": "easy",
+        "signals": [
+          "ordinary conversation",
+          "thread continuity",
+          "no external request"
+        ]
+      },
+      "explanation": "The message continues a normal recipe discussion and asks for no sensitive action.",
+      "sourceDataset": "stdlib-js SpamAssassin public mail corpus",
+      "license": "PDDL-1.0 database; CC0-1.0 contents",
+      "attribution": "SpamAssassin public corpus, redistributed by stdlib-js; identifying data removed and text safely condensed.",
+      "originalSourceUrl": "https://github.com/stdlib-js/datasets-spam-assassin/blob/de215192f2eb3eb158b810d7e1ad2a56f5bec5ec/data/easy-ham-1/00005.bf27cdeaf0b8c4647ecd61b1d09da613.json",
+      "contentHash": "4d95642e402b6a8c73d79d710351418d7cb351aaf722729d870d6822517812d9",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceId": "easy-ham-1/00005",
+        "sanitized": true,
+        "condensation": "PII, live links, markup, and unsafe content removed"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-202000000005",
+      "category": "email",
+      "contentType": "email",
+      "payload": {
+        "kind": "email",
+        "senderName": "Spam Filter Users",
+        "senderAddress": "users@filter-project.example",
+        "subject": "Web Configurator Script",
+        "body": "Has anyone built a web interface for changing user filter preferences? I searched the project mirrors but have not found one.",
+        "receivedAt": "Today"
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "Scam",
+        "optionB": "Legitimate"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": [
+          "clear technical question",
+          "project context",
+          "no unknown attachment"
+        ]
+      },
+      "explanation": "This is a focused technical question posted to a relevant project list.",
+      "sourceDataset": "stdlib-js SpamAssassin public mail corpus",
+      "license": "PDDL-1.0 database; CC0-1.0 contents",
+      "attribution": "SpamAssassin public corpus, redistributed by stdlib-js; identifying data removed and text safely condensed.",
+      "originalSourceUrl": "https://github.com/stdlib-js/datasets-spam-assassin/blob/de215192f2eb3eb158b810d7e1ad2a56f5bec5ec/data/easy-ham-1/00010.145d22c053c1a0c410242e46c01635b3.json",
+      "contentHash": "b2a1c54d2b7fdae3d3896b0116257fa8a06d4cc56f41737a3e5ca2e661517e5b",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceId": "easy-ham-1/00010",
+        "sanitized": true,
+        "condensation": "PII, live links, markup, and unsafe content removed"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-202000000006",
+      "category": "email",
+      "contentType": "email",
+      "payload": {
+        "kind": "email",
+        "senderName": "Linux Users Group",
+        "senderAddress": "members@linux-group.example",
+        "subject": "Re: Problems with RAID 1 on Server",
+        "body": "The server may be passing the wrong root device to the kernel during boot. Check the disk layout before changing the mirror.",
+        "receivedAt": "Today"
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "Scam",
+        "optionB": "Legitimate"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": [
+          "technical continuity",
+          "measured language",
+          "no secret request"
+        ]
+      },
+      "explanation": "The message gives measured, context-specific troubleshooting advice without requesting access or credentials.",
+      "sourceDataset": "stdlib-js SpamAssassin public mail corpus",
+      "license": "PDDL-1.0 database; CC0-1.0 contents",
+      "attribution": "SpamAssassin public corpus, redistributed by stdlib-js; identifying data removed and text safely condensed.",
+      "originalSourceUrl": "https://github.com/stdlib-js/datasets-spam-assassin/blob/de215192f2eb3eb158b810d7e1ad2a56f5bec5ec/data/easy-ham-1/00013.81c34741dbed59c6dde50777e27e7ea3.json",
+      "contentHash": "edf116df1af80049be8251cc9cb36982e2aab443618b360cd30d3ff95c132fe8",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceId": "easy-ham-1/00013",
+        "sanitized": true,
+        "condensation": "PII, live links, markup, and unsafe content removed"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-301000000001",
+      "category": "voice",
+      "contentType": "audio",
+      "payload": {
+        "kind": "audio",
+        "src": "/datasets/audio/ai/synthetic-01.ogg",
+        "transcript": "The weather station recorded a calm clear morning.",
+        "durationSeconds": 3.0415
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "easy",
+        "signals": [
+          "uniform cadence",
+          "limited breath noise",
+          "flat transitions"
+        ]
+      },
+      "explanation": "The clip has unusually regular timing, limited breath detail, and synthetic transitions between phonemes.",
+      "sourceDataset": "Project-generated Flite synthetic speech starter set",
+      "originalSourceUrl": "https://github.com/festvox/flite",
+      "license": "BSD-style Flite license; CC0-1.0 project phrases and outputs",
+      "attribution": "Generated locally with Flite voices from original project phrases.",
+      "contentHash": "b0aca92b93211bf23c57dfdb21f95d9c74dd8bb00bfde1b4848ecf4227762cf7",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "generator": "Flite 2.2",
+        "voice": "slt"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-301000000002",
+      "category": "voice",
+      "contentType": "audio",
+      "payload": {
+        "kind": "audio",
+        "src": "/datasets/audio/ai/synthetic-02.ogg",
+        "transcript": "Please place the blue notebook beside the lamp.",
+        "durationSeconds": 2.691875
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": ["vocoder texture", "mechanical rhythm", "phoneme joins"]
+      },
+      "explanation": "The clip has unusually regular timing, limited breath detail, and synthetic transitions between phonemes.",
+      "sourceDataset": "Project-generated Flite synthetic speech starter set",
+      "originalSourceUrl": "https://github.com/festvox/flite",
+      "license": "BSD-style Flite license; CC0-1.0 project phrases and outputs",
+      "attribution": "Generated locally with Flite voices from original project phrases.",
+      "contentHash": "64b49068aff2dae2921bf6282cdbeb176508681e76d89d223ff0b048618ae062",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "generator": "Flite 2.2",
+        "voice": "kal"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-301000000003",
+      "category": "voice",
+      "contentType": "audio",
+      "payload": {
+        "kind": "audio",
+        "src": "/datasets/audio/ai/synthetic-03.ogg",
+        "transcript": "Our train reaches the final station before sunset.",
+        "durationSeconds": 3.5815
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": ["uniform volume", "abrupt consonants", "limited room tone"]
+      },
+      "explanation": "The clip has unusually regular timing, limited breath detail, and synthetic transitions between phonemes.",
+      "sourceDataset": "Project-generated Flite synthetic speech starter set",
+      "originalSourceUrl": "https://github.com/festvox/flite",
+      "license": "BSD-style Flite license; CC0-1.0 project phrases and outputs",
+      "attribution": "Generated locally with Flite voices from original project phrases.",
+      "contentHash": "7b72f38ada0e57a18d3a481886dc6b972c8b04c51f6addd546fd89f6e0c52b41",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "generator": "Flite 2.2",
+        "voice": "awb"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-301000000004",
+      "category": "voice",
+      "contentType": "audio",
+      "payload": {
+        "kind": "audio",
+        "src": "/datasets/audio/ai/synthetic-04.ogg",
+        "transcript": "Fresh bread cools on the kitchen counter.",
+        "durationSeconds": 2.8265
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "easy",
+        "signals": ["synthetic resonance", "even pacing", "missing breath"]
+      },
+      "explanation": "The clip has unusually regular timing, limited breath detail, and synthetic transitions between phonemes.",
+      "sourceDataset": "Project-generated Flite synthetic speech starter set",
+      "originalSourceUrl": "https://github.com/festvox/flite",
+      "license": "BSD-style Flite license; CC0-1.0 project phrases and outputs",
+      "attribution": "Generated locally with Flite voices from original project phrases.",
+      "contentHash": "7222a155ae7a020879b71b1a4f0de7d1f584d8c48b3bd5da54dd6d2b14eb199b",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "generator": "Flite 2.2",
+        "voice": "rms"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-301000000005",
+      "category": "voice",
+      "contentType": "audio",
+      "payload": {
+        "kind": "audio",
+        "src": "/datasets/audio/ai/synthetic-05.ogg",
+        "transcript": "A small telescope pointed toward the moon.",
+        "durationSeconds": 2.504375
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": ["compressed timbre", "phoneme boundary", "pitch regularity"]
+      },
+      "explanation": "The clip has unusually regular timing, limited breath detail, and synthetic transitions between phonemes.",
+      "sourceDataset": "Project-generated Flite synthetic speech starter set",
+      "originalSourceUrl": "https://github.com/festvox/flite",
+      "license": "BSD-style Flite license; CC0-1.0 project phrases and outputs",
+      "attribution": "Generated locally with Flite voices from original project phrases.",
+      "contentHash": "b027d0f0fcd7d9c2ca5ce02b53ac3f9cb3b6297cd620f2dfac77b9091b70d07f",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "generator": "Flite 2.2",
+        "voice": "kal16"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-301000000006",
+      "category": "voice",
+      "contentType": "audio",
+      "payload": {
+        "kind": "audio",
+        "src": "/datasets/audio/ai/synthetic-06.ogg",
+        "transcript": "The museum opens its doors at nine each morning.",
+        "durationSeconds": 3.23025
+      },
+      "correctChoice": "option_a",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": ["time-stretched cadence", "steady pitch", "clean silence"]
+      },
+      "explanation": "The clip has unusually regular timing, limited breath detail, and synthetic transitions between phonemes.",
+      "sourceDataset": "Project-generated Flite synthetic speech starter set",
+      "originalSourceUrl": "https://github.com/festvox/flite",
+      "license": "BSD-style Flite license; CC0-1.0 project phrases and outputs",
+      "attribution": "Generated locally with Flite voices from original project phrases.",
+      "contentHash": "fda2fe3f331a08c0a32488ce48c75323222c3fd88d3c520546aedb15f2948b50",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "generator": "Flite 2.2",
+        "voice": "slt"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-302000000001",
+      "category": "voice",
+      "contentType": "audio",
+      "payload": {
+        "kind": "audio",
+        "src": "/datasets/audio/real/human-01.ogg",
+        "transcript": "The child almost hurt the small dog.",
+        "durationSeconds": 2.8765
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": [
+          "natural timing variation",
+          "human articulation",
+          "recording texture"
+        ]
+      },
+      "explanation": "Small timing changes, natural articulation, and room or microphone texture support a human recording.",
+      "sourceDataset": "SpeechBrain ASR test samples",
+      "originalSourceUrl": "https://github.com/speechbrain/speechbrain/tree/e5cb1f65b940634215650aa1171e0440d0808123/tests/samples/ASR",
+      "license": "Apache-2.0",
+      "attribution": "SpeechBrain test audio, converted to mono Opus for the starter set.",
+      "contentHash": "1380e6bededb8c3f63a3b41aad4240f09ae58911cf396f929969d94946958c33",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceFile": "spk1_snt1.wav",
+        "sourceCommit": "e5cb1f65b940634215650aa1171e0440d0808123"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-302000000002",
+      "category": "voice",
+      "contentType": "audio",
+      "payload": {
+        "kind": "audio",
+        "src": "/datasets/audio/real/human-02.ogg",
+        "transcript": "Drop the two when you add the figures.",
+        "durationSeconds": 3.1565
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": [
+          "natural timing variation",
+          "human articulation",
+          "recording texture"
+        ]
+      },
+      "explanation": "Small timing changes, natural articulation, and room or microphone texture support a human recording.",
+      "sourceDataset": "SpeechBrain ASR test samples",
+      "originalSourceUrl": "https://github.com/speechbrain/speechbrain/tree/e5cb1f65b940634215650aa1171e0440d0808123/tests/samples/ASR",
+      "license": "Apache-2.0",
+      "attribution": "SpeechBrain test audio, converted to mono Opus for the starter set.",
+      "contentHash": "b16cf1590d4a822adb445560bcf45b5168bc4d613d4055dd20f26bed990ba73c",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceFile": "spk1_snt2.wav",
+        "sourceCommit": "e5cb1f65b940634215650aa1171e0440d0808123"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-302000000003",
+      "category": "voice",
+      "contentType": "audio",
+      "payload": {
+        "kind": "audio",
+        "src": "/datasets/audio/real/human-03.ogg",
+        "transcript": "Sunday is the best part of the week.",
+        "durationSeconds": 2.6065
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": [
+          "natural timing variation",
+          "human articulation",
+          "recording texture"
+        ]
+      },
+      "explanation": "Small timing changes, natural articulation, and room or microphone texture support a human recording.",
+      "sourceDataset": "SpeechBrain ASR test samples",
+      "originalSourceUrl": "https://github.com/speechbrain/speechbrain/tree/e5cb1f65b940634215650aa1171e0440d0808123/tests/samples/ASR",
+      "license": "Apache-2.0",
+      "attribution": "SpeechBrain test audio, converted to mono Opus for the starter set.",
+      "contentHash": "f7343515e63dc8886dca87c25a304b13407062b471f30fd58da83102f5d82370",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceFile": "spk1_snt5.wav",
+        "sourceCommit": "e5cb1f65b940634215650aa1171e0440d0808123"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-302000000004",
+      "category": "voice",
+      "contentType": "audio",
+      "payload": {
+        "kind": "audio",
+        "src": "/datasets/audio/real/human-04.ogg",
+        "transcript": "The child almost hurt the small dog.",
+        "durationSeconds": 2.0165
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": [
+          "natural timing variation",
+          "human articulation",
+          "recording texture"
+        ]
+      },
+      "explanation": "Small timing changes, natural articulation, and room or microphone texture support a human recording.",
+      "sourceDataset": "SpeechBrain ASR test samples",
+      "originalSourceUrl": "https://github.com/speechbrain/speechbrain/tree/e5cb1f65b940634215650aa1171e0440d0808123/tests/samples/ASR",
+      "license": "Apache-2.0",
+      "attribution": "SpeechBrain test audio, converted to mono Opus for the starter set.",
+      "contentHash": "1af6548c6decc1a1962b82f14c51eb8a997ae0137b1444d12595965cd3a4daba",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceFile": "spk2_snt1.wav",
+        "sourceCommit": "e5cb1f65b940634215650aa1171e0440d0808123"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-302000000005",
+      "category": "voice",
+      "contentType": "audio",
+      "payload": {
+        "kind": "audio",
+        "src": "/datasets/audio/real/human-05.ogg",
+        "transcript": "Drop the two when you add the figures.",
+        "durationSeconds": 1.7665
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "hard",
+        "signals": [
+          "natural timing variation",
+          "human articulation",
+          "recording texture"
+        ]
+      },
+      "explanation": "Small timing changes, natural articulation, and room or microphone texture support a human recording.",
+      "sourceDataset": "SpeechBrain ASR test samples",
+      "originalSourceUrl": "https://github.com/speechbrain/speechbrain/tree/e5cb1f65b940634215650aa1171e0440d0808123/tests/samples/ASR",
+      "license": "Apache-2.0",
+      "attribution": "SpeechBrain test audio, converted to mono Opus for the starter set.",
+      "contentHash": "26a0cd57f299e85a502a6f1ecd42d161ce00707f56015da7bd9a25f0979e3abe",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceFile": "spk2_snt2.wav",
+        "sourceCommit": "e5cb1f65b940634215650aa1171e0440d0808123"
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-302000000006",
+      "category": "voice",
+      "contentType": "audio",
+      "payload": {
+        "kind": "audio",
+        "src": "/datasets/audio/real/human-06.ogg",
+        "transcript": "Ken pairs lack full flavor.",
+        "durationSeconds": 1.9865
+      },
+      "correctChoice": "option_b",
+      "labels": {
+        "optionA": "AI",
+        "optionB": "Real"
+      },
+      "difficulty": {
+        "tier": "medium",
+        "signals": [
+          "natural timing variation",
+          "human articulation",
+          "recording texture"
+        ]
+      },
+      "explanation": "Small timing changes, natural articulation, and room or microphone texture support a human recording.",
+      "sourceDataset": "SpeechBrain ASR test samples",
+      "originalSourceUrl": "https://github.com/speechbrain/speechbrain/tree/e5cb1f65b940634215650aa1171e0440d0808123/tests/samples/ASR",
+      "license": "Apache-2.0",
+      "attribution": "SpeechBrain test audio, converted to mono Opus for the starter set.",
+      "contentHash": "e22f2ce9d15a30c04da1d752769abcbc94768b085e4cf11f2c39d644fd22af2c",
+      "active": true,
+      "metadata": {
+        "starter": true,
+        "sourceFile": "spk2_snt5.wav",
+        "sourceCommit": "e5cb1f65b940634215650aa1171e0440d0808123"
+      }
+    }
+  ]
+}
