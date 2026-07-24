@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useGameStore } from '@/store/gameStore';
 import { fetchActiveConfig, fetchQuestionBatch } from '@/lib/questions';
@@ -102,6 +103,12 @@ export default function Home() {
           <span className="rounded-md bg-zinc-100 px-2 py-1 dark:bg-zinc-800">
             🔥 {profile?.dailyStreak ?? 0}
           </span>
+          <Link
+            href="/analytics"
+            className="rounded-md px-2 py-1 text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+          >
+            📊 Analytics
+          </Link>
           <form action={signOut}>
             <button
               type="submit"

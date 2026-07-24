@@ -258,6 +258,24 @@ export type Database = {
     };
     Functions: {
       get_active_config: { Args: never; Returns: Json };
+      get_category_stats: {
+        Args: never;
+        Returns: {
+          category_id: string;
+          attempts: number;
+          accuracy_pct: number | null;
+          avg_speed_ms: number | null;
+        }[];
+      };
+      get_daily_trends: {
+        Args: never;
+        Returns: {
+          day: string;
+          accuracy_pct: number | null;
+          avg_speed_ms: number | null;
+        }[];
+      };
+      get_user_stats: { Args: never; Returns: Json };
       sample_questions: {
         Args: { p_categories: string[]; p_exclude?: string[]; p_limit: number };
         Returns: {
