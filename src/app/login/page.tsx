@@ -34,6 +34,14 @@ function LoginForm() {
           ? 'Sign in to keep your XP, streak, and analytics.'
           : 'Save your progress across every run.'
       }
+      footer={
+        <span>
+          Just exploring?{' '}
+          <Link href="/" className="text-bot hover:text-bot-bright">
+            Play as guest →
+          </Link>
+        </span>
+      }
     >
       <div className="border-edge mb-5 flex gap-1 rounded-xl border p-1">
         <button

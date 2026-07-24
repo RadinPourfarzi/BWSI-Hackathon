@@ -23,7 +23,7 @@ const mono = Space_Mono({
 
 export const metadata: Metadata = {
   title: 'Bot Or Not',
-  description: 'The GeoGuessr of AI detection — spot AI-generated media under time pressure.',
+  description: 'Spot AI-generated images, scam emails, and voice deepfakes under time pressure.',
 };
 
 export default function RootLayout({

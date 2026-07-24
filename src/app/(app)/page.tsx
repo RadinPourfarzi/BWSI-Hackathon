@@ -3,17 +3,7 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import {
-  AudioLines,
-  Dumbbell,
-  GraduationCap,
-  ImageIcon,
-  MailWarning,
-  ShieldCheck,
-  Sparkles,
-  Swords,
-  Zap,
-} from 'lucide-react';
+import { AudioLines, Dumbbell, ImageIcon, MailWarning, Swords } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useGameStore } from '@/store/gameStore';
 import { fetchActiveConfig, fetchQuestionBatch } from '@/lib/questions';
@@ -51,7 +41,7 @@ const CATEGORY_PRESENTATION: Record<
   },
 };
 
-const PREVIEW_SRC = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/challenges/image/real/real1.jpg`;
+const PREVIEW_SRC = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/challenges/image/ai/ai1.jpg`;
 
 export default function Home() {
   return (
@@ -73,6 +63,7 @@ function HomeInner() {
   const [selected, setSelected] = useState<CategoryId[]>([...GAME_DEFAULTS.defaultCategories]);
   const [starting, setStarting] = useState<GameMode | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [revealed, setRevealed] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -157,11 +148,7 @@ function HomeInner() {
       {/* Hero + launcher */}
       <section className="grid items-center gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
         <div>
-          <Badge className="border-bot/30 bg-bot/10 text-bot">
-            <Sparkles className="mr-1.5 size-3.5" />
-            The GeoGuessr of AI detection
-          </Badge>
-          <h1 className="font-display mt-6 text-5xl leading-[0.98] font-extrabold tracking-tight sm:text-6xl">
+          <h1 className="font-display text-5xl leading-[0.98] font-extrabold tracking-tight sm:text-6xl">
             Can you tell
             <br />
             what&apos;s <span className="text-not">real?</span>
@@ -171,7 +158,7 @@ function HomeInner() {
               ? 'Loading your file…'
               : `Train your instincts to spot AI images, phishing scams, and voice deepfakes${
                   profile ? `, ${profile.username}` : ''
-                } — one split-second call at a time.`}
+                }.`}
           </p>
 
           {profile && (
@@ -195,32 +182,22 @@ function HomeInner() {
               type="button"
               onClick={() => start('ARCADE')}
               disabled={!canStart}
-              className="group border-bot/40 bg-bot/10 hover:border-bot hover:bg-bot/20 flex flex-1 items-center justify-between rounded-2xl border px-6 py-5 text-left transition-colors disabled:opacity-50"
+              className="group border-bot/40 bg-bot/10 hover:border-bot hover:bg-bot/20 flex flex-1 items-center justify-center gap-3 rounded-2xl border px-6 py-5 transition-colors disabled:opacity-50"
             >
-              <span className="flex items-center gap-3">
-                <Swords className="text-bot size-5" />
-                <span className="font-display text-text text-xl font-bold">
-                  {starting === 'ARCADE' ? 'Starting…' : 'Play Arcade'}
-                </span>
-              </span>
-              <span className="text-muted font-mono text-[0.65rem] tracking-wider uppercase">
-                3 lives · decay
+              <Swords className="text-bot size-5" />
+              <span className="font-display text-text text-xl font-bold">
+                {starting === 'ARCADE' ? 'Starting…' : 'Play Arcade'}
               </span>
             </button>
             <button
               type="button"
               onClick={() => start('TRAINING')}
               disabled={!canStart}
-              className="group border-edge hover:border-not hover:bg-not/10 flex flex-1 items-center justify-between rounded-2xl border px-6 py-5 text-left transition-colors disabled:opacity-50"
+              className="group border-edge hover:border-not hover:bg-not/10 flex flex-1 items-center justify-center gap-3 rounded-2xl border px-6 py-5 transition-colors disabled:opacity-50"
             >
-              <span className="flex items-center gap-3">
-                <Dumbbell className="text-not size-5" />
-                <span className="font-display text-text text-xl font-bold">
-                  {starting === 'TRAINING' ? 'Starting…' : 'Training'}
-                </span>
-              </span>
-              <span className="text-muted font-mono text-[0.65rem] tracking-wider uppercase">
-                learn the tells
+              <Dumbbell className="text-not size-5" />
+              <span className="font-display text-text text-xl font-bold">
+                {starting === 'TRAINING' ? 'Starting…' : 'Training'}
               </span>
             </button>
           </div>
@@ -256,6 +233,15 @@ function HomeInner() {
             )}
             {error && <p className="text-wrong mt-2 text-sm">{error}</p>}
           </div>
+
+          {isGuest && (
+            <p className="text-muted mt-6 text-sm">
+              Playing as a guest.{' '}
+              <Link href="/login?redirect=/" className="text-bot hover:text-bot-bright">
+                Sign in to save progress →
+              </Link>
+            </p>
+          )}
         </div>
 
         {/* Preview card */}
@@ -279,12 +265,35 @@ function HomeInner() {
               draggable={false}
             />
             <div className="grid grid-cols-2 gap-3 p-4">
-              <div className="border-bot/50 bg-bot/12 text-bot rounded-xl border py-4 text-center font-bold">
+              <div
+                className={cn(
+                  'rounded-xl border py-4 text-center font-bold transition-colors',
+                  revealed
+                    ? 'border-correct/60 bg-correct/15 text-correct'
+                    : 'border-bot/50 bg-bot/12 text-bot',
+                )}
+              >
                 AI
               </div>
               <div className="border-edge rounded-xl border bg-white/4 py-4 text-center font-bold">
                 Real
               </div>
+            </div>
+            <div className="px-4 pb-4 text-center">
+              {revealed ? (
+                <p className="text-muted text-sm">
+                  It&apos;s <span className="text-correct font-bold">AI-generated</span>. The tells
+                  get subtler as you climb.
+                </p>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setRevealed(true)}
+                  className="text-muted hover:text-text font-mono text-xs tracking-wide uppercase transition-colors"
+                >
+                  Show answer
+                </button>
+              )}
             </div>
           </Card>
         </div>
@@ -325,27 +334,6 @@ function HomeInner() {
             );
           })}
         </div>
-      </section>
-
-      {/* Value props */}
-      <section className="text-muted mt-12 flex flex-wrap items-center gap-x-7 gap-y-3 text-sm font-semibold">
-        <span className="flex items-center gap-2">
-          <ShieldCheck className="text-correct size-4" />
-          Real open data
-        </span>
-        <span className="flex items-center gap-2">
-          <Zap className="text-correct size-4" />
-          Instant feedback
-        </span>
-        <span className="flex items-center gap-2">
-          <GraduationCap className="text-correct size-4" />
-          Learn the tells
-        </span>
-        {isGuest && (
-          <Link href="/login?redirect=/" className="text-bot hover:text-bot-bright ml-auto">
-            Sign in to save progress →
-          </Link>
-        )}
       </section>
     </div>
   );
