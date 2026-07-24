@@ -11,6 +11,8 @@ export const UI_CONFIG = {
   incorrectFlashMs: 220,
   /** Question-to-question transition (ms). */
   transitionMs: 120,
+  /** How long the correct/incorrect feedback is shown before the next question (ms). */
+  feedbackHoldMs: 550,
   /**
    * Fixed gameplay media bounding box. Locked dimensions + object-fit: contain prevent
    * the AI/REAL buttons from shifting when media type changes.
