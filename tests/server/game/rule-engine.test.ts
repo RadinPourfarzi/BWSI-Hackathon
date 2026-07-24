@@ -1,101 +1,155 @@
-import { describe, expect, it } from "vitest";
-import { DEFAULT_GAME_CONFIG } from "@/config/game.config";
-import { GameRuleEngine } from "@/server/game/rule-engine";
+import { describe, expect, it } from 'vitest';
+import { DEFAULT_GAME_CONFIG } from '@/config/game.config';
+import { MOCK_QUESTIONS } from '@/database/mock/challenges';
+import { GameRuleEngine, type ResolveAnswerInput } from '@/server/game/rule-engine';
 
 const engine = new GameRuleEngine();
+const imageQuestion = MOCK_QUESTIONS[0]!;
 
-describe("GameRuleEngine", () => {
-  it("increments combo and score for a correct Arcade answer", () => {
-    const result = engine.resolveAnswer({
-      mode: "ARCADE",
-      categoryId: "image",
+function input(overrides: Partial<ResolveAnswerInput> = {}): ResolveAnswerInput {
+  return {
+    mode: 'ARCADE',
+    questionNumber: 1,
+    scoreBeforeAnswer: 0,
+    comboBeforeAnswer: 0,
+    highestComboBeforeAnswer: 0,
+    livesBeforeAnswer: 3,
+    selectedOptionId: imageQuestion.correctOptionId,
+    responseTimeMs: 1_000,
+    question: imageQuestion,
+    config: DEFAULT_GAME_CONFIG,
+    ...overrides,
+  };
+}
+
+describe('GameRuleEngine', () => {
+  it('increments score and combo after a correct Arcade answer', () => {
+    expect(engine.resolveAnswer(input())).toMatchObject({
       wasCorrect: true,
-      responseTimeMs: 1_000,
-      questionNumber: 1,
-      currentScore: 0,
-      currentCombo: 0,
-      highestCombo: 0,
-      currentLives: 3,
-      config: DEFAULT_GAME_CONFIG,
-    });
-
-    expect(result).toMatchObject({
-      awardedPoints: 100,
-      score: 100,
-      combo: 1,
-      highestCombo: 1,
-      lives: 3,
+      pointsAwarded: 100,
+      scoreAfterAnswer: 100,
+      comboAfterAnswer: 1,
+      highestComboAfterAnswer: 1,
+      livesAfterAnswer: 3,
       gameEnded: false,
     });
   });
 
-  it("resets combo, removes the final life, and ends Arcade", () => {
-    const result = engine.resolveAnswer({
-      mode: "ARCADE",
-      categoryId: "image",
-      wasCorrect: false,
-      responseTimeMs: 1_000,
-      questionNumber: 1,
-      currentScore: 200,
-      currentCombo: 4,
-      highestCombo: 4,
-      currentLives: 1,
-      config: DEFAULT_GAME_CONFIG,
-    });
+  it('uses the combo that existed before the answer', () => {
+    expect(
+      engine.resolveAnswer(
+        input({
+          comboBeforeAnswer: 2,
+          highestComboBeforeAnswer: 2,
+        }),
+      ).pointsAwarded,
+    ).toBe(200);
+  });
 
+  it('resets combo and removes a life for a wrong answer', () => {
+    const result = engine.resolveAnswer(
+      input({
+        scoreBeforeAnswer: 500,
+        comboBeforeAnswer: 4,
+        highestComboBeforeAnswer: 4,
+        selectedOptionId: 'real',
+      }),
+    );
     expect(result).toMatchObject({
-      awardedPoints: 0,
-      score: 200,
-      combo: 0,
-      highestCombo: 4,
-      lives: 0,
-      gameEnded: true,
+      wasCorrect: false,
+      pointsAwarded: 0,
+      scoreAfterAnswer: 500,
+      comboAfterAnswer: 0,
+      highestComboAfterAnswer: 4,
+      livesAfterAnswer: 2,
+    });
+    expect(result.events).toContainEqual({ type: 'combo-reset' });
+    expect(result.events).toContainEqual({
+      type: 'life-lost',
+      livesRemaining: 2,
     });
   });
 
-  it("does not score or remove lives in Training mode", () => {
-    const result = engine.resolveAnswer({
-      mode: "TRAINING",
-      categoryId: "email",
-      wasCorrect: false,
-      responseTimeMs: 20_000,
-      questionNumber: 1,
-      currentScore: 0,
-      currentCombo: 0,
-      highestCombo: 0,
-      currentLives: null,
-      config: DEFAULT_GAME_CONFIG,
-    });
-
-    expect(result).toMatchObject({
-      awardedPoints: 0,
-      score: 0,
-      lives: null,
-      gameEnded: false,
+  it('ends Arcade at zero lives', () => {
+    const result = engine.resolveAnswer(
+      input({
+        livesBeforeAnswer: 1,
+        selectedOptionId: 'real',
+      }),
+    );
+    expect(result.gameEnded).toBe(true);
+    expect(result.events).toContainEqual({
+      type: 'game-ended',
+      reason: 'lives-depleted',
     });
   });
 
-  it("does not apply the Arcade timeout or combo system in Training", () => {
-    const result = engine.resolveAnswer({
-      mode: "TRAINING",
-      categoryId: "image",
+  it('classifies a matching late answer as a timeout', () => {
+    const result = engine.resolveAnswer(input({ responseTimeMs: 15_751 }));
+    expect(result).toMatchObject({
+      actuallyCorrect: true,
+      wasCorrect: false,
+      timedOut: true,
+      pointsAwarded: 0,
+      livesAfterAnswer: 2,
+    });
+    expect(result.events[0]).toEqual({
+      type: 'answer-timeout',
+      correctOptionId: 'ai',
+    });
+  });
+
+  it('does not score, time out, combo, or remove lives in Training', () => {
+    const result = engine.resolveAnswer(
+      input({
+        mode: 'TRAINING',
+        livesBeforeAnswer: null,
+        responseTimeMs: 60_000,
+      }),
+    );
+    expect(result).toMatchObject({
       wasCorrect: true,
-      responseTimeMs: 60_000,
-      questionNumber: 1,
-      currentScore: 0,
-      currentCombo: 0,
-      highestCombo: 0,
-      currentLives: null,
-      config: DEFAULT_GAME_CONFIG,
-    });
-
-    expect(result).toMatchObject({
-      effectiveCorrectness: true,
-      awardedPoints: 0,
-      score: 0,
-      combo: 0,
-      lives: null,
+      timedOut: false,
+      pointsAwarded: 0,
+      scoreAfterAnswer: 0,
+      comboAfterAnswer: 0,
+      livesAfterAnswer: null,
       gameEnded: false,
+    });
+  });
+
+  it('keeps a wrong Training answer incorrect without life loss', () => {
+    const result = engine.resolveAnswer(
+      input({
+        mode: 'TRAINING',
+        livesBeforeAnswer: null,
+        selectedOptionId: 'real',
+      }),
+    );
+    expect(result).toMatchObject({
+      wasCorrect: false,
+      livesAfterAnswer: null,
+      comboAfterAnswer: 0,
+    });
+  });
+
+  it('returns round-specific timer and effective plateau', () => {
+    expect(engine.roundRulesFor(1, 'audio', 'ARCADE', 0, DEFAULT_GAME_CONFIG)).toEqual({
+      questionNumber: 1,
+      maxPoints: 100,
+      timerMs: 15_000,
+      effectivePlateauMs: 6_500,
+      comboMultiplier: 1,
+    });
+  });
+
+  it('returns timer-free rules for Training', () => {
+    expect(
+      engine.roundRulesFor(1, 'email', 'TRAINING', 9, DEFAULT_GAME_CONFIG),
+    ).toMatchObject({
+      maxPoints: 0,
+      timerMs: null,
+      comboMultiplier: 1,
     });
   });
 });

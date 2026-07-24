@@ -1,26 +1,39 @@
-# Git workflow for the team
+# Git workflow
 
-Your team uses:
+The team pattern is:
 
 ```text
 [name]/[type]/[specific-part]
 ```
 
-Your branch is:
+The server branch is:
 
 ```text
 radin/feat/server-engine-foundation
 ```
 
-Because you own the entire server/engine, it is reasonable to keep all server
-work on that branch during the hackathon. Clean Git history still matters:
-organize the work as small commits, keep the branch current, and merge it
-through a pull request.
+## Create or resume the branch
 
-## Beginning each work session
+New local branch:
 
 ```bash
-git status
+git switch main
+git pull --ff-only origin main
+git switch -c radin/feat/server-engine-foundation
+git push -u origin radin/feat/server-engine-foundation
+```
+
+Existing remote branch:
+
+```bash
+git fetch origin --prune
+git switch --track origin/radin/feat/server-engine-foundation
+```
+
+## Begin a work session
+
+```bash
+git status --short --branch
 git fetch origin --prune
 git switch main
 git pull --ff-only origin main
@@ -28,158 +41,107 @@ git switch radin/feat/server-engine-foundation
 git merge main
 ```
 
-Why merge `main` regularly?
+For this long-running shared branch, merging `main` regularly avoids rewriting
+history and exposes shared-contract conflicts early. Do not force-push unless
+the team explicitly agrees.
 
-- You discover shared-contract conflicts early.
-- Your eventual pull request is easier to review.
-- UI/database changes do not surprise you on demo day.
+## Commit logical behavior
 
-For this team workflow, merging `main` is simpler than repeatedly rebasing a
-long-running reviewed branch. Do not force-push unless the team explicitly
-agrees.
-
-## Before coding
-
-```bash
-git status --short --branch
-git log --oneline --decorate -8
-```
-
-The status should show the correct branch. If unrelated local changes appear,
-understand them before modifying files.
-
-## Stage deliberately
-
-Inspect work:
+Inspect before staging:
 
 ```bash
 git diff
 git status --short
 ```
 
-Stage one logical unit:
+Stage a focused unit:
 
 ```bash
 git add src/server/game tests/server/game
 git diff --staged
 ```
 
-Avoid automatically running `git add .` without reviewing the status first. It
-can accidentally include secrets, editor files, build artifacts, or a
-teammate's unrelated work.
-
-## Commit by behavior
-
-Good sequence for this implementation:
+Example commit sequence:
 
 ```text
-feat(engine): implement authoritative game rules
-feat(session): add ownership and concurrency checks
-feat(database): add Supabase repository and session store
-feat(api): add game analytics and profile routes
-test(server): cover game loop and anti-cheat behavior
-chore(ci): validate server on pull requests
-docs(server): add setup and deployment walkthrough
+feat(engine): merge category-aware authoritative rules
+feat(session): add durable state and completion recovery
+feat(database): add atomic Supabase persistence
+test(server): cover security and game-mode behavior
+ci(server): add validation and protected migrations
+docs(server): document setup and deployment
 ```
 
-Each commit should compile and ideally pass its relevant tests. A commit message
-describes the reason/behavior, not merely “updated files.”
+Avoid `git add .` until you have reviewed every untracked file. It can include
+secrets or build output.
 
-```bash
-git commit -m "feat(session): reject concurrent answer submissions"
-git push
-```
+## Shared files
 
-The first push uses:
+Tell teammates before changing:
 
-```bash
-git push -u origin radin/feat/server-engine-foundation
-```
+- `src/shared/**`
+- `package.json` and `package-lock.json`
+- `supabase/migrations/**`
+- root TypeScript, Next.js, lint, or formatting configuration
 
-## Quality gate before every push
+UI review is required for contract changes; database review is required for
+migrations and repository mappings.
+
+## Quality gate
 
 ```bash
 npm run format
-npm run lint
-npm run typecheck
-npm test
+npm run check
 npm run build
+git status --short
 ```
 
-GitHub Actions repeats these checks, but local checks give faster feedback.
+CI repeats these checks. Do not merge failed CI.
 
-## Shared files require coordination
+## Secret check
 
-Tell teammates before materially changing:
-
-- `src/shared/**`
-- `package.json`
-- `package-lock.json`
-- `supabase/migrations/**`
-- root Next.js/TypeScript configuration
-
-Your server implementation may define a contract, but the UI and database
-developers consume it.
-
-## Secret hygiene
-
-Never commit:
-
-- `.env.local`
-- Supabase service-role key
-- Supabase access tokens
-- Azure credentials or publish profiles
-- database passwords
-
-Check before pushing:
+Never stage `.env.local`, `env.download`, database passwords, Supabase access
+tokens, or service-role keys.
 
 ```bash
-git status --short
 git diff --staged
-git grep -n "SERVICE_ROLE" -- . ":!docs/**" ":!.env.example"
+git status --short
+git grep -n "SERVICE_ROLE_KEY=" -- . ":!.env.example" ":!docs/**"
 ```
 
-If a real secret is ever committed, deleting the line in a later commit is not
-enough. Revoke/rotate the secret immediately and tell the team.
+If a real secret enters any commit, removing it later is insufficient. Rotate
+it immediately and tell the team.
 
-## Pull request strategy
+## Pull request
 
-Open a draft pull request early:
+Open a draft PR from:
 
 ```text
 radin/feat/server-engine-foundation -> main
 ```
 
-This lets teammates read contracts before the final merge. Use the included
-pull-request template and request:
+Request UI review for shared/API contracts, database review for migrations,
+and one general server review. Use the supplied PR template. Protect `main`
+with required Server CI and CodeQL checks.
 
-- UI review for `src/shared` and API responses,
-- database review for repositories and migrations,
-- one general code review for engine behavior.
+Configure the GitHub `production` Environment with required reviewers so a
+merge cannot silently apply database migrations without approval.
 
-Do not merge with failed CI.
+## Resolve conflicts
 
-## Handling a conflict
-
-After `git merge main`, Git marks conflicted files. For each file:
-
-1. Open it and understand both versions.
-2. Remove conflict markers.
-3. Preserve both teammates' intended behavior where compatible.
-4. Run tests.
-5. Stage the resolved files.
-6. Complete the merge commit.
+After `git merge main`, inspect each conflict and preserve both intended
+behaviors when compatible. Never choose “ours” or “theirs” blindly for shared
+contracts or migrations.
 
 ```bash
 git add path/to/resolved-file
-git status
+npm run check
+npm run build
 git commit
 git push
 ```
 
-Do not resolve a shared contract by blindly choosing “ours” or “theirs.”
-
-## After the pull request merges
+## After merge
 
 ```bash
 git switch main
@@ -188,4 +150,4 @@ git branch -d radin/feat/server-engine-foundation
 git fetch origin --prune
 ```
 
-Delete the remote branch through the GitHub PR page after confirming the merge.
+Delete the remote branch after confirming the PR is merged.

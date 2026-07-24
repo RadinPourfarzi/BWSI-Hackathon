@@ -9,6 +9,7 @@
 ## How it was verified
 
 - [ ] `npm run lint`
+- [ ] `npm run format:check`
 - [ ] `npm run typecheck`
 - [ ] `npm test`
 - [ ] `npm run build`
@@ -22,4 +23,5 @@
 
 - [ ] No migration
 - [ ] Migration included and reviewed
+- [ ] Migration dry run inspected
 - [ ] No secret or `.env.local` file committed

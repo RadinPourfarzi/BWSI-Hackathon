@@ -1,19 +1,19 @@
-import type { AnswerChoice, QuestionRecord } from "@/shared/types/game.types";
+import type { QuestionRecord } from '@/shared/types/game.types';
 
 export interface AnswerEvaluation {
-  selectedAnswer: AnswerChoice;
-  correctAnswer: AnswerChoice;
+  selectedOptionId: string;
+  correctOptionId: string;
   wasCorrect: boolean;
 }
 
+/** The browser sends an option ID; only the server compares it to the key. */
 export function evaluateAnswer(
-  selectedAnswer: AnswerChoice,
+  selectedOptionId: string,
   question: QuestionRecord,
 ): AnswerEvaluation {
-  const correctAnswer: AnswerChoice = question.isAi ? "AI" : "REAL";
   return {
-    selectedAnswer,
-    correctAnswer,
-    wasCorrect: selectedAnswer === correctAnswer,
+    selectedOptionId,
+    correctOptionId: question.correctOptionId,
+    wasCorrect: selectedOptionId === question.correctOptionId,
   };
 }

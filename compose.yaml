@@ -3,7 +3,7 @@ services:
     build:
       context: .
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       APP_DATA_PROVIDER: mock
-      ALLOW_DEV_AUTH_HEADER: "true"
+      ALLOW_DEV_AUTH_HEADER: 'false'

@@ -1,55 +1,71 @@
-export type CategoryId = "image" | "email" | "audio";
-export type DifficultyRating = "EASY" | "MEDIUM" | "HARD" | "EXPERT";
-export type GameMode = "ARCADE" | "TRAINING";
-export type AnswerChoice = "AI" | "REAL";
-export type SessionStatus = "active" | "completed" | "abandoned";
+/**
+ * Domain types shared by the API and its consumers.
+ *
+ * `QuestionRecord` is deliberately server-only even though it lives beside
+ * the shared public types: it contains `correctOptionId`. Client code must
+ * import `PublicQuestion`, never `QuestionRecord`.
+ */
+export type CategoryId = 'image' | 'email' | 'audio';
+export type DifficultyRating = 'EASY' | 'MEDIUM' | 'HARD' | 'EXPERT';
+export type GameMode = 'ARCADE' | 'TRAINING';
+export type SessionStatus = 'active' | 'completed' | 'abandoned';
+export type EndReason = 'lives-depleted' | 'pool-exhausted' | 'abandoned';
 
-export interface ImageMetadata {
-  kind: "image";
-  altText?: string;
-  widthPx?: number;
-  heightPx?: number;
-  source?: string;
+export interface AnswerOption {
+  id: string;
+  label: string;
 }
 
-export interface EmailMetadata {
-  kind: "email";
-  subject: string;
-  senderName: string;
-  senderAddress: string;
-  receivedAt?: string;
-  bodyFormat: "image" | "html";
-}
+export type ChallengeContent =
+  | {
+      kind: 'image';
+      mediaPath: string;
+      alt?: string;
+    }
+  | {
+      kind: 'email';
+      senderName: string;
+      senderAddress: string;
+      subject: string;
+      body: string;
+      receivedAt?: string;
+      mediaPath?: string;
+    }
+  | {
+      kind: 'audio';
+      mediaPath: string;
+      durationSeconds?: number;
+      transcript?: string;
+    };
 
-export interface AudioMetadata {
-  kind: "audio";
-  durationMs: number;
-  transcript?: string;
-  mimeType?: string;
-}
-
-export type QuestionMetadata = ImageMetadata | EmailMetadata | AudioMetadata;
-
-/** Private server/database representation. Never serialize this type to the browser. */
+/** Private server/database representation. Never serialize it directly. */
 export interface QuestionRecord {
   id: string;
   categoryId: CategoryId;
-  mediaUrl: string;
-  isAi: boolean;
-  difficultyRating: DifficultyRating;
-  explanationText: string | null;
-  metadata: QuestionMetadata;
-  isActive: boolean;
+  content: ChallengeContent;
+  options: AnswerOption[];
+  correctOptionId: string;
+  difficulty: DifficultyRating;
+  explanation: string | null;
+  active: boolean;
 }
 
-/** Public representation intentionally omits the answer key (`isAi`). */
+/** Public representation. It intentionally omits the answer and explanation. */
 export interface PublicQuestion {
   id: string;
   categoryId: CategoryId;
-  mediaUrl: string;
-  difficultyRating: DifficultyRating;
-  metadata: QuestionMetadata;
-  answerChoices: readonly AnswerChoice[];
+  content: ChallengeContent;
+  options: AnswerOption[];
+  displayedDifficulty: DifficultyRating;
+}
+
+export interface ModeRules {
+  startingLives: number | null;
+  scoringEnabled: boolean;
+  comboEnabled: boolean;
+  timeLimitEnabled: boolean;
+  gameOverWhenLivesReachZero: boolean;
+  detailedFeedbackEnabled: boolean;
 }
 
 export interface CategoryConfiguration {
@@ -57,6 +73,10 @@ export interface CategoryConfiguration {
   gracePeriodMs: number;
   isActive: boolean;
   sortOrder: number;
+  rendererKind: ChallengeContent['kind'];
+  answerOptions: AnswerOption[];
+  aiOptionId: string;
+  nonAiOptionId: string;
 }
 
 export interface DifficultyTier {
@@ -68,14 +88,12 @@ export interface DifficultyTier {
 }
 
 export interface ActiveGameConfig {
-  game: {
-    arcadeLives: number;
-    batchSize: number;
-    prefetchThreshold: number;
-  };
+  version: number;
+  modes: Record<GameMode, ModeRules>;
   scoring: {
     decayExponentBeta: number;
     comboMultipliers: number[];
+    timerSlackMs: number;
   };
   difficultyTiers: DifficultyTier[];
   xp: {
@@ -88,12 +106,26 @@ export interface ActiveGameConfig {
   categories: Record<CategoryId, CategoryConfiguration>;
 }
 
-export interface Profile {
-  id: string;
-  username: string;
+export interface RoundRules {
+  questionNumber: number;
+  maxPoints: number;
+  timerMs: number | null;
+  effectivePlateauMs: number;
+  comboMultiplier: number;
+}
+
+export interface PlayerProfile {
+  userId: string;
+  displayName: string;
   totalXp: number;
-  currentLevel: number;
-  dailyStreak: number;
+  level: number;
+  highestScore: number;
+  longestCombo: number;
+  currentStreak: number;
+  longestStreak: number;
   lastPlayedAt: string | null;
+  gamesPlayed: number;
+  arcadeGamesPlayed: number;
+  trainingGamesPlayed: number;
   createdAt: string;
 }

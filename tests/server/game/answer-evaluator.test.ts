@@ -1,28 +1,28 @@
-import { describe, expect, it } from "vitest";
-import { evaluateAnswer } from "@/server/game/answer-evaluator";
-import type { QuestionRecord } from "@/shared/types/game.types";
+import { describe, expect, it } from 'vitest';
+import { MOCK_QUESTIONS } from '@/database/mock/challenges';
+import { evaluateAnswer } from '@/server/game/answer-evaluator';
 
-const question: QuestionRecord = {
-  id: "11111111-1111-4111-8111-111111111111",
-  categoryId: "image",
-  mediaUrl: "image/test.webp",
-  isAi: true,
-  difficultyRating: "EASY",
-  explanationText: null,
-  metadata: { kind: "image" },
-  isActive: true,
-};
+const question = MOCK_QUESTIONS[0]!;
 
-describe("evaluateAnswer", () => {
-  it("accepts the correct choice", () => {
-    expect(evaluateAnswer("AI", question)).toEqual({
-      selectedAnswer: "AI",
-      correctAnswer: "AI",
+describe('evaluateAnswer', () => {
+  it('accepts the configured option ID', () => {
+    expect(evaluateAnswer(question.correctOptionId, question)).toEqual({
+      selectedOptionId: question.correctOptionId,
+      correctOptionId: question.correctOptionId,
       wasCorrect: true,
     });
   });
 
-  it("rejects the wrong choice", () => {
-    expect(evaluateAnswer("REAL", question).wasCorrect).toBe(false);
+  it('rejects a different option ID', () => {
+    expect(evaluateAnswer('real', question).wasCorrect).toBe(false);
+  });
+
+  it('returns truth from the private question rather than client data', () => {
+    const result = evaluateAnswer('made-up-option', question);
+    expect(result).toMatchObject({
+      selectedOptionId: 'made-up-option',
+      correctOptionId: 'ai',
+      wasCorrect: false,
+    });
   });
 });

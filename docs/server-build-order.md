@@ -1,48 +1,17 @@
-# Server integration order
+# Integration and handoff order
 
-Use the same branch, `radin/feat/server-engine-foundation`, with small commits in
-this order.
+The server implementation is complete. Integrate it in this order:
 
-The server code is implemented. Use these phases to review and integrate it.
+1. Review `src/shared` with UI developers. Agree on category-specific option
+   IDs and response event handling.
+2. Run mock mode and connect one complete UI Arcade loop.
+3. Add Training rendering and explanations without changing engine behavior.
+4. Have the database owner review the migration, then test a local Supabase
+   reset with Docker.
+5. Connect Supabase Auth and send bearer tokens from the UI.
+6. Test durable reconnect, completion, profile, analytics, and leaderboard.
+7. Protect the GitHub production environment and deploy the migration.
+8. Deploy Next.js to Vercel/Azure, then configure Auth redirect URLs.
+9. Replace placeholder content and run accessibility/security review.
 
-## Phase 1 — Contracts and pure rules (implemented)
-
-- Review `src/shared` with the UI and database developers.
-- Finalize combo, timeout, completion-bonus, and Training rules.
-- Extend unit tests before changing formulas.
-
-Exit condition: `npm run typecheck` and `npm test` pass without Next.js or a
-database running.
-
-## Phase 2 — Complete session loop (implemented)
-
-- Test starting sessions.
-- Test ownership checks.
-- Test stale and duplicate answers.
-- Test no-repeat question selection.
-- Test automatic game-over.
-- Decide how a depleted question pool ends a run.
-
-Exit condition: a complete game works against `MockGameRepository`.
-
-## Phase 3 — UI integration (team action)
-
-- Give the UI developer the request/response types from `src/shared/contracts`.
-- Keep API routes thin.
-- Do not expose `QuestionRecord` or any repository type to the UI.
-- Add end-to-end request tests once the basic gameplay screen exists.
-
-## Phase 4 — Supabase (code implemented; project setup required)
-
-- Have the database teammate review and apply the included migration.
-- Replace the handwritten minimal database row types with generated types if
-  desired.
-- Add the real Supabase project environment settings.
-- Verify the client cannot read answer keys or write authoritative values.
-
-## Phase 5 — Analytics and polish (implemented, with optional extensions)
-
-- Leaderboard and category analytics are implemented.
-- Idempotency and optimistic session versions are implemented.
-- Optional after the hackathon: structured log aggregation and a distributed
-  rate limiter.
+Every phase must keep `npm run check` and `npm run build` green.

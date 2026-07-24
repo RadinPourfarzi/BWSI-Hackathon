@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - main
-      - "radin/**"
+      - 'radin/**'
 
 permissions:
   contents: read
@@ -27,17 +27,8 @@ jobs:
       - name: Install exact dependencies
         run: npm ci
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Check formatting
-        run: npm run format:check
-
-      - name: Type-check
-        run: npm run typecheck
-
-      - name: Test engine
-        run: npm test
+      - name: Run quality gate
+        run: npm run check
 
       - name: Build production server
         run: npm run build

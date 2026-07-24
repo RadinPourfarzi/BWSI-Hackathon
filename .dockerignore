@@ -6,6 +6,8 @@ coverage
 .env
 .env.local
 .env.*.local
+env.download
+*.download
 *.log
 *.zip
 tsconfig.tsbuildinfo

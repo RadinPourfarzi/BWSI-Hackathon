@@ -1,14 +1,18 @@
-import { GameError } from "@/server/errors/game.errors";
-import type { GameRepository } from "@/server/repositories/game.repository";
-import type { CategoryId, QuestionRecord } from "@/shared/types/game.types";
+import type { GameRepository } from '@/server/repositories/game.repository';
+import type {
+  ActiveGameConfig,
+  CategoryId,
+  QuestionRecord,
+} from '@/shared/types/game.types';
 
 export interface QuestionSelectionInput {
   categories: CategoryId[];
   excludeIds: string[];
+  config: ActiveGameConfig;
 }
 
 export interface QuestionSelector {
-  selectNext(input: QuestionSelectionInput): Promise<QuestionRecord>;
+  selectNext(input: QuestionSelectionInput): Promise<QuestionRecord | null>;
 }
 
 export class RandomQuestionSelector implements QuestionSelector {
@@ -17,21 +21,16 @@ export class RandomQuestionSelector implements QuestionSelector {
     private readonly random: () => number = Math.random,
   ) {}
 
-  async selectNext(input: QuestionSelectionInput): Promise<QuestionRecord> {
-    const candidates = await this.repository.listQuestions(input);
+  async selectNext(input: QuestionSelectionInput): Promise<QuestionRecord | null> {
+    const candidates = await this.repository.listQuestions({
+      ...input,
+      limit: 100,
+    });
     if (candidates.length === 0) {
-      throw new GameError(
-        "No eligible challenges remain for the selected categories.",
-        "NOT_FOUND",
-        404,
-      );
+      return null;
     }
 
     const index = Math.floor(this.random() * candidates.length);
-    const selected = candidates[index];
-    if (!selected) {
-      throw new Error("Question selection produced an invalid index.");
-    }
-    return selected;
+    return candidates[index] ?? null;
   }
 }

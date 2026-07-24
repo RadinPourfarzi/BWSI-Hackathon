@@ -1,22 +1,25 @@
-import type { GameSummary } from "@/shared/contracts/game.contracts";
+import type { GameSummaryCore } from '@/shared/contracts/game.contracts';
 import type {
   ActiveGameConfig,
-  AnswerChoice,
   CategoryId,
   GameMode,
   QuestionRecord,
   SessionStatus,
-} from "@/shared/types/game.types";
+} from '@/shared/types/game.types';
 
 export interface ServerAttempt {
+  id: string;
   questionId: string;
   categoryId: CategoryId;
-  questionIndex: number;
-  selectedAnswer: AnswerChoice;
-  isCorrect: boolean;
+  questionNumber: number;
+  selectedOptionId: string;
+  wasCorrect: boolean;
+  timedOut: boolean;
   responseTimeMs: number;
+  basePoints: number;
+  comboMultiplier: number;
+  comboBeforeAnswer: number;
   pointsAwarded: number;
-  comboAtAnswer: number;
   answeredAt: string;
 }
 
@@ -35,11 +38,10 @@ export interface ServerGameState {
   questionNumber: number;
   correctAnswers: number;
   incorrectAnswers: number;
-  currentChallenge: QuestionRecord | null;
+  currentQuestion: QuestionRecord | null;
   challengeStartedAtMs: number | null;
   shownChallengeIds: string[];
   attempts: ServerAttempt[];
   startedAtMs: number;
-  endedAtMs: number | null;
-  summary: GameSummary | null;
+  completion: GameSummaryCore | null;
 }

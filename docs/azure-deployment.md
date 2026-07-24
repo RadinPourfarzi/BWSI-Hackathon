@@ -22,9 +22,7 @@ longer needed.
 
 ```powershell
 npm ci
-npm run lint
-npm run typecheck
-npm test
+npm run check
 npm run build
 ```
 
@@ -169,6 +167,7 @@ ALLOW_DEV_AUTH_HEADER=false
 SUPABASE_URL=...
 SUPABASE_PUBLISHABLE_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
+ACTIVE_SESSION_TTL_SECONDS=86400
 ```
 
 Using the portal avoids placing the service-role key in terminal history.
@@ -188,16 +187,16 @@ Then verify:
 curl.exe "https://$App.azurewebsites.net/api/health"
 ```
 
-Expected:
+Expected shape:
 
 ```json
-{ "status": "ready" }
+{ "status": "ready", "dataProvider": "supabase", "configVersion": 1 }
 ```
 
 If it returns `not-ready`, check:
 
 - the Supabase settings,
-- whether the baseline schema and server migration were applied,
+- whether the baseline migration was applied,
 - whether an active `game_config` row exists,
 - App Service log stream.
 

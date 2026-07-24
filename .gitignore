@@ -1,8 +1,12 @@
 node_modules/
 .next/
 coverage/
+tsconfig.tsbuildinfo
 .env
 .env.local
 .env.*.local
+env.download
+*.download
+supabase/.temp/
 *.log
 .DS_Store

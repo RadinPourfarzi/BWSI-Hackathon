@@ -1,47 +1,50 @@
 import type {
-  GameSummary,
+  GameSummaryCore,
   LeaderboardEntry,
   PlayerAnalytics,
-} from "@/shared/contracts/game.contracts";
+} from '@/shared/contracts/game.contracts';
 import type {
   ActiveGameConfig,
   CategoryId,
-  Profile,
+  PlayerProfile,
   QuestionRecord,
-} from "@/shared/types/game.types";
-import type { ServerAttempt } from "@/server/game/game-session.types";
+} from '@/shared/types/game.types';
+import type { ServerAttempt } from '@/server/game/game-session.types';
 
 export interface QuestionQuery {
   categories: CategoryId[];
   excludeIds: string[];
+  limit: number;
+  config: ActiveGameConfig;
 }
 
 export interface CompletedGame {
-  summary: GameSummary;
-  status: "completed" | "abandoned";
+  summary: GameSummaryCore;
   userId: string;
   categoriesPlayed: CategoryId[];
   attempts: ServerAttempt[];
 }
 
 export interface CompletionResult {
-  profile: Profile;
+  summary: GameSummaryCore;
+  profile: PlayerProfile;
   previousLevel: number;
+  previousHighestScore: number;
 }
 
 /**
- * Boundary owned jointly by the server and database developers.
- * Implementations may use mock data, Supabase, or another persistence layer.
+ * Persistence boundary. The engine depends on this contract, so mock and
+ * Supabase storage remain interchangeable.
  */
 export interface GameRepository {
   getActiveConfig(): Promise<ActiveGameConfig>;
   listQuestions(query: QuestionQuery): Promise<QuestionRecord[]>;
-  getQuestion(questionId: string): Promise<QuestionRecord | null>;
   completeGame(
     game: CompletedGame,
     config: ActiveGameConfig,
   ): Promise<CompletionResult>;
-  getProfile(userId: string): Promise<Profile>;
+  getCompletedGame(sessionId: string, userId: string): Promise<CompletionResult | null>;
+  getProfile(userId: string): Promise<PlayerProfile>;
   getAnalytics(userId: string): Promise<PlayerAnalytics>;
   getLeaderboard(limit: number): Promise<LeaderboardEntry[]>;
 }

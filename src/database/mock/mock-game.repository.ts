@@ -1,83 +1,34 @@
-import { DEFAULT_GAME_CONFIG } from "@/config/game.config";
+import { DEFAULT_GAME_CONFIG } from '@/config/game.config';
 import type {
-  GameRepository,
-  CompletedGame,
-  CompletionResult,
-  QuestionQuery,
-} from "@/server/repositories/game.repository";
-import type {
-  ActiveGameConfig,
-  Profile,
-  QuestionRecord,
-} from "@/shared/types/game.types";
-import type {
+  AccuracyTrendPoint,
+  CategoryAnalytics,
   LeaderboardEntry,
   PlayerAnalytics,
-} from "@/shared/contracts/game.contracts";
-import { calculateLevel } from "@/server/game/xp";
-
-const QUESTIONS: QuestionRecord[] = [
-  {
-    id: "11111111-1111-4111-8111-111111111111",
-    categoryId: "image",
-    mediaUrl: "image/ai-portrait-01.webp",
-    isAi: true,
-    difficultyRating: "MEDIUM",
-    explanationText: "Look for inconsistent jewelry and malformed background text.",
-    metadata: {
-      kind: "image",
-      altText: "A generated portrait used as a mock challenge",
-    },
-    isActive: true,
-  },
-  {
-    id: "22222222-2222-4222-8222-222222222222",
-    categoryId: "image",
-    mediaUrl: "image/real-street-01.webp",
-    isAi: false,
-    difficultyRating: "EASY",
-    explanationText: "Lighting and reflections remain physically consistent.",
-    metadata: {
-      kind: "image",
-      altText: "A real street photograph used as a mock challenge",
-    },
-    isActive: true,
-  },
-  {
-    id: "33333333-3333-4333-8333-333333333333",
-    categoryId: "email",
-    mediaUrl: "email/phishing-01.png",
-    isAi: true,
-    difficultyRating: "HARD",
-    explanationText: "The sender uses a look-alike domain and artificial urgency.",
-    metadata: {
-      kind: "email",
-      subject: "Your account is limited",
-      senderName: "Payment Support",
-      senderAddress: "service@example.invalid",
-      bodyFormat: "image",
-    },
-    isActive: true,
-  },
-  {
-    id: "44444444-4444-4444-8444-444444444444",
-    categoryId: "audio",
-    mediaUrl: "audio/cloned-voice-01.mp3",
-    isAi: true,
-    difficultyRating: "EXPERT",
-    explanationText: "The voice has flat prosody and unnatural breath placement.",
-    metadata: {
-      kind: "audio",
-      durationMs: 8_200,
-      mimeType: "audio/mpeg",
-    },
-    isActive: true,
-  },
-];
+} from '@/shared/contracts/game.contracts';
+import type {
+  ActiveGameConfig,
+  CategoryId,
+  PlayerProfile,
+  QuestionRecord,
+} from '@/shared/types/game.types';
+import { calculateLevel } from '@/server/game/xp';
+import type {
+  CompletedGame,
+  CompletionResult,
+  GameRepository,
+  QuestionQuery,
+} from '@/server/repositories/game.repository';
+import { MOCK_QUESTIONS } from '@/database/mock/challenges';
 
 export class MockGameRepository implements GameRepository {
-  private readonly profiles = new Map<string, Profile>();
-  private readonly games: CompletedGame[] = [];
+  private readonly questions: QuestionRecord[];
+  private readonly profiles = new Map<string, PlayerProfile>();
+  private readonly games = new Map<string, CompletedGame>();
+  private readonly completions = new Map<string, CompletionResult>();
+
+  constructor(questions: QuestionRecord[] = MOCK_QUESTIONS) {
+    this.questions = structuredClone(questions);
+  }
 
   async getActiveConfig(): Promise<ActiveGameConfig> {
     return structuredClone(DEFAULT_GAME_CONFIG);
@@ -85,156 +36,233 @@ export class MockGameRepository implements GameRepository {
 
   async listQuestions(query: QuestionQuery): Promise<QuestionRecord[]> {
     const excluded = new Set(query.excludeIds);
-    return QUESTIONS.filter(
-      (question) =>
-        question.isActive &&
-        query.categories.includes(question.categoryId) &&
-        !excluded.has(question.id),
-    ).map((question) => structuredClone(question));
-  }
-
-  async getQuestion(questionId: string): Promise<QuestionRecord | null> {
-    const question = QUESTIONS.find((candidate) => candidate.id === questionId);
-    return question ? structuredClone(question) : null;
+    return this.questions
+      .filter(
+        (question) =>
+          question.active &&
+          query.categories.includes(question.categoryId) &&
+          !excluded.has(question.id),
+      )
+      .slice(0, query.limit)
+      .map((question) => structuredClone(question));
   }
 
   async completeGame(
     game: CompletedGame,
     config: ActiveGameConfig,
   ): Promise<CompletionResult> {
-    const duplicate = this.games.find(
-      (existing) => existing.summary.sessionId === game.summary.sessionId,
-    );
+    const previousCompletion = this.completions.get(game.summary.sessionId);
+    if (previousCompletion) {
+      return structuredClone(previousCompletion);
+    }
+
     const profile = await this.getProfile(game.userId);
-    if (duplicate) {
-      return { profile, previousLevel: profile.currentLevel };
-    }
-
-    const previousLevel = profile.currentLevel;
-    const playedAt = new Date(game.summary.endedAt);
-    const previousPlayedAt = profile.lastPlayedAt
-      ? new Date(profile.lastPlayedAt)
-      : null;
-    const dayMs = 86_400_000;
-    const toUtcDay = (date: Date) =>
-      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-
-    if (
-      previousPlayedAt === null ||
-      toUtcDay(playedAt) - toUtcDay(previousPlayedAt) > dayMs
-    ) {
-      profile.dailyStreak = 1;
-    } else if (toUtcDay(playedAt) - toUtcDay(previousPlayedAt) === dayMs) {
-      profile.dailyStreak += 1;
-    }
-
-    profile.totalXp += game.summary.xpAwarded;
-    profile.currentLevel = calculateLevel(profile.totalXp, config);
-    profile.lastPlayedAt = playedAt.toISOString();
-    this.profiles.set(profile.id, structuredClone(profile));
-    this.games.push(structuredClone(game));
-    return { profile: structuredClone(profile), previousLevel };
+    const previousLevel = profile.level;
+    const previousHighestScore = profile.highestScore;
+    const updated = updateProfile(profile, game, config);
+    const completion: CompletionResult = {
+      summary: structuredClone(game.summary),
+      profile: updated,
+      previousLevel,
+      previousHighestScore,
+    };
+    this.profiles.set(game.userId, structuredClone(updated));
+    this.games.set(game.summary.sessionId, structuredClone(game));
+    this.completions.set(game.summary.sessionId, structuredClone(completion));
+    return structuredClone(completion);
   }
 
-  async getProfile(userId: string): Promise<Profile> {
+  async getCompletedGame(
+    sessionId: string,
+    userId: string,
+  ): Promise<CompletionResult | null> {
+    const game = this.games.get(sessionId);
+    const completion = this.completions.get(sessionId);
+    if (!game || !completion || game.userId !== userId) {
+      return null;
+    }
+    return structuredClone(completion);
+  }
+
+  async getProfile(userId: string): Promise<PlayerProfile> {
     const existing = this.profiles.get(userId);
     if (existing) {
       return structuredClone(existing);
     }
 
-    const profile: Profile = {
-      id: userId,
-      username: `player-${userId.slice(0, 8)}`,
+    const profile: PlayerProfile = {
+      userId,
+      displayName: `player-${userId.slice(0, 8)}`,
       totalXp: 0,
-      currentLevel: 1,
-      dailyStreak: 0,
+      level: 1,
+      highestScore: 0,
+      longestCombo: 0,
+      currentStreak: 0,
+      longestStreak: 0,
       lastPlayedAt: null,
+      gamesPlayed: 0,
+      arcadeGamesPlayed: 0,
+      trainingGamesPlayed: 0,
       createdAt: new Date().toISOString(),
     };
-    this.profiles.set(userId, profile);
+    this.profiles.set(userId, structuredClone(profile));
     return structuredClone(profile);
   }
 
   async getAnalytics(userId: string): Promise<PlayerAnalytics> {
-    const playerGames = this.games.filter((game) => game.userId === userId);
-    const attempts = playerGames.flatMap((game) => game.attempts);
-    const correct = attempts.filter((attempt) => attempt.isCorrect).length;
-    const totalResponseTime = attempts.reduce(
-      (sum, attempt) => sum + attempt.responseTimeMs,
-      0,
+    const playerGames = [...this.games.values()].filter(
+      (game) => game.userId === userId,
     );
-
-    const categories = ["image", "email", "audio"] as const;
-    const byCategory = categories
-      .map((categoryId) => {
-        const categoryAttempts = attempts.filter(
-          (attempt) => attempt.categoryId === categoryId,
-        );
-        const categoryCorrect = categoryAttempts.filter(
-          (attempt) => attempt.isCorrect,
-        ).length;
-        return {
-          categoryId,
-          attempts: categoryAttempts.length,
-          correct: categoryCorrect,
-          accuracyPercent:
-            categoryAttempts.length === 0
-              ? 0
-              : (categoryCorrect / categoryAttempts.length) * 100,
-          averageResponseTimeMs:
-            categoryAttempts.length === 0
-              ? 0
-              : categoryAttempts.reduce(
-                  (sum, attempt) => sum + attempt.responseTimeMs,
-                  0,
-                ) / categoryAttempts.length,
-        };
-      })
-      .filter((category) => category.attempts > 0);
-    const rankedCategories = [...byCategory].sort(
+    const attempts = playerGames.flatMap((game) => game.attempts);
+    const correct = attempts.filter((attempt) => attempt.wasCorrect).length;
+    const arcadeScores = playerGames
+      .filter((game) => game.summary.mode === 'ARCADE')
+      .map((game) => game.summary.finalScore);
+    const profile = await this.getProfile(userId);
+    const byCategory = aggregateCategories(attempts);
+    const ranked = [...byCategory].sort(
       (left, right) => right.accuracyPercent - left.accuracyPercent,
     );
-    const arcadeScores = playerGames
-      .filter((game) => game.summary.mode === "ARCADE")
-      .map((game) => game.summary.finalScore);
     const leaderboard = await this.getLeaderboard(100);
 
     return {
       attempts: attempts.length,
       correct,
-      accuracyPercent: attempts.length === 0 ? 0 : (correct / attempts.length) * 100,
-      averageResponseTimeMs:
-        attempts.length === 0 ? 0 : totalResponseTime / attempts.length,
-      averageArcadeScore:
-        arcadeScores.length === 0
-          ? 0
-          : arcadeScores.reduce((sum, score) => sum + score, 0) / arcadeScores.length,
+      accuracyPercent: percent(correct, attempts.length),
+      averageResponseTimeMs: average(attempts.map((attempt) => attempt.responseTimeMs)),
+      averageArcadeScore: average(arcadeScores),
       bestArcadeScore: arcadeScores.length === 0 ? 0 : Math.max(...arcadeScores),
+      longestCombo: profile.longestCombo,
       leaderboardRank:
         leaderboard.find((entry) => entry.userId === userId)?.rank ?? null,
-      strongestCategory: rankedCategories.at(0)?.categoryId ?? null,
-      weakestCategory: rankedCategories.at(-1)?.categoryId ?? null,
+      strongestCategory: ranked.at(0)?.categoryId ?? null,
+      weakestCategory: ranked.length > 1 ? (ranked.at(-1)?.categoryId ?? null) : null,
       byCategory,
+      accuracyTrend: aggregateTrend(attempts),
     };
   }
 
   async getLeaderboard(limit: number): Promise<LeaderboardEntry[]> {
-    const bestByUser = new Map<string, number>();
-    for (const game of this.games) {
-      bestByUser.set(
-        game.userId,
-        Math.max(bestByUser.get(game.userId) ?? 0, game.summary.finalScore),
-      );
-    }
+    const sorted = [...this.profiles.values()]
+      .filter((profile) => profile.highestScore > 0)
+      .sort((left, right) => {
+        if (right.highestScore !== left.highestScore) {
+          return right.highestScore - left.highestScore;
+        }
+        return left.displayName.localeCompare(right.displayName);
+      });
 
-    return [...bestByUser.entries()]
-      .sort((left, right) => right[1] - left[1])
-      .slice(0, limit)
-      .map(([userId, score], index) => ({
-        userId,
-        username: this.profiles.get(userId)?.username ?? "Unknown player",
-        score,
-        rank: index + 1,
-      }));
+    let rank = 0;
+    let previousScore: number | null = null;
+    return sorted.slice(0, limit).map((profile, index) => {
+      if (profile.highestScore !== previousScore) {
+        rank = index + 1;
+        previousScore = profile.highestScore;
+      }
+      return {
+        rank,
+        userId: profile.userId,
+        displayName: profile.displayName,
+        highestScore: profile.highestScore,
+        level: profile.level,
+      };
+    });
   }
+}
+
+function updateProfile(
+  profile: PlayerProfile,
+  game: CompletedGame,
+  config: ActiveGameConfig,
+): PlayerProfile {
+  const playedAt = new Date(game.summary.endedAt);
+  const streak = nextStreak(profile.currentStreak, profile.lastPlayedAt, playedAt);
+  const totalXp = profile.totalXp + game.summary.xpEarned;
+  const isArcade = game.summary.mode === 'ARCADE';
+
+  return {
+    ...profile,
+    totalXp,
+    level: calculateLevel(totalXp, config),
+    highestScore: isArcade
+      ? Math.max(profile.highestScore, game.summary.finalScore)
+      : profile.highestScore,
+    longestCombo: Math.max(profile.longestCombo, game.summary.highestCombo),
+    currentStreak: streak,
+    longestStreak: Math.max(profile.longestStreak, streak),
+    lastPlayedAt: playedAt.toISOString(),
+    gamesPlayed: profile.gamesPlayed + 1,
+    arcadeGamesPlayed: profile.arcadeGamesPlayed + (isArcade ? 1 : 0),
+    trainingGamesPlayed: profile.trainingGamesPlayed + (isArcade ? 0 : 1),
+  };
+}
+
+function nextStreak(
+  currentStreak: number,
+  lastPlayedAt: string | null,
+  playedAt: Date,
+): number {
+  if (!lastPlayedAt) {
+    return 1;
+  }
+  const dayMs = 86_400_000;
+  const difference = utcDay(playedAt) - utcDay(new Date(lastPlayedAt));
+  if (difference === 0) {
+    return Math.max(currentStreak, 1);
+  }
+  if (difference === dayMs) {
+    return currentStreak + 1;
+  }
+  return 1;
+}
+
+function utcDay(date: Date): number {
+  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+}
+
+function aggregateCategories(attempts: CompletedGame['attempts']): CategoryAnalytics[] {
+  const categories: CategoryId[] = ['image', 'email', 'audio'];
+  return categories
+    .map((categoryId) => {
+      const matches = attempts.filter((attempt) => attempt.categoryId === categoryId);
+      const correct = matches.filter((attempt) => attempt.wasCorrect).length;
+      return {
+        categoryId,
+        attempts: matches.length,
+        correct,
+        accuracyPercent: percent(correct, matches.length),
+        averageResponseTimeMs: average(
+          matches.map((attempt) => attempt.responseTimeMs),
+        ),
+      };
+    })
+    .filter((category) => category.attempts > 0);
+}
+
+function aggregateTrend(attempts: CompletedGame['attempts']): AccuracyTrendPoint[] {
+  const days = new Map<string, { attempts: number; correct: number }>();
+  for (const attempt of attempts) {
+    const day = attempt.answeredAt.slice(0, 10);
+    const bucket = days.get(day) ?? { attempts: 0, correct: 0 };
+    bucket.attempts += 1;
+    bucket.correct += attempt.wasCorrect ? 1 : 0;
+    days.set(day, bucket);
+  }
+  return [...days.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([date, bucket]) => ({
+      date,
+      accuracyPercent: percent(bucket.correct, bucket.attempts),
+    }));
+}
+
+function percent(value: number, total: number): number {
+  return total === 0 ? 0 : Math.round((value / total) * 1_000) / 10;
+}
+
+function average(values: number[]): number {
+  if (values.length === 0) {
+    return 0;
+  }
+  return Math.round(values.reduce((total, value) => total + value, 0) / values.length);
 }

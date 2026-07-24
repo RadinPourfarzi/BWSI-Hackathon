@@ -1,52 +1,44 @@
-import type { ActiveGameConfig, CategoryId } from "@/shared/types/game.types";
-import { getDifficultyTier } from "@/server/game/difficulty";
+import type { DifficultyTier } from '@/shared/types/game.types';
 
-export interface ScoreInput {
-  isCorrect: boolean;
+export interface BasePointsInput {
   responseTimeMs: number;
-  questionNumber: number;
-  categoryId: CategoryId;
-  comboBeforeAnswer: number;
-  config: ActiveGameConfig;
+  tier: DifficultyTier;
+  gracePeriodMs: number;
+  beta: number;
+  timerSlackMs: number;
 }
 
-export interface ScoreResult {
-  points: number;
+export interface BasePointsResult {
+  basePoints: number;
   timedOut: boolean;
-  obtainablePoints: number;
 }
 
-export function calculateScore(input: ScoreInput): ScoreResult {
-  const tier = getDifficultyTier(input.questionNumber, input.config.difficultyTiers);
-  const timedOut = input.responseTimeMs > tier.timerMs;
+export function effectivePlateauMs(
+  tier: DifficultyTier,
+  gracePeriodMs: number,
+): number {
+  return tier.plateauMs + gracePeriodMs;
+}
 
-  if (!input.isCorrect || timedOut) {
-    return { points: 0, timedOut, obtainablePoints: tier.maxPoints };
+/**
+ * Plateau + exponential ease-in. The network allowance affects only timeout
+ * classification; it never adds points or changes the decay curve.
+ */
+export function calculateBasePoints(input: BasePointsInput): BasePointsResult {
+  const { responseTimeMs, tier, gracePeriodMs, beta, timerSlackMs } = input;
+  if (responseTimeMs > tier.timerMs + timerSlackMs) {
+    return { basePoints: 0, timedOut: true };
   }
 
-  const categoryGrace = input.config.categories[input.categoryId].gracePeriodMs;
-  const effectivePlateauMs = tier.plateauMs + categoryGrace;
-  const secondsAfterPlateau = Math.max(
-    0,
-    (input.responseTimeMs - effectivePlateauMs) / 1_000,
-  );
-  const decayed = Math.max(
-    0,
-    Math.round(
-      tier.maxPoints -
-        tier.alpha *
-          Math.pow(secondsAfterPlateau, input.config.scoring.decayExponentBeta),
-    ),
-  );
-  const multiplierIndex = Math.min(
-    Math.max(input.comboBeforeAnswer, 0),
-    input.config.scoring.comboMultipliers.length - 1,
-  );
-  const multiplier = input.config.scoring.comboMultipliers[multiplierIndex] ?? 1;
+  const plateau = effectivePlateauMs(tier, gracePeriodMs);
+  if (responseTimeMs <= plateau) {
+    return { basePoints: tier.maxPoints, timedOut: false };
+  }
 
+  const secondsPastPlateau = (responseTimeMs - plateau) / 1_000;
+  const decayed = tier.maxPoints - tier.alpha * Math.pow(secondsPastPlateau, beta);
   return {
-    points: Math.max(0, Math.round(decayed * multiplier)),
+    basePoints: Math.max(0, Math.round(decayed)),
     timedOut: false,
-    obtainablePoints: tier.maxPoints,
   };
 }

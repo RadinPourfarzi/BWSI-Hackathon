@@ -1,8 +1,9 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { GameError } from "@/server/errors/game.errors";
-import type { ServerGameState } from "@/server/game/game-session.types";
-import type { ActiveSessionStore } from "@/server/sessions/active-session.store";
-import { serverGameStateSchema } from "@/server/sessions/server-session.schema";
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { getEnvironment } from '@/config/environment';
+import { GameError } from '@/server/errors/game.errors';
+import type { ServerGameState } from '@/server/game/game-session.types';
+import type { ActiveSessionStore } from '@/server/sessions/active-session.store';
+import { serverGameStateSchema } from '@/server/sessions/server-session.schema';
 
 interface ActiveSessionRow {
   id: string;
@@ -13,7 +14,7 @@ interface ActiveSessionRow {
 function persistenceError(operation: string, message: string): GameError {
   return new GameError(
     `Active-session ${operation} failed: ${message}`,
-    "SERVICE_UNAVAILABLE",
+    'SERVICE_UNAVAILABLE',
     503,
   );
 }
@@ -23,13 +24,13 @@ export class SupabaseActiveSessionStore implements ActiveSessionStore {
 
   async get(sessionId: string): Promise<ServerGameState | null> {
     const { data, error } = await this.client
-      .from("active_game_sessions")
-      .select("id, version, state")
-      .eq("id", sessionId)
+      .from('active_game_sessions')
+      .select('id, version, state')
+      .eq('id', sessionId)
       .maybeSingle();
 
     if (error) {
-      throw persistenceError("read", error.message);
+      throw persistenceError('read', error.message);
     }
     if (!data) {
       return null;
@@ -43,8 +44,8 @@ export class SupabaseActiveSessionStore implements ActiveSessionStore {
   }
 
   async create(session: ServerGameState): Promise<void> {
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1_000).toISOString();
-    const { error } = await this.client.from("active_game_sessions").insert({
+    const expiresAt = expiresAtIso();
+    const { error } = await this.client.from('active_game_sessions').insert({
       id: session.sessionId,
       user_id: session.userId,
       version: session.version,
@@ -53,10 +54,10 @@ export class SupabaseActiveSessionStore implements ActiveSessionStore {
     });
 
     if (error) {
-      if (error.code === "23505") {
-        throw new GameError("The session already exists.", "CONFLICT", 409);
+      if (error.code === '23505') {
+        throw new GameError('The session already exists.', 'CONFLICT', 409);
       }
-      throw persistenceError("create", error.message);
+      throw persistenceError('create', error.message);
     }
   }
 
@@ -64,24 +65,25 @@ export class SupabaseActiveSessionStore implements ActiveSessionStore {
     const nextVersion = expectedVersion + 1;
     const nextState = { ...session, version: nextVersion };
     const { data, error } = await this.client
-      .from("active_game_sessions")
+      .from('active_game_sessions')
       .update({
         state: nextState,
         version: nextVersion,
+        expires_at: expiresAtIso(),
         updated_at: new Date().toISOString(),
       })
-      .eq("id", session.sessionId)
-      .eq("version", expectedVersion)
-      .select("id")
+      .eq('id', session.sessionId)
+      .eq('version', expectedVersion)
+      .select('id')
       .maybeSingle();
 
     if (error) {
-      throw persistenceError("update", error.message);
+      throw persistenceError('update', error.message);
     }
     if (!data) {
       throw new GameError(
-        "The session changed while this action was being processed. Retry with the latest state.",
-        "CONFLICT",
+        'The session changed while this action was being processed. Retry with the latest state.',
+        'CONFLICT',
         409,
       );
     }
@@ -91,11 +93,16 @@ export class SupabaseActiveSessionStore implements ActiveSessionStore {
 
   async delete(sessionId: string): Promise<void> {
     const { error } = await this.client
-      .from("active_game_sessions")
+      .from('active_game_sessions')
       .delete()
-      .eq("id", sessionId);
+      .eq('id', sessionId);
     if (error) {
-      throw persistenceError("delete", error.message);
+      throw persistenceError('delete', error.message);
     }
   }
+}
+
+function expiresAtIso(): string {
+  const ttlMs = getEnvironment().ACTIVE_SESSION_TTL_SECONDS * 1_000;
+  return new Date(Date.now() + ttlMs).toISOString();
 }

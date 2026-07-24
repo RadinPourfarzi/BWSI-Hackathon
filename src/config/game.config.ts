@@ -1,18 +1,34 @@
-import type { ActiveGameConfig } from "@/shared/types/game.types";
+import type { ActiveGameConfig } from '@/shared/types/game.types';
 
 /**
- * Local fallback and seed shape. In production, load the active version from
- * `game_config` through the database repository.
+ * Local fallback and the seed contract for Supabase. Production sessions load
+ * the active database version once and keep that immutable snapshot for the
+ * entire run.
  */
 export const DEFAULT_GAME_CONFIG: ActiveGameConfig = {
-  game: {
-    arcadeLives: 3,
-    batchSize: 15,
-    prefetchThreshold: 5,
+  version: 1,
+  modes: {
+    ARCADE: {
+      startingLives: 3,
+      scoringEnabled: true,
+      comboEnabled: true,
+      timeLimitEnabled: true,
+      gameOverWhenLivesReachZero: true,
+      detailedFeedbackEnabled: false,
+    },
+    TRAINING: {
+      startingLives: null,
+      scoringEnabled: false,
+      comboEnabled: false,
+      timeLimitEnabled: false,
+      gameOverWhenLivesReachZero: false,
+      detailedFeedbackEnabled: true,
+    },
   },
   scoring: {
     decayExponentBeta: 1.8,
     comboMultipliers: [1, 1.5, 2, 2.5, 3, 4, 5],
+    timerSlackMs: 750,
   },
   difficultyTiers: [
     { minQuestion: 1, maxPoints: 100, timerMs: 15_000, plateauMs: 1_500, alpha: 1.5 },
@@ -29,22 +45,43 @@ export const DEFAULT_GAME_CONFIG: ActiveGameConfig = {
   },
   categories: {
     image: {
-      displayName: "AI Images",
+      displayName: 'AI Images',
       gracePeriodMs: 1_500,
       isActive: true,
       sortOrder: 1,
+      rendererKind: 'image',
+      answerOptions: [
+        { id: 'ai', label: 'AI Generated' },
+        { id: 'real', label: 'Real Photo' },
+      ],
+      aiOptionId: 'ai',
+      nonAiOptionId: 'real',
     },
     email: {
-      displayName: "Scam Emails",
+      displayName: 'Scam Emails',
       gracePeriodMs: 2_000,
       isActive: true,
       sortOrder: 2,
+      rendererKind: 'email',
+      answerOptions: [
+        { id: 'scam', label: 'Scam' },
+        { id: 'legit', label: 'Legitimate' },
+      ],
+      aiOptionId: 'scam',
+      nonAiOptionId: 'legit',
     },
     audio: {
-      displayName: "Voice Audio",
+      displayName: 'Voice Audio',
       gracePeriodMs: 5_000,
       isActive: true,
       sortOrder: 3,
+      rendererKind: 'audio',
+      answerOptions: [
+        { id: 'ai', label: 'AI Voice' },
+        { id: 'human', label: 'Human Voice' },
+      ],
+      aiOptionId: 'ai',
+      nonAiOptionId: 'human',
     },
   },
 };

@@ -1,16 +1,19 @@
 import type {
-  ActiveGameConfig,
-  AnswerChoice,
   CategoryId,
+  EndReason,
   GameMode,
+  PlayerProfile,
   PublicQuestion,
-} from "@/shared/types/game.types";
+  RoundRules,
+  SessionStatus,
+} from '@/shared/types/game.types';
 
 export interface PublicGameState {
   sessionId: string;
-  status: "active" | "completed" | "abandoned";
+  status: SessionStatus;
   mode: GameMode;
   enabledCategories: CategoryId[];
+  configVersion: number;
   score: number;
   lives: number | null;
   combo: number;
@@ -22,70 +25,102 @@ export interface PublicGameState {
 
 export interface StartGameRequest {
   mode: GameMode;
-  categories: CategoryId[];
+  /** Omitted or empty means every active category, in configured order. */
+  categories?: CategoryId[];
 }
 
 export interface StartGameResponse {
   state: PublicGameState;
-  config: ActiveGameConfig;
   challenge: PublicQuestion;
+  roundRules: RoundRules;
 }
 
 export interface GetGameSessionResponse {
-  state: PublicGameState;
-  config: ActiveGameConfig;
-  challenge: PublicQuestion;
+  state: PublicGameState | null;
+  challenge: PublicQuestion | null;
+  roundRules: RoundRules | null;
+  summary: GameSummary | null;
 }
 
 export interface SubmitAnswerRequest {
   sessionId: string;
   challengeId: string;
-  selectedAnswer: AnswerChoice;
+  selectedOptionId: string;
 }
 
 export type GameEvent =
-  | { type: "answer-correct"; pointsAwarded: number }
-  | { type: "answer-incorrect"; correctAnswer: AnswerChoice }
-  | { type: "combo-increased"; combo: number }
-  | { type: "combo-reset" }
-  | { type: "life-lost"; livesRemaining: number }
-  | { type: "game-ended" }
-  | { type: "level-up"; newLevel: number };
+  | { type: 'answer-correct'; pointsAwarded: number }
+  | { type: 'answer-incorrect'; correctOptionId: string }
+  | { type: 'answer-timeout'; correctOptionId: string }
+  | { type: 'combo-increased'; combo: number }
+  | { type: 'combo-reset' }
+  | { type: 'life-lost'; livesRemaining: number }
+  | { type: 'game-ended'; reason: EndReason }
+  | { type: 'level-up'; newLevel: number };
 
 export interface SubmitAnswerResponse {
   wasCorrect: boolean;
-  correctAnswer: AnswerChoice;
-  explanation?: string;
-  awardedPoints: number;
+  timedOut: boolean;
+  correctOptionId: string;
+  basePoints: number;
+  comboMultiplier: number;
+  pointsAwarded: number;
   responseTimeMs: number;
+  explanation: string | null;
   state: PublicGameState;
   events: GameEvent[];
-  nextChallenge?: PublicQuestion;
-  summary?: GameSummary;
+  gameEnded: boolean;
+  nextChallenge: PublicQuestion | null;
+  nextRoundRules: RoundRules | null;
+  summary: GameSummary | null;
 }
 
 export interface EndGameRequest {
   sessionId: string;
 }
 
-export interface GameSummary {
+export interface GameSummaryCore {
   sessionId: string;
   mode: GameMode;
+  endReason: EndReason;
   finalScore: number;
-  xpAwarded: number;
-  correctAnswers: number;
-  incorrectAnswers: number;
+  xpEarned: number;
+  correctCount: number;
+  incorrectCount: number;
   questionsAnswered: number;
   highestCombo: number;
+  averageResponseTimeMs: number;
   startedAt: string;
   endedAt: string;
 }
 
+export interface GameSummary extends GameSummaryCore {
+  totalXp: number;
+  level: number;
+  leveledUp: boolean;
+  currentStreak: number;
+  newHighScore: boolean;
+}
+
 export interface LeaderboardEntry {
-  userId: string;
-  username: string;
-  score: number;
   rank: number;
+  userId: string;
+  displayName: string;
+  highestScore: number;
+  level: number;
+}
+
+export interface CategoryAnalytics {
+  categoryId: CategoryId;
+  attempts: number;
+  correct: number;
+  accuracyPercent: number;
+  averageResponseTimeMs: number;
+}
+
+export interface AccuracyTrendPoint {
+  date: string;
+  accuracyPercent: number;
 }
 
 export interface PlayerAnalytics {
@@ -95,16 +130,22 @@ export interface PlayerAnalytics {
   averageResponseTimeMs: number;
   averageArcadeScore: number;
   bestArcadeScore: number;
+  longestCombo: number;
   leaderboardRank: number | null;
   strongestCategory: CategoryId | null;
   weakestCategory: CategoryId | null;
   byCategory: CategoryAnalytics[];
+  accuracyTrend: AccuracyTrendPoint[];
 }
 
-export interface CategoryAnalytics {
-  categoryId: CategoryId;
-  attempts: number;
-  correct: number;
-  accuracyPercent: number;
-  averageResponseTimeMs: number;
+export interface ProfileResponse {
+  profile: PlayerProfile;
+}
+
+export interface ApiErrorBody {
+  error: {
+    code: string;
+    message: string;
+    issues?: unknown;
+  };
 }

@@ -1,19 +1,26 @@
-# Supabase files
+# Supabase project
 
-The team's original `database-schema.md` is the baseline schema. Apply it first.
-Then apply `migrations/202607240001_server_engine.sql`.
+- `config.toml` configures local development.
+- `migrations/202607240001_initial_schema.sql` is the complete reviewed
+  baseline.
+- `seed.sql` adds two local/demo email questions.
 
-With the Supabase CLI linked to the correct project:
+Local reset:
 
 ```bash
-npx supabase login
+npx supabase start
+npm run db:reset
+npm run db:lint
+```
+
+Hosted deployment:
+
+```bash
 npx supabase link --project-ref YOUR_PROJECT_REF
+npx supabase db push --dry-run
 npx supabase db push
 ```
 
-Do not run `db push` against a shared project until the database teammate has
-reviewed the migration and you have committed it to Git.
-
-The migration intentionally removes direct browser access to private question
-answers and authoritative writes. The Next.js server uses the service-role key,
-which must exist only in server environment variables.
+Do not push from an unreviewed branch. Production deployment is also available
+through the protected GitHub workflow documented in
+`docs/supabase-deployment.md`.

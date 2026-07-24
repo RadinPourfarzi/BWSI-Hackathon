@@ -1,5 +1,5 @@
-import type { ServerGameState } from "@/server/game/game-session.types";
-import { GameError } from "@/server/errors/game.errors";
+import type { ServerGameState } from '@/server/game/game-session.types';
+import { GameError } from '@/server/errors/game.errors';
 
 export interface ActiveSessionStore {
   get(sessionId: string): Promise<ServerGameState | null>;
@@ -22,7 +22,7 @@ export class InMemoryActiveSessionStore implements ActiveSessionStore {
 
   async create(session: ServerGameState): Promise<void> {
     if (this.sessions.has(session.sessionId)) {
-      throw new GameError("The session already exists.", "CONFLICT", 409);
+      throw new GameError('The session already exists.', 'CONFLICT', 409);
     }
     this.sessions.set(session.sessionId, structuredClone(session));
   }
@@ -31,8 +31,8 @@ export class InMemoryActiveSessionStore implements ActiveSessionStore {
     const current = this.sessions.get(session.sessionId);
     if (!current || current.version !== expectedVersion) {
       throw new GameError(
-        "The session changed while this action was being processed. Retry with the latest state.",
-        "CONFLICT",
+        'The session changed while this action was being processed. Retry with the latest state.',
+        'CONFLICT',
         409,
       );
     }

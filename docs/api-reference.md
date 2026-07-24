@@ -1,42 +1,22 @@
 # API reference
 
-Supabase mode requires:
+All game/profile/analytics routes require a verified user. Production clients
+send:
 
 ```http
-Authorization: Bearer SUPABASE_ACCESS_TOKEN
+Authorization: Bearer <supabase-access-token>
+Content-Type: application/json
 ```
 
-Mock mode uses `x-user-id` only when explicitly enabled.
+Mock development may use `x-user-id: <uuid>` only when
+`APP_DATA_PROVIDER=mock`, `ALLOW_DEV_AUTH_HEADER=true`, and
+`NODE_ENV` is not `production`.
 
-## Error shape
+Every response containing game state sets `Cache-Control: no-store`.
 
-```json
-{
-  "error": {
-    "code": "CONFLICT",
-    "message": "Human-readable explanation"
-  }
-}
-```
+## Start game
 
-Important status codes:
-
-| Status | Meaning                                       |
-| ------ | --------------------------------------------- |
-| 400    | Invalid JSON or request fields                |
-| 401    | Missing/invalid identity                      |
-| 403    | Session belongs to another user               |
-| 404    | Session or eligible challenge not found       |
-| 409    | Stale, duplicate, ended, or concurrent action |
-| 503    | Database/session provider unavailable         |
-
-## `GET /api/health`
-
-Checks that the server can load active game configuration.
-
-## `POST /api/game/start`
-
-Request:
+`POST /api/game/start`
 
 ```json
 {
@@ -45,71 +25,106 @@ Request:
 }
 ```
 
-Response contains:
+`categories` is optional; omitted or empty means every active category.
 
-- new session ID,
-- public state,
-- configuration snapshot,
-- first public challenge.
+The `201` response contains a public state snapshot, public challenge, and only
+the current round's timer/scoring display rules. It never contains
+`correctOptionId` or the explanation.
 
-## `GET /api/game/session/:sessionId`
+## Submit answer
 
-Resumes an active session after a refresh or network interruption. Returns the
-current public state/config/challenge without revealing the answer.
-
-## `POST /api/game/answer`
-
-Request:
+`POST /api/game/answer`
 
 ```json
 {
-  "sessionId": "uuid",
-  "challengeId": "uuid",
-  "selectedAnswer": "AI"
+  "sessionId": "77777777-7777-4777-8777-777777777777",
+  "challengeId": "11111111-1111-4111-8111-111111111111",
+  "selectedOptionId": "ai"
 }
 ```
 
-The response contains:
-
-- authoritative correctness,
-- correct answer after submission,
-- Training explanation when applicable,
-- awarded points,
-- server response time,
-- updated score/combo/lives,
-- semantic UI events,
-- next challenge, or final summary.
-
-The request intentionally contains no score, correctness, combo, lives, time,
-or XP fields.
-
-## `POST /api/game/end`
-
-Marks an active run abandoned and persists it without the run-completion XP
-bonus.
+The client sends only its chosen option. The server returns:
 
 ```json
 {
-  "sessionId": "uuid"
+  "wasCorrect": true,
+  "timedOut": false,
+  "correctOptionId": "ai",
+  "basePoints": 100,
+  "comboMultiplier": 1,
+  "pointsAwarded": 100,
+  "responseTimeMs": 1042,
+  "explanation": null,
+  "state": {},
+  "events": [
+    { "type": "answer-correct", "pointsAwarded": 100 },
+    { "type": "combo-increased", "combo": 1 }
+  ],
+  "gameEnded": false,
+  "nextChallenge": {},
+  "nextRoundRules": {},
+  "summary": null
 }
 ```
 
-## `GET /api/profile`
+Training responses may contain `explanation`. Arcade responses do not.
 
-Returns the authenticated user's profile, XP, level, and streak.
+## Reconnect or recover
 
-## `GET /api/analytics`
+`GET /api/game/session/:sessionId`
 
-Returns:
+For an active game, the response reissues the same public question and does not
+reset its server timestamp. For an ended state awaiting persistence, this call
+retries atomic completion. For an already-persisted game, it returns the stored
+summary with `state: null`.
 
-- overall attempts and accuracy,
-- average response time,
-- average and best Arcade scores,
-- leaderboard rank,
-- strongest/weakest category,
-- per-category performance.
+`POST /api/game/next` with `{ "sessionId": "..." }` is a compatibility alias
+matching the original architecture route list.
 
-## `GET /api/leaderboard?limit=20`
+## End game
 
-Returns each player's best completed Arcade score. The limit is clamped to
-1–100.
+`POST /api/game/end`
+
+```json
+{
+  "sessionId": "77777777-7777-4777-8777-777777777777"
+}
+```
+
+This records an abandoned run. Correct-answer and combo XP already earned in
+Arcade is preserved, but the completion bonus is withheld. Repeating the
+request returns the completed result rather than adding progression twice.
+
+## Read models
+
+- `GET /api/profile` returns permanent player progression.
+- `GET /api/analytics` returns accuracy, response time, category performance,
+  daily accuracy trend, Arcade scores, combo, and leaderboard placement.
+- `GET /api/leaderboard?limit=20` returns 1-100 entries.
+- `GET /api/health` returns provider readiness and active config version.
+
+## Error shape
+
+```json
+{
+  "error": {
+    "code": "STALE_CHALLENGE",
+    "message": "The submitted challenge is not the current unanswered challenge."
+  }
+}
+```
+
+Validation errors also include Zod `issues`. Internal database details and
+service errors are replaced by an opaque public message.
+
+Common status codes:
+
+| Status | Meaning                                           |
+| ------ | ------------------------------------------------- |
+| `400`  | Invalid JSON, schema, or answer option            |
+| `401`  | Missing or invalid authentication                 |
+| `403`  | Session belongs to another user                   |
+| `404`  | Active and completed session both absent          |
+| `409`  | Stale answer, ended session, or concurrent update |
+| `422`  | Selected category pool has no questions           |
+| `503`  | Database/session service temporarily unavailable  |

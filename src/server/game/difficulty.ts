@@ -1,15 +1,23 @@
-import type { DifficultyTier } from "@/shared/types/game.types";
+import type { DifficultyTier } from '@/shared/types/game.types';
 
-export function getDifficultyTier(
+/**
+ * Configuration validation guarantees sorted tiers beginning at question 1,
+ * so selection is a small linear scan and never silently falls back.
+ */
+export function tierForQuestion(
   questionNumber: number,
   tiers: readonly DifficultyTier[],
 ): DifficultyTier {
-  const sorted = [...tiers].sort((left, right) => left.minQuestion - right.minQuestion);
-  const selected = sorted.filter((tier) => tier.minQuestion <= questionNumber).at(-1);
-
+  let selected = tiers[0];
   if (!selected) {
-    throw new Error(`No difficulty tier applies to question ${questionNumber}.`);
+    throw new Error('At least one difficulty tier is required.');
   }
 
+  for (const tier of tiers) {
+    if (tier.minQuestion > questionNumber) {
+      break;
+    }
+    selected = tier;
+  }
   return selected;
 }

@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
-import { container } from "@/server/bootstrap/container";
-import { requireAuthenticatedUserId } from "@/server/auth/auth.service";
-import { apiError } from "@/server/http/api-response";
-import { sessionIdSchema } from "@/shared/schemas/game.schemas";
+import { NextResponse } from 'next/server';
+import { container } from '@/server/bootstrap/container';
+import { requireAuthenticatedUserId } from '@/server/auth/auth.service';
+import { apiError } from '@/server/http/api-response';
+import { sessionIdSchema } from '@/shared/schemas/game.schemas';
 
 interface RouteContext {
   params: Promise<{ sessionId: string }>;
@@ -15,7 +15,7 @@ export async function GET(request: Request, context: RouteContext) {
     const sessionId = sessionIdSchema.parse(rawSessionId);
     const response = await container.gameSessions.getGame(userId, sessionId);
     return NextResponse.json(response, {
-      headers: { "Cache-Control": "no-store" },
+      headers: { 'Cache-Control': 'no-store' },
     });
   } catch (error) {
     return apiError(error);

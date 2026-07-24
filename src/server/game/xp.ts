@@ -1,4 +1,4 @@
-import type { ActiveGameConfig, GameMode } from "@/shared/types/game.types";
+import type { ActiveGameConfig, GameMode } from '@/shared/types/game.types';
 
 export interface XpInput {
   mode: GameMode;
@@ -8,7 +8,7 @@ export interface XpInput {
 }
 
 export function calculateXp(input: XpInput, config: ActiveGameConfig): number {
-  if (input.mode === "TRAINING") {
+  if (input.mode === 'TRAINING') {
     return 0;
   }
 
@@ -27,4 +27,8 @@ export function calculateLevel(totalXp: number, config: ActiveGameConfig): numbe
   return (
     Math.floor(Math.pow(totalXp / config.xp.xpCurveBase, 1 / config.xp.xpCurveExp)) + 1
   );
+}
+
+export function xpForNextLevel(level: number, config: ActiveGameConfig): number {
+  return Math.round(config.xp.xpCurveBase * Math.pow(level, config.xp.xpCurveExp));
 }

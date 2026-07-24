@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#10b981"/>
+      <stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#g)"/>
+  <circle cx="620" cy="120" r="70" fill="rgba(255,255,255,0.25)"/>
+  <circle cx="180" cy="380" r="110" fill="rgba(0,0,0,0.15)"/>
+  <text x="400" y="245" font-family="system-ui, sans-serif" font-size="34" fill="white" text-anchor="middle" font-weight="700">Sample image 2</text>
+  <text x="400" y="285" font-family="system-ui, sans-serif" font-size="18" fill="rgba(255,255,255,0.85)" text-anchor="middle">placeholder — replace with curated challenge media</text>
+</svg>

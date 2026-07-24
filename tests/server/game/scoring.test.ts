@@ -1,58 +1,68 @@
-import { describe, expect, it } from "vitest";
-import { DEFAULT_GAME_CONFIG } from "@/config/game.config";
-import { calculateScore } from "@/server/game/scoring";
+import { describe, expect, it } from 'vitest';
+import { DEFAULT_GAME_CONFIG } from '@/config/game.config';
+import { calculateBasePoints, effectivePlateauMs } from '@/server/game/scoring';
 
-describe("calculateScore", () => {
-  it("awards full points inside the effective plateau", () => {
-    const result = calculateScore({
-      isCorrect: true,
-      responseTimeMs: 2_000,
-      questionNumber: 1,
-      categoryId: "image",
-      comboBeforeAnswer: 0,
-      config: DEFAULT_GAME_CONFIG,
-    });
+const tier = DEFAULT_GAME_CONFIG.difficultyTiers[0]!;
 
-    expect(result.points).toBe(100);
+function score(responseTimeMs: number) {
+  return calculateBasePoints({
+    responseTimeMs,
+    tier,
+    gracePeriodMs: DEFAULT_GAME_CONFIG.categories.image.gracePeriodMs,
+    beta: DEFAULT_GAME_CONFIG.scoring.decayExponentBeta,
+    timerSlackMs: DEFAULT_GAME_CONFIG.scoring.timerSlackMs,
+  });
+}
+
+describe('scoring', () => {
+  it('adds category grace to the tier plateau', () => {
+    expect(
+      effectivePlateauMs(tier, DEFAULT_GAME_CONFIG.categories.image.gracePeriodMs),
+    ).toBe(3_000);
   });
 
-  it("applies score decay after the plateau", () => {
-    const result = calculateScore({
-      isCorrect: true,
-      responseTimeMs: 10_000,
-      questionNumber: 1,
-      categoryId: "image",
-      comboBeforeAnswer: 0,
-      config: DEFAULT_GAME_CONFIG,
-    });
+  it.each([0, 1_000, 3_000])(
+    'awards full points at %i ms inside the plateau',
+    (responseTimeMs) => {
+      expect(score(responseTimeMs)).toEqual({
+        basePoints: 100,
+        timedOut: false,
+      });
+    },
+  );
 
-    expect(result.points).toBeGreaterThan(0);
-    expect(result.points).toBeLessThan(100);
+  it('decays after the plateau', () => {
+    const result = score(10_000);
+    expect(result.basePoints).toBeGreaterThan(0);
+    expect(result.basePoints).toBeLessThan(100);
+    expect(result.timedOut).toBe(false);
   });
 
-  it("awards zero points after the hard timer cap", () => {
-    const result = calculateScore({
-      isCorrect: true,
-      responseTimeMs: 15_001,
-      questionNumber: 1,
-      categoryId: "image",
-      comboBeforeAnswer: 0,
-      config: DEFAULT_GAME_CONFIG,
-    });
-
-    expect(result).toMatchObject({ points: 0, timedOut: true });
+  it('accelerates decay over time', () => {
+    const earlyLoss = 100 - score(5_000).basePoints;
+    const lateLoss = 100 - score(10_000).basePoints;
+    expect(lateLoss).toBeGreaterThan(earlyLoss);
   });
 
-  it("uses the combo that existed before the answer", () => {
-    const result = calculateScore({
-      isCorrect: true,
-      responseTimeMs: 1_000,
-      questionNumber: 1,
-      categoryId: "image",
-      comboBeforeAnswer: 2,
-      config: DEFAULT_GAME_CONFIG,
-    });
+  it('allows the configured network slack at the hard cap', () => {
+    expect(score(15_750).timedOut).toBe(false);
+  });
 
-    expect(result.points).toBe(200);
+  it('times out beyond the hard cap plus slack', () => {
+    expect(score(15_751)).toEqual({
+      basePoints: 0,
+      timedOut: true,
+    });
+  });
+
+  it('never returns negative points', () => {
+    const severe = calculateBasePoints({
+      responseTimeMs: 14_000,
+      tier: { ...tier, alpha: 10_000 },
+      gracePeriodMs: 0,
+      beta: 2,
+      timerSlackMs: 0,
+    });
+    expect(severe.basePoints).toBe(0);
   });
 });

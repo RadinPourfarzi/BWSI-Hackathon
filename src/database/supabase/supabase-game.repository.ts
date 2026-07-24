@@ -1,233 +1,166 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { GameError } from "@/server/errors/game.errors";
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type {
+  AccuracyTrendPoint,
+  CategoryAnalytics,
+  LeaderboardEntry,
+  PlayerAnalytics,
+} from '@/shared/contracts/game.contracts';
+import { activeGameConfigSchema } from '@/shared/schemas/game.schemas';
+import type {
+  ActiveGameConfig,
+  CategoryId,
+  PlayerProfile,
+  QuestionRecord,
+} from '@/shared/types/game.types';
+import { GameError } from '@/server/errors/game.errors';
 import type {
   CompletedGame,
   CompletionResult,
   GameRepository,
   QuestionQuery,
-} from "@/server/repositories/game.repository";
+} from '@/server/repositories/game.repository';
 import type {
-  ActiveGameConfig,
-  Profile,
-  QuestionRecord,
-} from "@/shared/types/game.types";
-import type {
-  LeaderboardEntry,
-  PlayerAnalytics,
-} from "@/shared/contracts/game.contracts";
-import type { ProfileRow, QuestionRow } from "@/database/supabase/database.types";
-import { mapProfileRow, mapQuestionRow } from "@/database/supabase/mappers";
-import { activeGameConfigSchema } from "@/shared/schemas/game.schemas";
-
-interface CompletionRpcResult {
-  profile: ProfileRow;
-  previous_level: number;
-}
-
-interface AnalyticsRow {
-  category_id: "image" | "email" | "audio";
-  is_correct: boolean;
-  response_time_ms: number;
-}
-
-interface SessionScoreRow {
-  final_score: number;
-}
-
-interface LeaderboardRow {
-  user_id: string;
-  username: string;
-  score: number;
-  rank: number;
-}
+  AttemptAnalyticsRow,
+  CompletionRpcRow,
+  GameSessionRow,
+  LeaderboardRow,
+  ProfileRow,
+  QuestionRow,
+} from '@/database/supabase/database.types';
+import {
+  mapCompletionRpcRow,
+  mapProfileRow,
+  mapQuestionRow,
+  mapSessionRow,
+} from '@/database/supabase/mappers';
 
 function databaseError(operation: string, message: string): GameError {
   return new GameError(
     `Database ${operation} failed: ${message}`,
-    "SERVICE_UNAVAILABLE",
+    'SERVICE_UNAVAILABLE',
     503,
   );
 }
 
-/**
- * Production repository. It uses a server-only service-role client because
- * answers and authoritative progression fields must never be browser-writable.
- */
 export class SupabaseGameRepository implements GameRepository {
   constructor(private readonly client: SupabaseClient) {}
 
   async getActiveConfig(): Promise<ActiveGameConfig> {
-    const { data, error } = await this.client.rpc("get_active_config");
+    const { data, error } = await this.client.rpc('get_active_config');
     if (error) {
-      throw databaseError("config read", error.message);
+      throw databaseError('config read', error.message);
     }
     return activeGameConfigSchema.parse(data);
   }
 
   async listQuestions(query: QuestionQuery): Promise<QuestionRecord[]> {
     let request = this.client
-      .from("questions")
+      .from('questions')
       .select(
-        "id, category_id, media_url, is_ai, difficulty_rating, explanation_text, metadata, is_active, created_at",
+        'id, category_id, media_url, is_ai, difficulty_rating, explanation_text, metadata, is_active',
       )
-      .eq("is_active", true)
-      .in("category_id", query.categories)
-      .limit(500);
+      .eq('is_active', true)
+      .in('category_id', query.categories)
+      .limit(Math.min(query.limit + query.excludeIds.length, 500));
 
     if (query.excludeIds.length > 0) {
-      request = request.not("id", "in", `(${query.excludeIds.join(",")})`);
+      request = request.not('id', 'in', `(${query.excludeIds.join(',')})`);
     }
 
     const { data, error } = await request;
     if (error) {
-      throw databaseError("question read", error.message);
+      throw databaseError('question read', error.message);
     }
-    return ((data ?? []) as QuestionRow[]).map(mapQuestionRow);
-  }
-
-  async getQuestion(questionId: string): Promise<QuestionRecord | null> {
-    const { data, error } = await this.client
-      .from("questions")
-      .select(
-        "id, category_id, media_url, is_ai, difficulty_rating, explanation_text, metadata, is_active, created_at",
-      )
-      .eq("id", questionId)
-      .maybeSingle();
-
-    if (error) {
-      throw databaseError("question read", error.message);
-    }
-    return data ? mapQuestionRow(data as QuestionRow) : null;
+    return ((data ?? []) as QuestionRow[])
+      .slice(0, query.limit)
+      .map((row) => mapQuestionRow(row, query.config));
   }
 
   async completeGame(
     game: CompletedGame,
-    _config: ActiveGameConfig,
+    config: ActiveGameConfig,
   ): Promise<CompletionResult> {
-    void _config;
-    const averageResponseTimeMs =
-      game.attempts.length === 0
-        ? 0
-        : Math.round(
-            game.attempts.reduce(
-              (total, attempt) => total + attempt.responseTimeMs,
-              0,
-            ) / game.attempts.length,
-          );
-    const { data, error } = await this.client.rpc("persist_completed_game", {
-      p_session: {
-        id: game.summary.sessionId,
-        user_id: game.userId,
-        mode: game.summary.mode,
-        status: game.status,
-        final_score: game.summary.finalScore,
-        max_combo: game.summary.highestCombo,
-        questions_answered: game.summary.questionsAnswered,
-        correct_count: game.summary.correctAnswers,
-        incorrect_count: game.summary.incorrectAnswers,
-        average_response_time_ms: averageResponseTimeMs,
-        xp_awarded: game.summary.xpAwarded,
-        categories_played: game.categoriesPlayed,
-        started_at: game.summary.startedAt,
-        ended_at: game.summary.endedAt,
-      },
-      p_attempts: game.attempts.map((attempt) => ({
-        question_id: attempt.questionId,
-        category_id: attempt.categoryId,
-        question_index: attempt.questionIndex,
-        selected_answer: attempt.selectedAnswer,
-        is_correct: attempt.isCorrect,
-        response_time_ms: attempt.responseTimeMs,
-        points_awarded: attempt.pointsAwarded,
-        combo_at_answer: attempt.comboAtAnswer,
-        answered_at: attempt.answeredAt,
-      })),
+    void config;
+    const { data, error } = await this.client.rpc('persist_completed_game', {
+      p_session_id: game.summary.sessionId,
     });
-
     if (error) {
-      throw databaseError("game completion", error.message);
+      throw databaseError('game completion', error.message);
     }
-    const result = data as CompletionRpcResult;
+    return mapCompletionRpcRow(data as CompletionRpcRow);
+  }
+
+  async getCompletedGame(
+    sessionId: string,
+    userId: string,
+  ): Promise<CompletionResult | null> {
+    const sessionResult = await this.client
+      .from('game_sessions')
+      .select(
+        'id, user_id, mode, status, end_reason, config_version, final_score, xp_earned, correct_count, incorrect_count, highest_combo, questions_answered, average_response_time_ms, categories_played, started_at, ended_at, created_at',
+      )
+      .eq('id', sessionId)
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (sessionResult.error) {
+      throw databaseError('completed session read', sessionResult.error.message);
+    }
+    if (!sessionResult.data) {
+      return null;
+    }
+
+    const profile = await this.getProfile(userId);
     return {
-      profile: mapProfileRow(result.profile),
-      previousLevel: result.previous_level,
+      summary: mapSessionRow(sessionResult.data as GameSessionRow),
+      profile,
+      previousLevel: profile.level,
+      previousHighestScore: profile.highestScore,
     };
   }
 
-  async getProfile(userId: string): Promise<Profile> {
+  async getProfile(userId: string): Promise<PlayerProfile> {
     const { data, error } = await this.client
-      .from("profiles")
+      .from('profiles')
       .select(
-        "id, username, total_xp, current_level, daily_streak, last_played_at, created_at, updated_at",
+        'id, username, total_xp, current_level, highest_score, longest_combo, daily_streak, longest_streak, last_played_at, games_played, arcade_games_played, training_games_played, created_at, updated_at',
       )
-      .eq("id", userId)
+      .eq('id', userId)
       .single();
-
     if (error) {
-      throw databaseError("profile read", error.message);
+      throw databaseError('profile read', error.message);
     }
     return mapProfileRow(data as ProfileRow);
   }
 
   async getAnalytics(userId: string): Promise<PlayerAnalytics> {
-    const [attemptResult, scoreResult, rankResult] = await Promise.all([
+    const [attemptResult, scoreResult, rankResult, profile] = await Promise.all([
       this.client
-        .from("question_attempts")
-        .select("category_id, is_correct, response_time_ms")
-        .eq("user_id", userId),
+        .from('question_attempts')
+        .select('category_id, was_correct, response_time_ms, answered_at')
+        .eq('user_id', userId),
       this.client
-        .from("game_sessions")
-        .select("final_score")
-        .eq("user_id", userId)
-        .eq("mode", "ARCADE")
-        .eq("status", "completed"),
+        .from('game_sessions')
+        .select('final_score')
+        .eq('user_id', userId)
+        .eq('mode', 'ARCADE'),
       this.client
-        .from("leaderboard")
-        .select("rank")
-        .eq("user_id", userId)
+        .from('leaderboard')
+        .select('rank')
+        .eq('user_id', userId)
         .maybeSingle(),
+      this.getProfile(userId),
     ]);
 
     const firstError = attemptResult.error ?? scoreResult.error ?? rankResult.error;
     if (firstError) {
-      throw databaseError("analytics read", firstError.message);
+      throw databaseError('analytics read', firstError.message);
     }
 
-    const attempts = (attemptResult.data ?? []) as AnalyticsRow[];
-    const scores = (scoreResult.data ?? []) as SessionScoreRow[];
-    const correct = attempts.filter((attempt) => attempt.is_correct).length;
-    const responseTimeTotal = attempts.reduce(
-      (total, attempt) => total + attempt.response_time_ms,
-      0,
-    );
-    const categories = ["image", "email", "audio"] as const;
-    const byCategory = categories
-      .map((categoryId) => {
-        const categoryAttempts = attempts.filter(
-          (attempt) => attempt.category_id === categoryId,
-        );
-        const categoryCorrect = categoryAttempts.filter(
-          (attempt) => attempt.is_correct,
-        ).length;
-        return {
-          categoryId,
-          attempts: categoryAttempts.length,
-          correct: categoryCorrect,
-          accuracyPercent:
-            categoryAttempts.length === 0
-              ? 0
-              : (categoryCorrect / categoryAttempts.length) * 100,
-          averageResponseTimeMs:
-            categoryAttempts.length === 0
-              ? 0
-              : categoryAttempts.reduce(
-                  (total, attempt) => total + attempt.response_time_ms,
-                  0,
-                ) / categoryAttempts.length,
-        };
-      })
-      .filter((category) => category.attempts > 0);
-    const rankedCategories = [...byCategory].sort(
+    const attempts = (attemptResult.data ?? []) as AttemptAnalyticsRow[];
+    const scores = (scoreResult.data ?? []) as { final_score: number }[];
+    const correct = attempts.filter((attempt) => attempt.was_correct).length;
+    const byCategory = aggregateCategories(attempts);
+    const ranked = [...byCategory].sort(
       (left, right) => right.accuracyPercent - left.accuracyPercent,
     );
     const scoreValues = scores.map((score) => score.final_score);
@@ -235,37 +168,83 @@ export class SupabaseGameRepository implements GameRepository {
     return {
       attempts: attempts.length,
       correct,
-      accuracyPercent: attempts.length === 0 ? 0 : (correct / attempts.length) * 100,
-      averageResponseTimeMs:
-        attempts.length === 0 ? 0 : responseTimeTotal / attempts.length,
-      averageArcadeScore:
-        scoreValues.length === 0
-          ? 0
-          : scoreValues.reduce((total, score) => total + score, 0) / scoreValues.length,
+      accuracyPercent: percent(correct, attempts.length),
+      averageResponseTimeMs: average(
+        attempts.map((attempt) => attempt.response_time_ms),
+      ),
+      averageArcadeScore: average(scoreValues),
       bestArcadeScore: scoreValues.length === 0 ? 0 : Math.max(...scoreValues),
+      longestCombo: profile.longestCombo,
       leaderboardRank: (rankResult.data as { rank?: number } | null)?.rank ?? null,
-      strongestCategory: rankedCategories.at(0)?.categoryId ?? null,
-      weakestCategory: rankedCategories.at(-1)?.categoryId ?? null,
+      strongestCategory: ranked.at(0)?.categoryId ?? null,
+      weakestCategory: ranked.length > 1 ? (ranked.at(-1)?.categoryId ?? null) : null,
       byCategory,
+      accuracyTrend: aggregateTrend(attempts),
     };
   }
 
   async getLeaderboard(limit: number): Promise<LeaderboardEntry[]> {
     const { data, error } = await this.client
-      .from("leaderboard")
-      .select("user_id, username, score, rank")
-      .order("rank", { ascending: true })
+      .from('leaderboard')
+      .select('user_id, display_name, highest_score, current_level, rank')
+      .order('rank', { ascending: true })
       .limit(limit);
-
     if (error) {
-      throw databaseError("leaderboard read", error.message);
+      throw databaseError('leaderboard read', error.message);
     }
-
     return ((data ?? []) as LeaderboardRow[]).map((entry) => ({
-      userId: entry.user_id,
-      username: entry.username,
-      score: entry.score,
       rank: entry.rank,
+      userId: entry.user_id,
+      displayName: entry.display_name,
+      highestScore: entry.highest_score,
+      level: entry.current_level,
     }));
   }
+}
+
+function aggregateCategories(attempts: AttemptAnalyticsRow[]): CategoryAnalytics[] {
+  const categories: CategoryId[] = ['image', 'email', 'audio'];
+  return categories
+    .map((categoryId) => {
+      const matches = attempts.filter((attempt) => attempt.category_id === categoryId);
+      const correct = matches.filter((attempt) => attempt.was_correct).length;
+      return {
+        categoryId,
+        attempts: matches.length,
+        correct,
+        accuracyPercent: percent(correct, matches.length),
+        averageResponseTimeMs: average(
+          matches.map((attempt) => attempt.response_time_ms),
+        ),
+      };
+    })
+    .filter((category) => category.attempts > 0);
+}
+
+function aggregateTrend(attempts: AttemptAnalyticsRow[]): AccuracyTrendPoint[] {
+  const days = new Map<string, { attempts: number; correct: number }>();
+  for (const attempt of attempts) {
+    const day = attempt.answered_at.slice(0, 10);
+    const bucket = days.get(day) ?? { attempts: 0, correct: 0 };
+    bucket.attempts += 1;
+    bucket.correct += attempt.was_correct ? 1 : 0;
+    days.set(day, bucket);
+  }
+  return [...days.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([date, bucket]) => ({
+      date,
+      accuracyPercent: percent(bucket.correct, bucket.attempts),
+    }));
+}
+
+function percent(value: number, total: number): number {
+  return total === 0 ? 0 : Math.round((value / total) * 1_000) / 10;
+}
+
+function average(values: number[]): number {
+  if (values.length === 0) {
+    return 0;
+  }
+  return Math.round(values.reduce((total, value) => total + value, 0) / values.length);
 }
