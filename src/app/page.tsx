@@ -132,7 +132,7 @@ export default function Home() {
           <p className="text-muted mt-4 max-w-md">
             {loadingProfile
               ? 'Loading your file…'
-              : `Split-second calls on machine-made media${profile ? `, ${profile.username}` : ''}. Real photo or AI dream. Signal or scam.`}
+              : `Train your eye to spot AI fakes, phishing scams, and deepfakes${profile ? `, ${profile.username}` : ''} — one split-second call at a time.`}
           </p>
           {profile && (
             <div className="mt-5 max-w-xs">
