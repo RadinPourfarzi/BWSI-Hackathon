@@ -10,3 +10,8 @@ export function cn(...inputs: ClassValue[]): string {
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat('en-US').format(Math.round(value));
 }
+
+/** Clamp a number to the inclusive [min, max] range. */
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
