@@ -204,6 +204,11 @@ As the player survives consecutive questions in Arcade Mode, the game engine ram
 
 *Extensibility Architecture:* Every question entity in the database retains a `difficulty_rating` column (`EASY`, `MEDIUM`, `HARD`, `EXPERT`). Future iterations can easily enable content-based difficulty filtering by reading this existing field.
 
+> **Where these values live:** the tier table above is stored in `game_config.difficultyTiers`
+> (server-authoritative, DB-editable — no redeploy to rebalance). The client fetches it via
+> `get_active_config()` at run start and applies the active tier by matching the current
+> question index against each tier's `minQuestion` threshold.
+
 ---
 
 ## 8. User Interface & User Experience (UI/UX) Specifications
@@ -344,13 +349,26 @@ Using lightweight charting (e.g., Recharts or Chart.js):
 
 To maintain 0ms latency and meet hackathon constraints:
 
-1. **Batch Pre-fetching:** When a run initializes, the client queries Supabase for a randomized batch of 15 questions.
-2. **Client-Side Storage:** The client store holds media URLs, metadata, and the **true answer key** in memory.
-3. **Instant Validation:** When the user clicks "AI" or "Real", the response is evaluated instantly against local state—no server round-trip required.
-4. **Background Buffer Sync:** When the unused question count in the local store falls below 5, the engine quietly fetches another batch of 15 questions in the background.
-5. **Run Submission:** Upon Game Over, the aggregated stats (Score, Questions Answered, XP, Category Breakdown) are submitted in a single payload to update database snapshots.
+1. **Server-Authoritative Config Fetch:** When a run initializes, the client calls the `get_active_config()` RPC to load the active gameplay ruleset (difficulty tiers, timers, plateau/grace periods, decay curve, XP/level formulas) from the `game_config` table, plus per-category grace periods. This config is held in memory and drives all local timers.
+2. **Batch Pre-fetching:** The client then queries Supabase for a randomized batch of 15 questions.
+3. **Client-Side Storage:** The client store holds media URLs, metadata, and the **true answer key** in memory.
+4. **Instant Validation:** When the user clicks "AI" or "Real", the response is evaluated instantly against local state—no server round-trip required. Timers and score decay are computed locally from the pre-fetched config, preserving 0ms latency.
+5. **Background Buffer Sync:** When the unused question count in the local store falls below 5, the engine quietly fetches another batch of 15 questions in the background.
+6. **Run Submission:** Upon Game Over, the client submits only the **raw per-attempt facts** (question id, category, question index, correctness, response time, combo) via the `submit_run()` RPC. The **server recomputes** points, final score, XP, level, and daily streak from the authoritative `game_config`—client-sent scores are never trusted—and writes the session + attempts + profile update atomically.
+
+> **Server-authoritative, client-executed — the 0ms trade-off.** Balance values live in
+> the database (`game_config`), not the client bundle, so they are tunable without a
+> redeploy. The client *executes* those rules locally during play for zero latency, and
+> the server *re-validates* them at submission. **Correctness** validation is client-side
+> for the MVP (the answer key is in client memory — an accepted trade-off); this boundary
+> is deliberately isolated to the fetch/submit RPCs so it can be tightened later (e.g.
+> server-side validation) without touching gameplay components.
 
 ### Database Schema Design (Supabase Postgres)
+
+> The canonical, runnable schema — with constraints, indexes, RLS policies, triggers, the
+> `game_config` table, and the `get_active_config` / `score_attempt` / `submit_run` RPCs —
+> lives in `docs/database-schema.md`. The sketch below shows the core tables only.
 
 ```sql
 -- 1. USERS PROFILE TABLE
@@ -402,7 +420,17 @@ CREATE TABLE question_attempts (
   question_id UUID REFERENCES questions(id),
   is_correct BOOLEAN NOT NULL,
   response_time_ms INTEGER NOT NULL,
-  points_awarded INTEGER DEFAULT 0,
+  points_awarded INTEGER DEFAULT 0, -- server-recomputed, authoritative
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 6. GAME CONFIG TABLE (Server-authoritative, DB-configurable gameplay balance)
+CREATE TABLE game_config (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  version INTEGER NOT NULL,
+  is_active BOOLEAN DEFAULT FALSE, -- exactly one active row (enforced by partial unique index)
+  config JSONB NOT NULL,           -- difficulty tiers, timers, decay, XP curve; see database-schema.md §3.6
+  note TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -410,35 +438,45 @@ CREATE TABLE question_attempts (
 
 ### Configuration-Driven Architecture Directory
 
-Nothing gameplay-critical is hardcoded. Balance changes are made strictly by editing `/config` files.
+Nothing gameplay-critical is hardcoded. **Gameplay balance is server-authoritative and
+DB-configurable:** scoring, timers, plateau/grace periods, difficulty tiers, and XP/level
+formulas live in the `game_config` table (see `docs/database-schema.md` §3.6) and are
+tuned by editing that row — no client redeploy. The `/config/*.ts` files below are the
+TypeScript shape contract and the default seed values for that row. Purely client-side
+concerns (animations, colors, media box) remain client-only in `/config/ui.ts`.
 
 ```
 /config
-  ├── game.ts          # Lives count, batch size, default mode toggles
-  ├── scoring.ts       # Plateau durations, decay multipliers, base points
-  ├── difficulty.ts    # Escalation steps (time limits, decay acceleration)
-  ├── xp.ts            # XP payout rates, level curves, streak bonuses
-  ├── categories.ts    # Media type constants, grace periods
-  └── ui.ts            # Animation durations, visual thresholds
+  ├── game.ts          # Lives count, batch size, prefetch threshold (seeds config.game)
+  ├── scoring.ts       # Decay exponent β, combo multipliers (seeds config.scoring)
+  ├── difficulty.ts    # Escalation tiers: max points, timers, plateau, decay α (seeds config.difficultyTiers)
+  ├── xp.ts            # XP payout rates, level curve (seeds config.xp)
+  ├── categories.ts    # Media type constants, grace periods (seeds categories table)
+  └── ui.ts            # Animation durations, visual thresholds (client-only)
 
 ```
+
+> **Effective plateau:** full-points window per attempt = tier `plateauMs` + the category's
+> `gracePeriodMs`. This is why consumption-heavy media (audio, +5000ms) gets more time
+> before decay begins. Both the client `useScoringTimer` and the server `score_attempt`
+> function read the same config so displayed and recorded scores agree.
 
 #### Example Configuration File (`/config/scoring.ts`)
 
 ```typescript
+// Default seed values + TS shape contract for the game_config.scoring blob.
+// Runtime source of truth is the active game_config DB row.
 export const SCORING_CONFIG = {
-  baseMaxPoints: 100,
-  plateauDurationMs: {
-    image: 1500,
-    email: 2000,
-    audio: 5000, // Includes listening grace period
-  },
-  decaySeverityAlpha: 2.5,
-  decayExponentBeta: 1.8,
+  decaySeverityAlpha: 2.5,   // α default; per-tier α overrides live in difficulty.ts
+  decayExponentBeta: 1.8,    // β
   comboMultipliers: [1, 1.5, 2, 2.5, 3, 4, 5],
 };
 
 ```
+
+Max base points and plateau durations are defined per difficulty tier (`difficulty.ts`),
+and per-category grace periods in the `categories` table; they are combined at scoring
+time. See `docs/data-formats.md` §6 for the full config contract.
 
 ---
 
@@ -447,7 +485,13 @@ export const SCORING_CONFIG = {
 * **Modular Architecture:** Small, single-purpose components (`TimerBar.tsx`, `MediaContainer.tsx`, `ComboBadge.tsx`).
 * **Strong Typing:** Strict TypeScript interfaces for all game states, database models, and config files. No implicit `any`.
 * **Clean State Separation:** Game engine business logic (timers, score calculation, life deductions) is completely decoupled from UI rendering components via custom React hooks (`useGameEngine`, `useScoringTimer`).
-* **No Magic Numbers:** Every constant (animation speed, timer length, point threshold) must be imported from the `/config` directory.
+* **No Magic Numbers:** Every gameplay constant (timer length, point threshold, decay, XP)
+  is server-authoritative via the `game_config` table and reaches the client through the
+  `get_active_config()` RPC; the `/config` files hold the TS shape contract, default seed
+  values, and client-only UI constants. No gameplay values are hardcoded in components.
+* **Server-Authoritative Progression:** Score, XP, level, and streak are recomputed and
+  persisted by the `submit_run()` RPC from raw per-attempt facts; the client never sends
+  trusted score/XP values.
 
 ---
 
