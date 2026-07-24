@@ -130,7 +130,7 @@ export function GameOverSummary({
             Play again
           </Button>
           {guest ? (
-            <Link className={buttonClassName({ size: 'lg' })} href="/signup?redirect=/">
+            <Link className={buttonClassName({ size: 'lg' })} href="/login?mode=signup&redirect=/">
               Create account
               <ArrowRight className="size-5" />
             </Link>

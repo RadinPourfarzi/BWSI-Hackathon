@@ -64,7 +64,7 @@ function AccountPanel({
         <p className="text-muted mt-1 text-xs leading-5">
           Play freely. XP, streaks, and analytics aren&apos;t saved.
         </p>
-        <Link className={buttonClassName({ className: 'mt-4 w-full', size: 'sm' })} href="/signup">
+        <Link className={buttonClassName({ className: 'mt-4 w-full', size: 'sm' })} href="/login?mode=signup">
           Create account
         </Link>
       </div>
