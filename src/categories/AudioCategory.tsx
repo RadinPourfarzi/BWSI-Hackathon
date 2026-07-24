@@ -1,25 +1,12 @@
 import type { CategoryRenderProps } from './ImageCategory';
-import { NotGlyph } from '@/components/marks';
+import { AudioPlayer } from '@/components/AudioPlayer';
 
 /**
- * Renders an audio challenge: a native audio player plus a short label. (Placeholder audio
- * URLs won't play until a real dataset is wired in.)
+ * Renders an audio challenge with the on-brand {@link AudioPlayer}: instant duration from
+ * metadata, autoplay, and a seekable waveform styled to the game palette.
  */
 export function AudioCategory({ question }: CategoryRenderProps) {
-  const durationSec =
-    question.metadata.kind === 'audio'
-      ? (question.metadata.durationMs / 1000).toFixed(1)
-      : undefined;
+  const durationMs = question.metadata.kind === 'audio' ? question.metadata.durationMs : 0;
 
-  return (
-    <div className="text-text flex h-full w-full flex-col items-center justify-center gap-5 px-6">
-      <NotGlyph className="text-muted h-12 w-12" />
-      <span className="text-muted font-mono text-xs tracking-[0.15em] uppercase">
-        Voice clip{durationSec ? ` · ${durationSec}s` : ''}
-      </span>
-      <audio controls src={question.mediaUrl} className="w-full max-w-md">
-        Your browser does not support the audio element.
-      </audio>
-    </div>
-  );
+  return <AudioPlayer src={question.mediaUrl} durationMs={durationMs} seed={question.id} />;
 }
