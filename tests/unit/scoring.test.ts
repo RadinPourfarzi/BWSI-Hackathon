@@ -1,99 +1,115 @@
 import { describe, expect, it } from "vitest";
 
-import { gameConfig } from "@/config/game";
-import { scoringConfig } from "@/config/scoring";
+import { categoryConfig } from "@/config/categories";
 import {
   calculateObtainablePoints,
   getComboMultiplier,
+  getQuestionRules,
   resolveAnswer,
 } from "@/features/game/engine";
-import type { Challenge } from "@/features/game/types";
+import { makeChallenge } from "../fixtures/challenges";
 
-const challenge: Challenge = {
-  id: "00000000-0000-4000-8000-000000009999",
+const challenge = makeChallenge({
+  index: 999,
   category: "image",
-  contentType: "image",
-  payload: {
-    kind: "image",
-    src: "/example.webp",
-    alt: "Example",
-    width: 768,
-    height: 768,
-  },
   correctChoice: "option_a",
-  labels: { optionA: "AI", optionB: "Real" },
-  difficulty: { tier: "medium", signals: [] },
-  explanation: "Example explanation.",
-  sourceDataset: "Test",
-  originalSourceUrl: "https://example.com",
-  license: "CC0-1.0",
-  attribution: "Test fixture.",
-  contentHash: "a".repeat(64),
-  active: true,
-  metadata: {},
-};
+});
 
-describe("scoring engine", () => {
-  it("preserves full base points inside the grace period", () => {
+describe("plateau and power-decay scoring", () => {
+  it("keeps maximum points throughout the category plateau", () => {
+    const rules = getQuestionRules("image", 1);
+
     expect(
       calculateObtainablePoints({
-        challenge,
-        combo: 0,
-        responseMs: scoringConfig.gracePeriodMs,
+        category: "image",
+        questionNumber: 1,
+        responseMs: 0,
       }),
-    ).toBe(scoringConfig.basePoints);
+    ).toBe(rules.maximumPoints);
+    expect(
+      calculateObtainablePoints({
+        category: "image",
+        questionNumber: 1,
+        responseMs: rules.plateauMs,
+      }),
+    ).toBe(rules.maximumPoints);
   });
 
-  it("decreases obtainable points with elapsed time", () => {
-    const fast = calculateObtainablePoints({
-      challenge,
-      combo: 0,
-      responseMs: 3_000,
-    });
-    const slow = calculateObtainablePoints({
-      challenge,
-      combo: 0,
-      responseMs: 14_000,
-    });
-
-    expect(fast).toBeGreaterThan(slow);
-    expect(slow).toBeGreaterThanOrEqual(
-      Math.round(scoringConfig.basePoints * scoringConfig.minimumTimeFactor),
+  it("decays monotonically to zero after the plateau", () => {
+    const rules = getQuestionRules("image", 1);
+    const values = [
+      rules.plateauMs,
+      rules.plateauMs + 1_000,
+      rules.plateauMs + 4_000,
+      rules.timeLimitMs,
+    ].map((responseMs) =>
+      calculateObtainablePoints({
+        category: "image",
+        questionNumber: 1,
+        responseMs,
+      }),
     );
+
+    expect(values[0]).toBe(rules.maximumPoints);
+    expect(values[1]).toBeLessThan(values[0] ?? 0);
+    expect(values[2]).toBeLessThan(values[1] ?? 0);
+    expect(values[3]).toBe(0);
   });
 
-  it("never lowers the multiplier as combo increases", () => {
-    const values = Array.from({ length: 20 }, (_value, combo) =>
-      getComboMultiplier(combo),
-    );
-
-    values.slice(1).forEach((value, index) => {
-      expect(value).toBeGreaterThanOrEqual(values[index] ?? 0);
+  it("gives voice challenges a longer plateau than images", () => {
+    const elapsedMs = categoryConfig.voice.plateauMs;
+    const voice = calculateObtainablePoints({
+      category: "voice",
+      responseMs: elapsedMs,
     });
+    const image = calculateObtainablePoints({
+      category: "image",
+      responseMs: elapsedMs,
+    });
+
+    expect(voice).toBe(getQuestionRules("voice", 1).maximumPoints);
+    expect(image).toBeLessThan(getQuestionRules("image", 1).maximumPoints);
   });
 
-  it("awards zero points and resets combo for an incorrect answer", () => {
+  it("uses exact combo thresholds", () => {
+    expect(getComboMultiplier(0)).toBe(1);
+    expect(getComboMultiplier(2)).toBe(1);
+    expect(getComboMultiplier(3)).toBe(2);
+    expect(getComboMultiplier(6)).toBe(3);
+    expect(getComboMultiplier(10)).toBe(4);
+  });
+
+  it("applies the multiplier after the correct answer extends the combo", () => {
     const resolution = resolveAnswer({
+      challenge,
+      selectedChoice: "option_a",
+      responseMs: 500,
+      combo: 2,
+    });
+
+    expect(resolution.comboAfter).toBe(3);
+    expect(resolution.comboMultiplier).toBe(2);
+    expect(resolution.awardedPoints).toBe(resolution.obtainablePoints * 2);
+  });
+
+  it("awards zero and resets combo for incorrect or timed-out answers", () => {
+    const incorrect = resolveAnswer({
       challenge,
       selectedChoice: "option_b",
       responseMs: 2_000,
       combo: 5,
     });
-
-    expect(resolution.isCorrect).toBe(false);
-    expect(resolution.awardedPoints).toBe(0);
-    expect(resolution.comboAfter).toBe(0);
-    expect(resolution.obtainablePoints).toBeGreaterThan(0);
-  });
-
-  it("caps client response times at the configured persistence limit", () => {
-    const resolution = resolveAnswer({
+    const timedOut = resolveAnswer({
       challenge,
       selectedChoice: "option_a",
       responseMs: Number.POSITIVE_INFINITY,
-      combo: 0,
+      combo: 5,
     });
 
-    expect(resolution.responseMs).toBe(gameConfig.maxResponseMs);
+    expect(incorrect.awardedPoints).toBe(0);
+    expect(incorrect.comboAfter).toBe(0);
+    expect(timedOut.timedOut).toBe(true);
+    expect(timedOut.selectedChoice).toBeNull();
+    expect(timedOut.responseMs).toBe(getQuestionRules("image", 1).timeLimitMs);
   });
 });

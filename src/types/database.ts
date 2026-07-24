@@ -139,6 +139,14 @@ export type Database = {
           max_combo: number;
           enabled_category_ids: string[];
           multiplayer_room_id: string | null;
+          client_run_id: string | null;
+          end_reason: string | null;
+          xp_earned: number;
+          average_response_ms: number;
+          category_breakdown: Json;
+          initial_lives: number | null;
+          remaining_lives: number | null;
+          new_high_score: boolean;
           started_at: string;
           completed_at: string | null;
           created_at: string;
@@ -157,6 +165,14 @@ export type Database = {
           max_combo?: number;
           enabled_category_ids: string[];
           multiplayer_room_id?: string | null;
+          client_run_id?: string | null;
+          end_reason?: string | null;
+          xp_earned?: number;
+          average_response_ms?: number;
+          category_breakdown?: Json;
+          initial_lives?: number | null;
+          remaining_lives?: number | null;
+          new_high_score?: boolean;
           started_at?: string;
           completed_at?: string | null;
           created_at?: string;
@@ -173,13 +189,22 @@ export type Database = {
           session_id: string;
           challenge_id: string;
           user_id: string;
-          selected_choice: Database["public"]["Enums"]["binary_choice"];
+          selected_choice: Database["public"]["Enums"]["binary_choice"] | null;
           is_correct: boolean;
+          sequence_number: number | null;
+          timed_out: boolean;
           response_ms: number;
           obtainable_points: number;
           awarded_points: number;
           combo_before: number;
           combo_after: number;
+          combo_multiplier: number;
+          difficulty_step: string | null;
+          maximum_points: number;
+          plateau_ms: number;
+          time_limit_ms: number;
+          decay_alpha: number;
+          decay_beta: number;
           difficulty_snapshot: Database["public"]["Enums"]["difficulty_tier"];
           created_at: string;
         };
@@ -188,13 +213,22 @@ export type Database = {
           session_id: string;
           challenge_id: string;
           user_id: string;
-          selected_choice: Database["public"]["Enums"]["binary_choice"];
+          selected_choice?: Database["public"]["Enums"]["binary_choice"] | null;
           is_correct: boolean;
+          sequence_number?: number | null;
+          timed_out?: boolean;
           response_ms: number;
           obtainable_points: number;
           awarded_points: number;
           combo_before: number;
           combo_after: number;
+          combo_multiplier?: number;
+          difficulty_step?: string | null;
+          maximum_points?: number;
+          plateau_ms?: number;
+          time_limit_ms?: number;
+          decay_alpha?: number;
+          decay_beta?: number;
           difficulty_snapshot: Database["public"]["Enums"]["difficulty_tier"];
           created_at?: string;
         };
@@ -212,6 +246,7 @@ export type Database = {
           best_score: number;
           current_streak: number;
           longest_streak: number;
+          longest_combo: number;
           category_accuracy: Json;
           updated_at: string;
         };
@@ -225,6 +260,7 @@ export type Database = {
           best_score?: number;
           current_streak?: number;
           longest_streak?: number;
+          longest_combo?: number;
           category_accuracy?: Json;
           updated_at?: string;
         };
@@ -320,6 +356,16 @@ export type Database = {
       complete_game_session: {
         Args: {
           p_session_id: string;
+        };
+        Returns: Json;
+      };
+      finalize_game_run: {
+        Args: {
+          p_run_id: string;
+          p_mode: Database["public"]["Enums"]["session_mode"];
+          p_enabled_categories: string[];
+          p_attempts: Json;
+          p_summary: Json;
         };
         Returns: Json;
       };

@@ -8,10 +8,10 @@ AI-generated images, scam emails, and AI-generated voice audio. A player sees
 one challenge, makes a fast two-choice classification, receives immediate
 feedback, and learns which signals supported the answer.
 
-This first phase is a complete hackathon foundation. It favors a small,
-playable, strongly typed system over enterprise complexity while preserving
-clean extension points for video, websites, social posts, text messages,
-multiplayer, leaderboards, classrooms, and new challenge types.
+Phase two is a complete playable hackathon experience. It favors a small,
+strongly typed system over enterprise complexity while preserving clean
+extension points for video, websites, social posts, text messages, multiplayer,
+leaderboards, classrooms, and new challenge types.
 
 ## Goals
 
@@ -28,7 +28,7 @@ multiplayer, leaderboards, classrooms, and new challenge types.
 - Preserve enough attempt-level data for future learning analytics,
   leaderboards, and multiplayer without redesigning the core tables.
 
-## Non-goals for phase one
+## Non-goals for the current release
 
 - Claiming that a single clue proves media is synthetic or malicious
 - A general-purpose AI or phishing detector
@@ -49,16 +49,17 @@ multiplayer, leaderboards, classrooms, and new challenge types.
 ## Core game loop
 
 1. The authenticated player chooses Arcade or Training.
-2. The server selects active challenges from the enabled categories.
-3. The client renders a challenge through its registered category renderer.
-4. The player chooses one of two configured labels.
-5. The client resolves correctness, response time, obtainable points, awarded
+2. The player keeps the mixed default or toggles one to three categories.
+3. The server returns a bounded authenticated batch from those categories.
+4. The client renders a challenge through its registered category renderer.
+5. The player chooses one of two configured labels.
+6. The client resolves correctness, response time, obtainable points, awarded
    points, and combo immediately.
-6. The UI locks the answer, shows the correct classification, awards points,
-   and explains useful signals.
-7. Persistence runs in the background and does not block the next visual state.
-8. At round completion, the server finalizes XP, statistics, streaks, and
-   session aggregates.
+7. Arcade shows brief feedback and advances; Training shows the explanation and
+   waits for the player.
+8. The queue replenishes before it runs out and excludes active-cycle IDs.
+9. At completion, one idempotent server transaction validates and saves
+   attempts, XP, statistics, streaks, and session aggregates.
 
 ## Classification labels
 
@@ -79,17 +80,22 @@ only compares option identifiers.
 
 ### Arcade
 
-- A mixed-category, score-oriented round
-- 12 questions by default
-- Time decay, difficulty multipliers, and combo multipliers affect score
-- Completion contributes to XP, statistics, and daily streaks
+- A mixed-category, score-oriented run with three lives
+- Ends when all three lives are depleted
+- Category-specific plateaus and power decay affect obtainable points
+- Correct streaks unlock exact 2×, 3×, and 4× combo tiers
+- Difficulty increases by question count with shorter timers and larger maxima
+- Feedback is brief and the next challenge advances automatically
+- Game over includes score, high-score indication, accuracy, response timing,
+  longest combo, category breakdown, and XP
 
 ### Training
 
-- A learning-oriented session type supported by the engine and schema
-- 10 questions by default
-- Uses the same challenge records and answer-resolution path
-- The player can choose a category for a focused phase-one round
+- Unlimited practice with no lives or score pressure
+- Uses the same engine, timing, challenge records, and attempt schema
+- Supports any one-to-three-category selection, with mixed mode as the default
+- Shows correctness, the explanation, and observable signal tags immediately
+- Ends on player exit and persists a learning summary
 
 ## Functional requirements
 
@@ -105,7 +111,7 @@ Each active challenge records:
 - Active state and extensible JSON metadata
 
 The starter corpus must contain at least 12 balanced records per category. The
-phase-one corpus contains 14 images, 12 emails, and 12 voice clips.
+committed corpus contains 14 images, 12 emails, and 12 voice clips.
 
 ### Authentication
 
@@ -129,14 +135,17 @@ phase-one corpus contains 14 images, 12 emails, and 12 voice clips.
 
 ### Persistence and analytics
 
-- Store complete sessions and per-question attempts
+- Store complete sessions and per-question attempts in one atomic transaction
 - Capture response time, correctness, points available at answer time, points
-  awarded, and combo before/after
+  awarded, timeout, combo/multiplier, timing curve, and sequence
+- Treat client run IDs as idempotency keys so retries cannot double-count
+- Recompute answers, scoring, combos, and lives from server-owned challenge
+  records and configured bounds before accepting a run
 - Maintain total XP, level, streaks, total/correct answers, and category
   aggregates
 - Support future leaderboard queries without exposing another user's private
   attempt history
-- Reserve multiplayer identifiers/metadata without coupling the phase-one game
+- Reserve multiplayer identifiers/metadata without coupling the current game
   engine to multiplayer
 
 ### Data ingestion
@@ -165,8 +174,17 @@ phase-one corpus contains 14 images, 12 emails, and 12 voice clips.
 
 ## Acceptance criteria
 
-- A configured user can sign up, sign in, reach a protected mixed round, answer
-  all questions, get immediate feedback, and have progress persisted.
+- A configured user can sign in, choose categories, play life-bounded Arcade or
+  unlimited Training, get mode-appropriate feedback, and persist progress.
+- Arcade ends after three misses; Training can exit after any number of
+  attempts; both produce accurate summaries.
+- The scoring engine preserves each category plateau, decays monotonically to
+  zero, applies 1×–4× combo thresholds, and increases difficulty by question
+  count.
+- Batches begin between 10 and 20 rows, replenish below five queued rows, ignore
+  stale responses, and avoid duplicates while enough unseen content exists.
+- A refresh restores an active run paused, and duplicate answer/save requests
+  do not create duplicate attempts or aggregate rewards.
 - The same answer engine handles image, email, and audio challenges.
 - Starter data validates with at least 12 balanced challenges in every category
   and no duplicate IDs or hashes.
@@ -175,8 +193,8 @@ phase-one corpus contains 14 images, 12 emails, and 12 voice clips.
   configuration.
 - A developer with Supabase credentials can apply the schema and seed the
   manifest without hand-editing challenge rows.
-- Required formatting, lint, typecheck, unit-test, and production-build commands
-  pass before the phase-one branch is published.
+- Required formatting, lint, typecheck, unit/integration-test, production-build,
+  and supported Playwright commands pass before the branch is published.
 
 ## Safety and educational framing
 

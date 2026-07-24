@@ -9,9 +9,13 @@ export default defineConfig({
   },
   test: {
     environment: "node",
+    setupFiles: ["./tests/setup.ts"],
     coverage: {
       reporter: ["text", "html"],
     },
-    include: ["tests/unit/**/*.test.ts"],
+    include: [
+      "tests/unit/**/*.test.{ts,tsx}",
+      "tests/integration/**/*.test.{ts,tsx}",
+    ],
   },
 });

@@ -7,19 +7,20 @@ client-side game core and Supabase as the system of record.
 
 ```mermaid
 flowchart TD
-    A["Next.js server routes"] --> B["Supabase Auth + PostgreSQL"]
-    A --> C["Validated challenge batch"]
-    C --> D["Zustand round store"]
-    D --> E["Generic binary engine"]
-    E --> F["Renderer registry"]
-    E --> G["Instant feedback"]
-    G --> H["Background RPC persistence"]
-    H --> B
+    A["Protected Next.js app"] --> B["Authenticated batch API"]
+    B --> C["Validated challenge queue"]
+    C --> D["Zustand session store"]
+    D --> E["Pure deterministic engine"]
+    E --> F["Renderer registry + feedback"]
+    E --> G["Serializable run record"]
+    G --> H["Atomic finalize_game_run RPC"]
+    H --> I["PostgreSQL + RLS"]
 ```
 
-Server components authenticate users, fetch validated challenge rows, and create
-sessions. Client components own only the time-sensitive round interaction.
-Database functions verify ownership and update related aggregates atomically.
+Server components authenticate users. A private route handler returns bounded,
+validated challenge batches. Client components own the time-sensitive
+interaction, while the pure engine owns every state transition. On completion,
+one database function verifies and commits the complete session atomically.
 
 ## Boundaries
 
@@ -45,50 +46,75 @@ Persistent state belongs in PostgreSQL:
 - XP history and derived user statistics
 - Daily streaks and analytics snapshots
 
-Transient state belongs in the Zustand store:
+Serializable session state belongs in the Zustand store and a versioned
+`sessionStorage` snapshot:
 
-- Current batch and question index
-- Round status
-- Question start timestamp
-- Current score and combo
-- Answer resolutions needed for the current completion view
+- Queue, current challenge, used IDs, and challenge cycle
+- Lifecycle (`loading`, `playing`, `feedback`, `paused`, `completed`, `error`)
+- Monotonic question timing and paused elapsed time
+- Score, combo, lives, attempts, run ID, enabled categories, and shuffle seed
 
-This separation prevents every pointer movement or visual transition from
-becoming a database write. Reloading can discard an unfinished visual state;
-accepted attempts and completed-session aggregates remain durable.
+Network request IDs, batch errors, save state, and save confirmations remain
+transient store fields and are not part of the engine snapshot.
+
+This separation prevents visual ticks from becoming store or database writes.
+Before reload, an active question is snapshotted as paused; hydration validates
+the serialized state and requires an explicit resume. Stale fetch responses and
+duplicate answers are ignored by lifecycle and request-ID guards.
 
 ## Instant answer resolution
 
-`resolveAnswer` is a deterministic, synchronous client function. It receives a
-validated challenge, selected option, response time, and current combo, then
-returns:
+`resolveAnswer` is deterministic, synchronous, and UI-independent. It receives
+a validated challenge, selected option, monotonic response time, combo, lives,
+and question number, then returns:
 
 - Correctness and the correct option
-- Rounded response time
+- Rounded, bounded response time and timeout state
 - Points obtainable at answer time
 - Points awarded
-- Combo before and after
+- Combo before/after and multiplier
+- Lives before/after
+- A complete timing/difficulty snapshot
 
-The Zustand store applies that resolution immediately. The answer locks and
-feedback appears without a network round trip. `record_attempt` persists the
-same facts in the background through a security-definer PostgreSQL function
-that validates session ownership, challenge eligibility, and value bounds.
-`complete_game_session` then calculates final XP and aggregate statistics
-atomically.
+The scoring curve is category-specific. A full-score plateau is followed by:
 
-The server is authoritative for ownership and durable aggregates. The MVP does
-not claim cheat-resistant competitive scoring; a future ranked mode would move
-point calculation to an authoritative server event path.
+`max(0, M - alpha × (t - tp)^beta)`
+
+where `M`, plateau `tp`, `alpha`, `beta`, and the time limit come from category
+and progression configuration. Arcade multiplies correct awards at combo
+thresholds of 3, 6, and 10. Training uses the same resolution path but does not
+emphasize score.
+
+The store applies the resolution immediately. On completion,
+`finalize_game_run` locks the user/run key, detects duplicate retries, reloads
+the challenge answers, recomputes the configured timing curve and score, checks
+combo continuity and Arcade lives, inserts the session and attempts, then
+updates XP, streaks, high score, category accuracy, and user stats in the same
+transaction.
+
+### Client answer-secrecy tradeoff
+
+Validated batch responses include `correctChoice`. This enables instant
+feedback, deterministic offline-in-the-moment transitions, and safe run
+serialization without one request per answer. It also means a motivated player
+can inspect the browser payload. Server recomputation prevents arbitrary totals
+from being persisted, but it cannot make exposed answers secret. The current
+mode is educational and unranked; ranked play must keep answers server-side and
+use a server-authoritative clock.
 
 ## Challenge batching
 
-The protected play route requests a bounded challenge batch rather than loading
-the entire catalog. The current fixed 12-question Arcade round is assembled
-server-side before interaction, so moving between questions requires no fetch.
-For longer future rounds, the same service can return a first playable subset,
-request another authenticated batch in the background when the local queue
-crosses a configured threshold, exclude already seen IDs, validate the response
-with `challengeSchema`, and append it to the store.
+Arcade and Training request 15 challenges initially. When fewer than five
+remain queued, the client requests 12 more through `/api/challenges`, excluding
+the current challenge, queued rows, and IDs seen in the active cycle. Every
+response is authenticated and validated with `challengeSchema`. An
+`AbortController` cancels irrelevant work, and request IDs prevent stale
+responses from mutating a newer run.
+
+When a selected finite pool is exhausted, a new cycle may reuse content while
+still preventing immediate or within-cycle duplicates. This lets Training
+continue indefinitely and lets Arcade remain life-bounded even with a small
+dataset.
 
 Keeping batch selection behind `getChallengeBatch` means that adaptive
 difficulty, classroom sets, and category weighting can change without changing
@@ -134,13 +160,13 @@ use binary option IDs and shared challenge metadata.
 
 ## Configuration-driven mechanics
 
-- `game.ts`: modes, question counts, and response cap
-- `scoring.ts`: base points, time decay, minimum factor, combo steps
-- `difficulty.ts`: tier score/XP multipliers and target response times
+- `game.ts`: modes, lives, batches, feedback timing, storage keys, response cap
+- `scoring.ts`: base points and exact combo steps
+- `difficulty.ts`: source tiers plus question-count progression steps
 - `xp.ts`: answer/session/bonus XP and level curve
 - `animation.ts`: restrained transition durations and easing
 - `ui.ts`: product name and shell constants
-- `categories.ts`: labels, renderer keys, descriptions, icons, accents
+- `categories.ts`: labels, renderers, visuals, plateaus, limits, decay exponents
 
 Unit tests assert monotonic and range invariants so a configuration edit fails
 early instead of silently breaking scoring.
@@ -156,10 +182,11 @@ The normalized schema uses:
 - `xp_history` for an auditable progression ledger
 - `daily_streaks` for calendar-level activity
 
-An `auth.users` trigger creates the profile and user stats. The first completed
-session creates the first daily-streak row. All user-owned tables use RLS with
-`auth.uid()`. Authenticated users can read active categories and challenges,
-but only secure functions create attempts or finalize a session. The
+An `auth.users` trigger creates the profile and user stats. The first non-empty
+completed session creates the first daily-streak row. All user-owned tables use
+RLS with `auth.uid()`. Authenticated users can read active categories and
+challenges, but only secure functions create attempts or finalize a session.
+`client_run_id` is unique per user, making completion retries idempotent. The
 service-role ingestion script is server-only.
 
 Media is bundled locally for a reliable MVP. The ingestion command can upload
@@ -203,8 +230,11 @@ attempt writes.
 
 - No Supabase configuration: public routes render; auth and protected routes
   show setup-aware errors.
-- No active challenges: the play page shows an actionable empty state.
-- Attempt persistence failure: the local round remains playable and the UI
-  reports that progress may not save.
+- No active challenges: setup reports an actionable batch error.
+- Batch failure: queued play continues; an empty queue exposes a retry state.
+- Completion persistence failure: the finished local record remains available
+  and the game-over screen exposes an idempotent retry.
+- Refresh during play: the validated run restores paused without resubmitting an
+  answer.
 - Invalid dataset rows or hash mismatches: ingestion stops before any writes.
 - Partial seed failure: idempotent upserts allow a safe retry.

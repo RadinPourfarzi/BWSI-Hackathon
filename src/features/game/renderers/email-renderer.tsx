@@ -8,8 +8,8 @@ export function EmailRenderer({
   payload: Extract<Challenge["payload"], { kind: "email" }>;
 }) {
   return (
-    <article className="overflow-hidden rounded-xl border border-[#d9dde6] bg-[#f8f9fc] text-[#172033]">
-      <header className="border-b border-[#d9dde6] bg-white px-5 py-4">
+    <article className="flex h-[min(52vh,30rem)] flex-col overflow-hidden rounded-xl border border-[#d9dde6] bg-[#f8f9fc] text-[#172033]">
+      <header className="shrink-0 border-b border-[#d9dde6] bg-white px-5 py-4">
         <div className="flex items-center gap-3">
           <div className="grid size-10 shrink-0 place-items-center rounded-full bg-[#e8edfa]">
             <Mail className="size-5 text-[#345089]" />
@@ -30,7 +30,11 @@ export function EmailRenderer({
           {payload.subject}
         </h2>
       </header>
-      <div className="px-5 py-6 text-sm leading-7 whitespace-pre-line">
+      <div
+        aria-label="Email message body"
+        className="min-h-0 flex-1 overflow-y-auto px-5 py-6 text-sm leading-7 whitespace-pre-line"
+        tabIndex={0}
+      >
         {payload.body}
       </div>
     </article>

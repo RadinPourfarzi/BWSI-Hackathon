@@ -1,32 +1,18 @@
 import type { Metadata } from "next";
 
-import { EmptyState } from "@/components/ui/states";
-import { gameConfig } from "@/config/game";
-import { GameBoard } from "@/features/game/game-board";
-import { createGameSession, getChallengeBatch } from "@/services/challenges";
+import { GameExperience } from "@/features/game/game-experience";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getShellProfile } from "@/services/profile";
 
 export const metadata: Metadata = {
   title: "Play Arcade",
 };
 
 export default async function ArcadePage() {
-  const result = await getChallengeBatch({
-    limit: gameConfig.questionCount.arcade,
-  });
-
-  if (result.challenges.length === 0) {
-    return (
-      <EmptyState
-        description={`${result.error ?? "No challenges are available."} Apply the migration, then run npm run data:seed.`}
-        title="Challenge set is empty"
-      />
-    );
-  }
-
-  const sessionId = await createGameSession({
-    mode: "arcade",
-    challenges: result.challenges,
-  });
+  const supabase = await createServerSupabaseClient();
+  const userResult = await supabase?.auth.getUser();
+  const user = userResult?.data.user ?? null;
+  const profile = user ? await getShellProfile(user) : null;
 
   return (
     <div className="animate-enter">
@@ -37,11 +23,13 @@ export default async function ArcadePage() {
         <h1 className="mt-2 text-3xl font-black tracking-tight">
           Mixed signals
         </h1>
+        <p className="mt-2 text-sm text-[var(--muted)]">
+          Three lives. Faster decisions earn more points.
+        </p>
       </div>
-      <GameBoard
-        challenges={result.challenges}
+      <GameExperience
+        initialBestScore={profile?.bestScore ?? 0}
         mode="arcade"
-        sessionId={sessionId}
       />
     </div>
   );

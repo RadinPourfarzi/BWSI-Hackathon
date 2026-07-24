@@ -21,7 +21,13 @@ function InvalidPayload() {
 const rendererRegistry: Record<CategoryId, RegisteredRenderer> = {
   image: ({ challenge }) =>
     challenge.payload.kind === "image" ? (
-      <ImageRenderer payload={challenge.payload} />
+      <ImageRenderer
+        challenge={{
+          ...challenge,
+          payload: challenge.payload,
+        }}
+        key={challenge.id}
+      />
     ) : (
       <InvalidPayload />
     ),
@@ -33,7 +39,7 @@ const rendererRegistry: Record<CategoryId, RegisteredRenderer> = {
     ),
   voice: ({ challenge }) =>
     challenge.payload.kind === "audio" ? (
-      <AudioRenderer payload={challenge.payload} />
+      <AudioRenderer key={challenge.id} payload={challenge.payload} />
     ) : (
       <InvalidPayload />
     ),

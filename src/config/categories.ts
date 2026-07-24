@@ -19,6 +19,9 @@ export type CategoryConfiguration = {
   rendererKey: CategoryId;
   icon: LucideIcon;
   accent: string;
+  plateauMs: number;
+  timeLimitMs: number;
+  decayBeta: number;
 };
 
 export const categoryConfig: Record<CategoryId, CategoryConfiguration> = {
@@ -33,6 +36,9 @@ export const categoryConfig: Record<CategoryId, CategoryConfiguration> = {
     rendererKey: "image",
     icon: ImageIcon,
     accent: "#4f8cff",
+    plateauMs: 2_250,
+    timeLimitMs: 12_000,
+    decayBeta: 1.3,
   },
   email: {
     id: "email",
@@ -45,6 +51,9 @@ export const categoryConfig: Record<CategoryId, CategoryConfiguration> = {
     rendererKey: "email",
     icon: MailWarning,
     accent: "#ff4fa3",
+    plateauMs: 3_000,
+    timeLimitMs: 15_000,
+    decayBeta: 1.25,
   },
   voice: {
     id: "voice",
@@ -57,5 +66,8 @@ export const categoryConfig: Record<CategoryId, CategoryConfiguration> = {
     rendererKey: "voice",
     icon: AudioLines,
     accent: "#35d39a",
+    plateauMs: 5_000,
+    timeLimitMs: 18_000,
+    decayBeta: 1.35,
   },
 };

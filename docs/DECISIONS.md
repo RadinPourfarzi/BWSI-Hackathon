@@ -41,7 +41,7 @@ category-to-renderer registry.
 not a game-engine rewrite. Database payload JSON stays flexible while runtime
 validation recovers strong types.
 
-## ADR-004: Resolve answers locally, persist in the background
+## ADR-004: Resolve answers locally, persist the completed run atomically
 
 **Status:** Accepted
 
@@ -49,38 +49,89 @@ validation recovers strong types.
 feel slow.
 
 **Decision:** Make score resolution deterministic and synchronous on the
-client. Write the resulting facts through ownership-checking Supabase RPCs
-without blocking feedback.
+client. At completion, submit one serializable run record to
+`finalize_game_run`, which recomputes and commits all durable facts in one
+transaction.
 
-**Consequences:** Casual play is highly responsive and transient write failures
-can be explained. Phase-one scores are not cheat-resistant; ranked play later
-needs server-authoritative timing and scoring.
+**Consequences:** Casual play is highly responsive, a failed save can be
+retried without double-counting, and partially persisted sessions cannot occur.
+Correct answers remain visible in client batches, so ranked play still needs
+server-authoritative challenge delivery, timing, and scoring.
 
-## ADR-005: Zustand only for transient round state
+## ADR-005: Zustand separates serializable run state from transient I/O
 
 **Status:** Accepted
 
 **Context:** The game needs shared interactive state but not a large client data
 framework.
 
-**Decision:** Use one small Zustand store for queue, index, status, attempts,
-score, combo, and timing. Leave server data in server components and services.
+**Decision:** Put a versioned, UI-independent engine state inside one Zustand
+store and snapshot it to `sessionStorage`. Keep request IDs, load errors, and
+save state as separate transient fields. Leave catalog and profile access in
+services.
 
-**Consequences:** Components stay focused and hydration is small. In-progress
-round recovery is not automatic in phase one.
+**Consequences:** Components use focused selectors, refresh restores a paused
+run safely, and engine serialization can be tested independently. A future
+schema change must version or migrate saved snapshots.
 
-## ADR-006: PostgreSQL functions own multi-table updates
+## ADR-006: One PostgreSQL function owns run completion
 
 **Status:** Accepted
 
-**Context:** An attempt affects the attempt ledger and session aggregates; final
-completion affects stats, XP history, and streaks.
+**Context:** Attempts, the session, XP history, streaks, category accuracy, and
+user stats must never disagree after a retry or network interruption.
 
-**Decision:** Use security-definer `record_attempt` and
-`complete_game_session` functions with explicit ownership and value checks.
+**Decision:** Use security-definer `finalize_game_run` with authentication,
+per-user/run locking, a unique client run ID, challenge reloads, server score
+recomputation, and explicit bounds. Keep the Phase One functions only for
+migration compatibility; the Phase Two client does not call them.
 
-**Consequences:** Related writes are atomic and retry-safe. Migration functions
-require careful review because they cross normal table-level RLS boundaries.
+**Consequences:** Related writes are atomic and retry-safe, and submitted
+correctness or totals are not trusted. Migration functions require careful
+review because they cross normal table-level RLS boundaries.
+
+## ADR-013: Life-bounded Arcade and open-ended Training share one engine
+
+**Status:** Accepted
+
+**Context:** Arcade needs pressure and automatic pacing while Training needs
+unlimited deliberate practice and explanations.
+
+**Decision:** Use the same queue, timing, answer resolution, attempts, summary,
+and persistence record. Arcade initializes three lives and auto-advances after
+brief feedback. Training has no lives, waits for the player after explanation,
+and ends only on an explicit exit or unavailable pool.
+
+**Consequences:** Mode differences are configuration and transition policy, not
+duplicated scoring implementations.
+
+## ADR-014: Bounded replenishing batches with finite-pool cycles
+
+**Status:** Accepted
+
+**Context:** Loading the full catalog is wasteful, but fixed rounds conflict
+with an unlimited Training mode and life-bounded Arcade.
+
+**Decision:** Fetch 15 initially and 12 below a queue threshold of five. Exclude
+current, queued, and active-cycle IDs. If the selected finite pool is exhausted,
+begin another cycle while retaining immediate duplicate guards.
+
+**Consequences:** Startup is bounded, play normally has no loading gap, and
+small datasets degrade to controlled reuse rather than a crash.
+
+## ADR-015: Monotonic active timing with paused refresh recovery
+
+**Status:** Accepted
+
+**Context:** Wall-clock changes must not alter answer time, and refresh should
+not duplicate or silently lose a live question.
+
+**Decision:** Pass monotonic `performance.now()` values into pure engine
+transitions. On pause, convert the active timestamp into accumulated elapsed
+time. Persist the snapshot and restore active snapshots as paused.
+
+**Consequences:** Active timing is not affected by system clock changes.
+Refresh does not count away time; the player explicitly resumes.
 
 ## ADR-007: RLS protects all user-owned rows
 
@@ -158,7 +209,7 @@ Unit tests may mock auth utilities; production routes never synthesize a user.
 **Status:** Accepted
 
 **Context:** Future plans include multiplayer, leaderboards, classrooms, and
-additional media, but phase one is a hackathon MVP.
+additional media, but the current release is a hackathon MVP.
 
 **Decision:** Preserve generic challenge, renderer, session, attempt, category,
 and metadata boundaries. Document additive future tables and authoritative

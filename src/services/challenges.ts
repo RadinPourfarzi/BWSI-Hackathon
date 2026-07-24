@@ -1,6 +1,6 @@
 import { categoryIds, type CategoryId } from "@/config/categories";
 import type { DifficultyId } from "@/config/difficulty";
-import type { GameMode } from "@/config/game";
+import { gameConfig } from "@/config/game";
 import { challengeSchema } from "@/features/game/schemas";
 import type { Challenge } from "@/features/game/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -8,6 +8,8 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 export type ChallengeBatchResult = {
   challenges: Challenge[];
   error: string | null;
+  exhausted: boolean;
+  availableCount: number;
 };
 
 function randomize<T>(values: T[]): T[] {
@@ -35,18 +37,37 @@ export async function getChallengeBatch({
   categories?: CategoryId[];
   excludeIds?: string[];
 }): Promise<ChallengeBatchResult> {
+  const normalizedLimit = Math.min(
+    gameConfig.batch.maximumRequestSize,
+    Math.max(1, Math.floor(limit)),
+  );
+  const normalizedCategories = categoryIds.filter((category) =>
+    categories.includes(category),
+  );
+
+  if (normalizedCategories.length === 0) {
+    return {
+      challenges: [],
+      error: "Select at least one valid challenge category.",
+      exhausted: false,
+      availableCount: 0,
+    };
+  }
+
   const supabase = await createServerSupabaseClient();
   if (!supabase) {
     return {
       challenges: [],
       error: "Supabase is not configured.",
+      exhausted: false,
+      availableCount: 0,
     };
   }
 
   const categoryResult = await supabase
     .from("categories")
     .select("id, slug")
-    .in("slug", categories)
+    .in("slug", normalizedCategories)
     .eq("active", true);
 
   if (categoryResult.error || !categoryResult.data?.length) {
@@ -55,6 +76,8 @@ export async function getChallengeBatch({
       error:
         categoryResult.error?.message ??
         "No active challenge categories are seeded.",
+      exhausted: false,
+      availableCount: 0,
     };
   }
 
@@ -69,103 +92,77 @@ export async function getChallengeBatch({
     .select("*")
     .eq("active", true)
     .in("category_id", categoryDatabaseIds)
-    .limit(Math.max(limit * 4, limit));
+    .limit(Math.max(normalizedLimit * 4, normalizedLimit));
 
   if (challengeResult.error) {
     return {
       challenges: [],
       error: challengeResult.error.message,
+      exhausted: false,
+      availableCount: 0,
     };
   }
 
   const excluded = new Set(excludeIds);
+  const validatedChallenges = (challengeResult.data ?? [])
+    .map((row) => {
+      const category = categoryById.get(row.category_id);
+      const difficultyMetadata =
+        row.difficulty_metadata &&
+        typeof row.difficulty_metadata === "object" &&
+        !Array.isArray(row.difficulty_metadata)
+          ? row.difficulty_metadata
+          : {};
+      const signals = Array.isArray(difficultyMetadata.signals)
+        ? difficultyMetadata.signals.filter(
+            (value): value is string => typeof value === "string",
+          )
+        : [];
+
+      const parsed = challengeSchema.safeParse({
+        id: row.id,
+        category,
+        contentType: row.content_type,
+        payload: row.payload,
+        correctChoice: row.correct_choice,
+        labels: {
+          optionA: row.option_a_label,
+          optionB: row.option_b_label,
+        },
+        difficulty: {
+          tier: row.difficulty as DifficultyId,
+          signals,
+        },
+        explanation: row.explanation,
+        sourceDataset: row.source_dataset,
+        originalSourceUrl: row.original_source_url,
+        license: row.license,
+        attribution: row.attribution,
+        contentHash: row.content_hash,
+        active: row.active,
+        metadata: row.metadata,
+      });
+
+      return parsed.success ? parsed.data : null;
+    })
+    .filter((challenge): challenge is Challenge => challenge !== null);
   const challenges = randomize(
-    (challengeResult.data ?? [])
-      .filter((row) => !excluded.has(row.id))
-      .map((row) => {
-        const category = categoryById.get(row.category_id);
-        const difficultyMetadata =
-          row.difficulty_metadata &&
-          typeof row.difficulty_metadata === "object" &&
-          !Array.isArray(row.difficulty_metadata)
-            ? row.difficulty_metadata
-            : {};
-        const signals = Array.isArray(difficultyMetadata.signals)
-          ? difficultyMetadata.signals.filter(
-              (value): value is string => typeof value === "string",
-            )
-          : [];
-
-        const parsed = challengeSchema.safeParse({
-          id: row.id,
-          category,
-          contentType: row.content_type,
-          payload: row.payload,
-          correctChoice: row.correct_choice,
-          labels: {
-            optionA: row.option_a_label,
-            optionB: row.option_b_label,
-          },
-          difficulty: {
-            tier: row.difficulty as DifficultyId,
-            signals,
-          },
-          explanation: row.explanation,
-          sourceDataset: row.source_dataset,
-          originalSourceUrl: row.original_source_url,
-          license: row.license,
-          attribution: row.attribution,
-          contentHash: row.content_hash,
-          active: row.active,
-          metadata: row.metadata,
-        });
-
-        return parsed.success ? parsed.data : null;
-      })
-      .filter((challenge): challenge is Challenge => challenge !== null),
-  ).slice(0, limit);
+    validatedChallenges.filter((challenge) => !excluded.has(challenge.id)),
+  ).slice(0, normalizedLimit);
+  const exhausted =
+    challenges.length === 0 &&
+    validatedChallenges.length > 0 &&
+    validatedChallenges.every((challenge) => excluded.has(challenge.id));
 
   return {
     challenges,
     error:
       challenges.length > 0
         ? null
-        : "Active rows were found, but none passed challenge validation.",
+        : exhausted
+          ? "Every available challenge in this selection has been used."
+          : "Active rows were found, but none passed challenge validation.",
+    exhausted,
+    availableCount: validatedChallenges.length,
   };
-}
-
-export async function createGameSession({
-  mode,
-  challenges,
-}: {
-  mode: GameMode;
-  challenges: Challenge[];
-}): Promise<string | null> {
-  const supabase = await createServerSupabaseClient();
-  if (!supabase) return null;
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const slugs = [...new Set(challenges.map((challenge) => challenge.category))];
-  const categoryResult = await supabase
-    .from("categories")
-    .select("id")
-    .in("slug", slugs);
-  if (categoryResult.error || !categoryResult.data?.length) return null;
-
-  const sessionResult = await supabase
-    .from("game_sessions")
-    .insert({
-      user_id: user.id,
-      mode,
-      questions_total: challenges.length,
-      enabled_category_ids: categoryResult.data.map((category) => category.id),
-    })
-    .select("id")
-    .single();
-
-  return sessionResult.data?.id ?? null;
 }

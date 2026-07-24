@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { difficultyConfig, difficultyIds } from "@/config/difficulty";
+import {
+  difficultyConfig,
+  difficultyIds,
+  getProgressionStep,
+  progressionSteps,
+} from "@/config/difficulty";
 
 describe("difficulty configuration", () => {
   it("defines every tier", () => {
@@ -29,5 +34,22 @@ describe("difficulty configuration", () => {
     expect(difficultyConfig.medium.targetResponseMs).toBeGreaterThan(
       difficultyConfig.hard.targetResponseMs,
     );
+  });
+
+  it("increases gameplay difficulty as question count rises", () => {
+    expect(getProgressionStep(1).id).toBe("rookie");
+    expect(getProgressionStep(6).id).toBe("analyst");
+    expect(getProgressionStep(13).id).toBe("specialist");
+    expect(getProgressionStep(21).id).toBe("expert");
+
+    progressionSteps.slice(1).forEach((step, index) => {
+      const previous = progressionSteps[index]!;
+      expect(step.timeLimitMultiplier).toBeLessThan(
+        previous.timeLimitMultiplier,
+      );
+      expect(step.maximumPointsMultiplier).toBeGreaterThan(
+        previous.maximumPointsMultiplier,
+      );
+    });
   });
 });

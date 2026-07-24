@@ -6,25 +6,34 @@ import { scoringConfig } from "@/config/scoring";
 import { levelFromXp, xpRequiredForLevel } from "@/config/xp";
 
 describe("game configuration", () => {
-  it("defines every supported category with two distinct labels", () => {
+  it("defines every category with labels and valid timing parameters", () => {
     expect(Object.keys(categoryConfig).sort()).toEqual([...categoryIds].sort());
 
     for (const category of Object.values(categoryConfig)) {
       expect(category.optionA).not.toBe(category.optionB);
       expect(category.rendererKey).toBe(category.id);
+      expect(category.plateauMs).toBeGreaterThan(0);
+      expect(category.timeLimitMs).toBeGreaterThan(category.plateauMs);
+      expect(category.decayBeta).toBeGreaterThan(1);
     }
   });
 
-  it("uses valid round limits", () => {
-    expect(gameConfig.questionCount.arcade).toBeGreaterThan(0);
-    expect(gameConfig.questionCount.training).toBeGreaterThan(0);
-    expect(gameConfig.maxResponseMs).toBeGreaterThan(0);
+  it("uses bounded batches and three Arcade lives", () => {
+    expect(gameConfig.initialLives).toBe(3);
+    expect(gameConfig.batch.initialSize).toBeGreaterThanOrEqual(10);
+    expect(gameConfig.batch.initialSize).toBeLessThanOrEqual(20);
+    expect(gameConfig.batch.refillThreshold).toBeLessThan(
+      gameConfig.batch.refillSize,
+    );
+    expect(gameConfig.batch.refillSize).toBeLessThanOrEqual(
+      gameConfig.batch.maximumRequestSize,
+    );
   });
 
-  it("keeps score factors within valid bounds", () => {
-    expect(scoringConfig.minimumTimeFactor).toBeGreaterThan(0);
-    expect(scoringConfig.minimumTimeFactor).toBeLessThanOrEqual(1);
-    expect(scoringConfig.decayWindowMs).toBeGreaterThan(0);
+  it("defines exact 1x through 4x combo tiers", () => {
+    expect(scoringConfig.comboSteps.map((step) => step.multiplier)).toEqual([
+      1, 2, 3, 4,
+    ]);
     expect(scoringConfig.basePoints).toBeGreaterThan(0);
   });
 
