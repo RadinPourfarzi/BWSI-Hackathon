@@ -36,6 +36,7 @@ export default function PlayPage() {
   const prefetchingRef = useRef(false);
   const submittedRef = useRef(false);
   const [timedOut, setTimedOut] = useState(false);
+  const [isGuest, setIsGuest] = useState(false);
 
   const handleAnswer = useCallback(
     (choiceIsAi: boolean) => {
@@ -161,6 +162,7 @@ export default function PlayPage() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
+        setIsGuest(true);
         return; // guest run — nothing is persisted
       }
       try {
@@ -196,7 +198,7 @@ export default function PlayPage() {
     const answered = runResult?.questionsAnswered ?? engine.attempts.length;
     const xpAwarded = runResult?.xpAwarded ?? computeRunXp(correct, engine.maxCombo, XP_CONFIG);
     return (
-      <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-6 py-10">
+      <div className="flex w-full flex-1 flex-col justify-center px-4 py-8 sm:px-6 sm:py-12">
         <GameOverSummary
           mode={engine.mode}
           score={score}
@@ -204,6 +206,8 @@ export default function PlayPage() {
           questionsAnswered={answered}
           correct={correct}
           xpAwarded={xpAwarded}
+          attempts={engine.attempts}
+          guest={isGuest}
           onPlayAgain={async () => {
             const supabase = createClient();
             const batch = await fetchQuestionBatch(supabase, {

@@ -1,4 +1,11 @@
-import type { GameMode } from '@/types/models';
+import Link from 'next/link';
+import { ArrowRight, RotateCcw, Trophy } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button, buttonClassName } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { CATEGORY_CONFIG } from '@/config';
+import { formatNumber } from '@/lib/utils';
+import type { AttemptRecord, CategoryId, GameMode } from '@/types/models';
 
 interface GameOverSummaryProps {
   mode: GameMode;
@@ -7,22 +14,26 @@ interface GameOverSummaryProps {
   questionsAnswered: number;
   correct: number;
   xpAwarded: number;
+  attempts: AttemptRecord[];
+  guest?: boolean;
   onPlayAgain: () => void;
   onHome: () => void;
 }
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+function StatCell({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="border-edge bg-ink-700 flex flex-col rounded-xl border px-4 py-3">
-      <span className="text-muted font-mono text-[0.65rem] tracking-[0.15em] uppercase">
-        {label}
-      </span>
-      <span className="text-text font-mono text-lg font-bold tabular-nums">{value}</span>
+    <div className="border-edge rounded-xl border bg-white/3 p-4 text-center">
+      <p className="text-text font-mono text-xl font-bold tabular-nums">{value}</p>
+      <p className="text-muted mt-1 text-xs">{label}</p>
     </div>
   );
 }
 
-/** End-of-run summary (server-authoritative numbers) with next actions. */
+/**
+ * End-of-run summary, styled after madhav's ending screen and re-skinned to my palette.
+ * Numbers are server-authoritative when available; avg response + per-category breakdown are
+ * derived from the run's attempts. Live gameplay is unaffected.
+ */
 export function GameOverSummary({
   mode,
   score,
@@ -30,46 +41,117 @@ export function GameOverSummary({
   questionsAnswered,
   correct,
   xpAwarded,
+  attempts,
+  guest = false,
   onPlayAgain,
   onHome,
 }: GameOverSummaryProps) {
+  const isArcade = mode === 'ARCADE';
   const accuracy = questionsAnswered > 0 ? Math.round((correct / questionsAnswered) * 100) : 0;
+  const avgMs =
+    attempts.length > 0
+      ? attempts.reduce((sum, a) => sum + a.responseTimeMs, 0) / attempts.length
+      : 0;
+
+  const breakdown = attempts.reduce<Record<string, { correct: number; answered: number }>>(
+    (acc, a) => {
+      const entry = (acc[a.categoryId] ??= { correct: 0, answered: 0 });
+      entry.answered += 1;
+      if (a.isCorrect) entry.correct += 1;
+      return acc;
+    },
+    {},
+  );
+  const categoryRows = Object.entries(breakdown);
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-6">
-      <div className="text-center">
-        <h1 className="font-display text-3xl font-extrabold tracking-tight">
-          {mode === 'ARCADE' ? 'Run over' : 'Session complete'}
-        </h1>
-        <p className="text-muted mt-1 text-sm">
-          {mode === 'ARCADE' ? 'Out of lives. Here’s the tape.' : 'Nice practice run.'}
-        </p>
-      </div>
+    <Card className="mx-auto w-full max-w-3xl overflow-hidden">
+      <CardContent className="p-7 sm:p-10">
+        <div className="text-center">
+          <span className="bg-not/10 mx-auto grid size-20 place-items-center rounded-full">
+            <Trophy className="text-not size-9" />
+          </span>
+          <p className="text-not mt-6 font-mono text-xs font-bold tracking-[0.2em] uppercase">
+            {isArcade ? 'Arcade run complete' : 'Training summary'}
+          </p>
+          <h1 className="font-display mt-3 text-4xl font-extrabold tracking-tight">
+            {isArcade ? `${formatNumber(score)} points` : `${accuracy}% accuracy`}
+          </h1>
+          <p className="text-muted mt-3">
+            {correct} of {questionsAnswered} correct · {formatNumber(xpAwarded)}{' '}
+            {guest ? 'XP preview' : 'XP earned'}
+          </p>
+          {guest && (
+            <Badge className="border-bot/35 bg-bot/10 text-bot mt-4">Guest run · not saved</Badge>
+          )}
+        </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        {mode === 'ARCADE' && <Stat label="Score" value={score.toLocaleString()} />}
-        <Stat label="Accuracy" value={`${accuracy}%`} />
-        <Stat label="Answered" value={questionsAnswered} />
-        <Stat label="Best combo" value={`×${maxCombo}`} />
-        {mode === 'ARCADE' && <Stat label="XP earned" value={`+${xpAwarded}`} />}
-      </div>
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatCell label="Accuracy" value={`${accuracy}%`} />
+          <StatCell label="Avg. call" value={`${(avgMs / 1000).toFixed(1)}s`} />
+          <StatCell label="Longest combo" value={`×${maxCombo}`} />
+          <StatCell
+            label={isArcade ? 'XP earned' : 'Answered'}
+            value={isArcade ? `+${formatNumber(xpAwarded)}` : questionsAnswered}
+          />
+        </div>
 
-      <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={onPlayAgain}
-          className="bg-text font-display text-ink-900 flex-1 rounded-xl px-5 py-3 font-bold transition-opacity hover:opacity-90"
-        >
-          Play again
-        </button>
-        <button
-          type="button"
-          onClick={onHome}
-          className="border-edge font-display text-text hover:bg-ink-700 flex-1 rounded-xl border px-5 py-3 font-bold transition-colors"
-        >
-          Home
-        </button>
-      </div>
-    </div>
+        {categoryRows.length > 0 && (
+          <div className="border-edge mt-7 overflow-hidden rounded-xl border">
+            <div className="border-edge text-muted grid grid-cols-[1fr_auto_auto] gap-3 border-b bg-white/3 px-4 py-3 font-mono text-[0.65rem] font-bold tracking-wider uppercase">
+              <span>Channel</span>
+              <span>Correct</span>
+              <span>Accuracy</span>
+            </div>
+            {categoryRows.map(([categoryId, perf]) => {
+              const pct =
+                perf.answered === 0 ? 0 : Math.round((perf.correct / perf.answered) * 100);
+              return (
+                <div
+                  key={categoryId}
+                  className="border-edge grid grid-cols-[1fr_auto_auto] gap-3 border-b px-4 py-3 text-sm last:border-b-0"
+                >
+                  <span className="font-bold">
+                    {CATEGORY_CONFIG[categoryId as CategoryId]?.displayName ?? categoryId}
+                  </span>
+                  <span className="text-muted font-mono tabular-nums">
+                    {perf.correct}/{perf.answered}
+                  </span>
+                  <span className="w-14 text-right font-mono font-bold tabular-nums">{pct}%</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+          <Button onClick={onPlayAgain} size="lg" variant="secondary">
+            <RotateCcw className="size-5" />
+            Play again
+          </Button>
+          {guest ? (
+            <Link className={buttonClassName({ size: 'lg' })} href="/signup?redirect=/">
+              Create account
+              <ArrowRight className="size-5" />
+            </Link>
+          ) : (
+            <Link className={buttonClassName({ size: 'lg' })} href="/analytics">
+              View analytics
+              <ArrowRight className="size-5" />
+            </Link>
+          )}
+        </div>
+
+        <div className="mt-4 text-center">
+          <button
+            type="button"
+            onClick={onHome}
+            className="text-muted hover:text-text font-mono text-xs tracking-wide uppercase transition-colors"
+          >
+            Back to home
+          </button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
