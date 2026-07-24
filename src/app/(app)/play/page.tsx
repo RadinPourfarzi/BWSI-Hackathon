@@ -149,21 +149,31 @@ export default function PlayPage() {
   ]);
 
   // Submit the run once on game over; the server recomputes authoritative score/XP/streak.
+  // Guests (no session) skip submission — their client-side estimate stays on screen.
   useEffect(() => {
     if (status !== 'gameover' || submittedRef.current || engine.attempts.length === 0) {
       return;
     }
     submittedRef.current = true;
     const supabase = createClient();
-    submitRun(supabase, {
-      mode: engine.mode,
-      categoriesPlayed: enabledCategories,
-      attempts: engine.attempts,
-    })
-      .then((result) => setRunResult(result))
-      .catch(() => {
+    (async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        return; // guest run — nothing is persisted
+      }
+      try {
+        const result = await submitRun(supabase, {
+          mode: engine.mode,
+          categoriesPlayed: enabledCategories,
+          attempts: engine.attempts,
+        });
+        setRunResult(result);
+      } catch {
         // Keep the client-side estimate on screen if submission fails.
-      });
+      }
+    })();
   }, [status, engine.mode, engine.attempts, enabledCategories]);
 
   // No active run (e.g. hard refresh) — send the player back to start one.

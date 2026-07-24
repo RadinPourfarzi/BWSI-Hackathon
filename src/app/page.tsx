@@ -18,6 +18,7 @@ export default function Home() {
   const startRun = useGameStore((s) => s.startRun);
 
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isGuest, setIsGuest] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [selected, setSelected] = useState<CategoryId[]>([...GAME_DEFAULTS.defaultCategories]);
   const [starting, setStarting] = useState<GameMode | null>(null);
@@ -32,7 +33,11 @@ export default function Home() {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) {
-        router.replace('/login?redirect=/');
+        // Guest mode: play freely, nothing is saved. No redirect to login.
+        if (active) {
+          setIsGuest(true);
+          setLoadingProfile(false);
+        }
         return;
       }
       const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
@@ -96,26 +101,42 @@ export default function Home() {
       <header className="flex items-center justify-between">
         <Wordmark className="text-lg" />
         <div className="flex items-center gap-2 font-mono text-xs">
-          <span className="border-edge text-muted rounded-md border px-2 py-1 tracking-wide uppercase">
-            LV {String(profile?.currentLevel ?? 1).padStart(2, '0')}
-          </span>
-          <span className="border-edge text-muted inline-flex items-center gap-1 rounded-md border px-2 py-1">
-            <SparkMark className="text-not h-3 w-3" />×{profile?.dailyStreak ?? 0}
-          </span>
-          <Link
-            href="/analytics"
-            className="border-edge text-muted hover:text-text rounded-md border px-2 py-1 tracking-wide uppercase transition-colors"
-          >
-            Analytics
-          </Link>
-          <form action={signOut}>
-            <button
-              type="submit"
-              className="text-muted hover:text-text rounded-md px-2 py-1 tracking-wide uppercase transition-colors"
-            >
-              Sign out
-            </button>
-          </form>
+          {isGuest ? (
+            <>
+              <span className="border-edge text-muted rounded-md border px-2 py-1 tracking-wide uppercase">
+                Guest
+              </span>
+              <Link
+                href="/login?redirect=/"
+                className="border-edge text-muted hover:text-text rounded-md border px-2 py-1 tracking-wide uppercase transition-colors"
+              >
+                Sign in
+              </Link>
+            </>
+          ) : (
+            <>
+              <span className="border-edge text-muted rounded-md border px-2 py-1 tracking-wide uppercase">
+                LV {String(profile?.currentLevel ?? 1).padStart(2, '0')}
+              </span>
+              <span className="border-edge text-muted inline-flex items-center gap-1 rounded-md border px-2 py-1">
+                <SparkMark className="text-not h-3 w-3" />×{profile?.dailyStreak ?? 0}
+              </span>
+              <Link
+                href="/analytics"
+                className="border-edge text-muted hover:text-text rounded-md border px-2 py-1 tracking-wide uppercase transition-colors"
+              >
+                Analytics
+              </Link>
+              <form action={signOut}>
+                <button
+                  type="submit"
+                  className="text-muted hover:text-text rounded-md px-2 py-1 tracking-wide uppercase transition-colors"
+                >
+                  Sign out
+                </button>
+              </form>
+            </>
+          )}
         </div>
       </header>
 

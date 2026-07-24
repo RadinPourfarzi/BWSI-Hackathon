@@ -3,8 +3,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 import type { Database } from '@/types/database.types';
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from './env';
 
-/** Routes that require an authenticated user. */
-const PROTECTED_PREFIXES = ['/play', '/analytics', '/profile'];
+/** Routes that require an authenticated user. `/play` is open to guests (no saved progress). */
+const PROTECTED_PREFIXES = ['/analytics', '/profile'];
 
 /**
  * Refreshes the Supabase auth session on every request and guards protected routes.
