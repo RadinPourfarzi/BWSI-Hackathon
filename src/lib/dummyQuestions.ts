@@ -12,8 +12,8 @@ export const DUMMY_QUESTIONS: Question[] = [
   {
     id: 'img-001',
     categoryId: 'image',
-    mediaUrl: 'https://picsum.photos/seed/aidetect-img-001/800/600',
-    isAi: true,
+    mediaUrl: 'http://localhost:3000/dataset/images/Real/real.jpg',
+    isAi: false,
     difficultyRating: 'MEDIUM',
     explanationText: 'Asymmetric earrings and warped background text hint at generation.',
     metadata: { kind: 'image', altText: 'Portrait of a person' },
@@ -21,8 +21,8 @@ export const DUMMY_QUESTIONS: Question[] = [
   {
     id: 'img-002',
     categoryId: 'image',
-    mediaUrl: 'https://picsum.photos/seed/aidetect-img-002/800/600',
-    isAi: false,
+    mediaUrl: 'http://localhost:3000/dataset/images/Ai/ai.jpg',
+    isAi: true,
     difficultyRating: 'EASY',
     explanationText: 'Consistent lighting and natural reflections; authentic photo.',
     metadata: { kind: 'image', altText: 'Street scene' },
@@ -30,8 +30,8 @@ export const DUMMY_QUESTIONS: Question[] = [
   {
     id: 'img-003',
     categoryId: 'image',
-    mediaUrl: 'https://picsum.photos/seed/aidetect-img-003/800/600',
-    isAi: true,
+    mediaUrl: 'http://localhost:3000/dataset/images/Real/real1.jpg',
+    isAi: false,
     difficultyRating: 'HARD',
     explanationText: 'Look for extra fingers and inconsistent shadow directions.',
     metadata: { kind: 'image', altText: 'Group of people' },
@@ -39,7 +39,7 @@ export const DUMMY_QUESTIONS: Question[] = [
   {
     id: 'img-004',
     categoryId: 'image',
-    mediaUrl: 'https://picsum.photos/seed/aidetect-img-004/800/600',
+    mediaUrl: 'http://localhost:3000/dataset/images/Real/real2.jpg',
     isAi: false,
     difficultyRating: 'MEDIUM',
     explanationText: 'Fine texture detail and depth-of-field consistent with a real camera.',
@@ -48,7 +48,7 @@ export const DUMMY_QUESTIONS: Question[] = [
   {
     id: 'img-005',
     categoryId: 'image',
-    mediaUrl: 'https://picsum.photos/seed/aidetect-img-005/800/600',
+    mediaUrl: 'http://localhost:3000/dataset/images/Ai/ai1.jpg',
     isAi: true,
     difficultyRating: 'EXPERT',
     explanationText: 'Subtle background melting and repeated patterns indicate synthesis.',
@@ -57,8 +57,8 @@ export const DUMMY_QUESTIONS: Question[] = [
   {
     id: 'img-006',
     categoryId: 'image',
-    mediaUrl: 'https://picsum.photos/seed/aidetect-img-006/800/600',
-    isAi: false,
+    mediaUrl: 'http://localhost:3000/dataset/images/Ai/ai3.jpg',
+    isAi: true,
     difficultyRating: 'EASY',
     explanationText: 'Natural imperfections and grain; authentic photo.',
     metadata: { kind: 'image', altText: 'Animal close-up' },
@@ -69,19 +69,25 @@ export const DUMMY_QUESTIONS: Question[] = [
     id: 'eml-001',
     categoryId: 'email',
     mediaUrl:
-      '<p>Dear customer, your account has been <b>limited</b>. Verify within 24 hours at ' +
-      '<a href="http://paypa1-support.com/verify">paypa1-support.com</a> to avoid suspension.</p>',
+      '<p>Hello,</p>' +
+      '<p>We noticed an unusual sign-in attempt on your PayPal account from a new device.</p>' +
+      '<p>As a precaution, some account features have been temporarily restricted. Please review the activity and confirm that it was you.</p>' +
+      '<p><a href="https://paypal-account-review.example/secure">Review recent activity</a></p>' +
+      '<p>If you do not confirm your account within 24 hours, your ability to send and receive payments may remain limited.</p>' +
+      '<p>Thank you,<br>PayPal Account Security</p>',
     isAi: true,
     difficultyRating: 'HARD',
-    explanationText: 'Look-alike domain (digit 1 in "paypa1"), urgency, and a mismatched link.',
+    explanationText:
+      'This is a phishing email. The sender address and linked website do not use the official paypal.com domain. The message also pressures the recipient to act within 24 hours.',
     metadata: {
       kind: 'email',
-      subject: 'Your account is limited',
-      senderName: 'PayPal Support',
-      senderAddress: 'service@paypa1-support.com',
+      subject: 'Please review recent activity on your account',
+      senderName: 'PayPal Account Security',
+      senderAddress: 'security@paypal-account-review.example',
       bodyFormat: 'html',
     },
   },
+
   {
     id: 'eml-002',
     categoryId: 'email',
@@ -90,7 +96,8 @@ export const DUMMY_QUESTIONS: Question[] = [
       'before Friday. Thanks!</p>',
     isAi: false,
     difficultyRating: 'EASY',
-    explanationText: 'Known sender, no urgency, no suspicious links; legitimate message.',
+    explanationText:
+      'Known sender, no urgency, and no suspicious links; this is a legitimate message.',
     metadata: {
       kind: 'email',
       subject: 'Q3 report draft',
@@ -99,57 +106,73 @@ export const DUMMY_QUESTIONS: Question[] = [
       bodyFormat: 'html',
     },
   },
+
   {
     id: 'eml-003',
     categoryId: 'email',
     mediaUrl:
-      '<p>Congratulations! You have been selected to receive a $1,000 gift card. ' +
-      'Click <a href="http://bit.ly/claim-now">here</a> and enter your card details to claim.</p>',
+      '<p>Hi Jordan,</p>' +
+      '<p>Your Microsoft 365 password is scheduled to expire today. To avoid interruptions to Outlook and Teams, confirm your current sign-in before the end of the day.</p>' +
+      '<p><a href="https://microsoft-security-check.example/session">Confirm account access</a></p>' +
+      '<p>If you recently updated your password, no further action is required.</p>' +
+      '<p>Microsoft 365 Support</p>',
     isAi: true,
-    difficultyRating: 'MEDIUM',
-    explanationText: 'Unsolicited prize, shortened link, and a request for card details.',
+    difficultyRating: 'HARD',
+    explanationText:
+      'This is phishing. The message imitates a routine password-expiration notice, but the link and sender do not use an official microsoft.com domain. The same-day deadline adds pressure.',
     metadata: {
       kind: 'email',
-      subject: 'You won a $1,000 gift card!',
-      senderName: 'Rewards Center',
-      senderAddress: 'no-reply@rewards-center-intl.net',
+      subject: 'Action required: Password expiration notice',
+      senderName: 'Microsoft 365 Support',
+      senderAddress: 'account-notice@microsoft365-security.example',
       bodyFormat: 'html',
     },
   },
+
   {
-    id: 'eml-004',
+    id: 'eml-007',
     categoryId: 'email',
     mediaUrl:
-      '<p>Your package DHL-4839201 could not be delivered. Update your address and pay a ' +
-      '$1.99 redelivery fee at <a href="http://dhl-redelivery.info">dhl-redelivery.info</a>.</p>',
-    isAi: true,
-    difficultyRating: 'MEDIUM',
-    explanationText: 'Small fee lure, unofficial domain, and pressure to act on a delivery.',
-    metadata: {
-      kind: 'email',
-      subject: 'Delivery failed — action required',
-      senderName: 'DHL Express',
-      senderAddress: 'notice@dhl-redelivery.info',
-      bodyFormat: 'html',
-    },
-  },
-  {
-    id: 'eml-005',
-    categoryId: 'email',
-    mediaUrl:
-      '<p>Hi team, reminder that the office will be closed Monday for the holiday. ' +
-      'Enjoy the long weekend!</p>',
+      '<p>Hi Ethan,</p>' +
+      '<p>This is a reminder that your appointment with Dr. Patel is scheduled for Monday, July 27 at 2:30 PM.</p>' +
+      '<p>Please arrive 15 minutes early and bring your insurance card and photo ID.</p>' +
+      '<p>To reschedule, call the number listed on the clinic website.</p>' +
+      '<p>Best,<br>Bayview Medical Group</p>',
     isAi: false,
-    difficultyRating: 'EASY',
-    explanationText: 'Internal announcement, no links or requests; legitimate.',
+    difficultyRating: 'HARD',
+    explanationText:
+      'This is legitimate. It provides appointment information but does not ask the recipient to click a link, send credentials, or make a payment. It directs the recipient to independently contact the clinic.',
     metadata: {
       kind: 'email',
-      subject: 'Office closed Monday',
-      senderName: 'HR Team',
-      senderAddress: 'hr@company.com',
+      subject: 'Appointment reminder for July 27',
+      senderName: 'Bayview Medical Group',
+      senderAddress: 'appointments@bayviewmedical.org',
       bodyFormat: 'html',
     },
   },
+
+  {
+    id: 'eml-008',
+    categoryId: 'email',
+    mediaUrl:
+      '<p>Hi team,</p>' +
+      '<p>I moved tomorrow&apos;s design review from 10:00 AM to 10:30 AM so that Priya can attend.</p>' +
+      '<p>The meeting location and video link in the calendar invitation have not changed.</p>' +
+      '<p>Please add comments to the existing design document before the meeting.</p>' +
+      '<p>Thanks,<br>Marcus</p>',
+    isAi: false,
+    difficultyRating: 'HARD',
+    explanationText:
+      'This is legitimate. It refers to an existing calendar event and document without supplying a new login link, attachment, payment request, or urgent account warning.',
+    metadata: {
+      kind: 'email',
+      subject: 'Design review moved to 10:30 AM',
+      senderName: 'Marcus Lee',
+      senderAddress: 'marcus.lee@northwindlabs.com',
+      bodyFormat: 'html',
+    },
+  },
+
   {
     id: 'eml-006',
     categoryId: 'email',
@@ -158,7 +181,8 @@ export const DUMMY_QUESTIONS: Question[] = [
       'ASAP. I am in a meeting and cannot call. — Sent from my iPhone</p>',
     isAi: true,
     difficultyRating: 'HARD',
-    explanationText: 'Classic CEO-fraud: urgency, gift cards, and "cannot call" excuse.',
+    explanationText:
+      'Classic CEO fraud: urgency, gift cards, and the claim that the sender cannot call.',
     metadata: {
       kind: 'email',
       subject: 'Quick favor',
@@ -167,7 +191,6 @@ export const DUMMY_QUESTIONS: Question[] = [
       bodyFormat: 'html',
     },
   },
-
   // --- Audio --------------------------------------------------------------
   {
     id: 'aud-001',
