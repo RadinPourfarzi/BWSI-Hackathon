@@ -1,4 +1,5 @@
 import { Mail } from "lucide-react";
+import Image from "next/image";
 
 import type { Challenge } from "@/features/game/types";
 
@@ -32,10 +33,23 @@ export function EmailRenderer({
       </header>
       <div
         aria-label="Email message body"
-        className="min-h-0 flex-1 overflow-y-auto px-5 py-6 text-sm leading-7 whitespace-pre-line"
+        className="min-h-0 flex-1 overflow-y-auto"
         tabIndex={0}
       >
-        {payload.body}
+        {payload.screenshotSrc ? (
+          <Image
+            alt={`Email screenshot: ${payload.subject}`}
+            className="h-auto w-full border-b border-[#d9dde6] object-contain"
+            height={1_600}
+            sizes="(max-width: 768px) 92vw, 768px"
+            src={payload.screenshotSrc}
+            unoptimized
+            width={1_200}
+          />
+        ) : null}
+        <div className="px-5 py-6 text-sm leading-7 whitespace-pre-line">
+          {payload.body}
+        </div>
       </div>
     </article>
   );

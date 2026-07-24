@@ -7,14 +7,15 @@ client-side game core and Supabase as the system of record.
 
 ```mermaid
 flowchart TD
-    A["Protected Next.js app"] --> B["Authenticated batch API"]
-    B --> C["Validated challenge queue"]
-    C --> D["Zustand session store"]
-    D --> E["Pure deterministic engine"]
-    E --> F["Renderer registry + feedback"]
-    E --> G["Serializable run record"]
-    G --> H["Atomic finalize_game_run RPC"]
-    H --> I["PostgreSQL + RLS"]
+    A["Next.js game routes"] --> B["DB-first batch API"]
+    B --> C["Catalog compatibility adapter"]
+    C --> D["Validated challenge queue"]
+    D --> E["Zustand session store"]
+    E --> F["Pure deterministic engine"]
+    F --> G["Renderer registry + feedback"]
+    F --> H["Serializable run record"]
+    H --> I["Compatible persistence RPC"]
+    I --> J["PostgreSQL + RLS"]
 ```
 
 Server components authenticate users. A private route handler returns bounded,
@@ -107,7 +108,8 @@ use a server-authoritative clock.
 Arcade and Training request 15 challenges initially. When fewer than five
 remain queued, the client requests 12 more through `/api/challenges`, excluding
 the current challenge, queued rows, and IDs seen in the active cycle. Every
-response is authenticated and validated with `challengeSchema`. An
+response is database-backed when readable and validated with
+`challengeSchema`. An
 `AbortController` cancels irrelevant work, and request IDs prevent stale
 responses from mutating a newer run.
 
@@ -115,6 +117,11 @@ When a selected finite pool is exhausted, a new cycle may reuse content while
 still preventing immediate or within-cycle duplicates. This lets Training
 continue indefinitely and lets Arcade remain life-bounded even with a small
 dataset.
+
+`getChallengeBatch` reads both the current `categories`/`challenges` catalog and
+the legacy `questions` catalog. It normalizes `audio` to `voice`, maps legacy
+metadata into typed payloads, resolves relative Storage paths, and fills an
+undersized database batch from the bundled manifest.
 
 Keeping batch selection behind `getChallengeBatch` means that adaptive
 difficulty, classroom sets, and category weighting can change without changing
@@ -127,7 +134,8 @@ shuffled after a bounded query.
 The model uses a discriminated payload union:
 
 - `kind: "image"` with source, dimensions, and accessible alt text
-- `kind: "email"` with inert plain-text sender, subject, and body fields
+- `kind: "email"` with inert plain-text sender, subject, body fields, and an
+  optional database screenshot
 - `kind: "audio"` with source, optional transcript, and duration
 
 All records share binary option identifiers, display labels, difficulty,
@@ -184,16 +192,17 @@ The normalized schema uses:
 
 An `auth.users` trigger creates the profile, stats, and settings rows. The first
 non-empty completed session creates the first daily-streak row. All user-owned
-tables use RLS with `auth.uid()`. Authenticated users can read active categories
-and challenges, but only secure functions create attempts or finalize a
+tables use RLS with `auth.uid()`. Guests and authenticated users can read active
+catalog content, but only secure functions create attempts or finalize a
 session.
 `client_run_id` is unique per user, making completion retries idempotent. The
 service-role ingestion script is server-only.
 
-Media is bundled locally for a reliable MVP. The ingestion command can upload
-the same hashed files to the private `challenge-media` bucket and records the
-object path in metadata. A future media-source adapter can issue signed URLs
-without changing challenge records or renderers.
+Media is bundled locally for a reliable fallback. The ingestion command can
+upload the same hashed files to `challenge-media` and records each object path
+in metadata. The runtime media adapter issues signed URLs for those objects and
+also resolves legacy `questions.media_url` paths from the `challenges` bucket.
+Remote image rendering is restricted to the configured Supabase Storage host.
 
 ## Authentication flow
 
@@ -210,11 +219,15 @@ cookies, and sends recovery sessions to `/reset-password`. Sign-in validation
 accepts existing passwords independently of the stronger sign-up policy, and
 provider errors are mapped to non-enumerating user messages.
 
-Arcade and Training are deliberate guest exceptions. When there is no
-authenticated user, the challenge API returns bounded, randomized rows from the
+Arcade and Training are deliberate guest exceptions. The challenge API returns
+bounded database rows when catalog policies permit them, then fills from the
 same validated local manifest used by ingestion. The client runs the identical
-engine and renderers but skips `finalize_game_run_v2`; account Home, Analytics,
-Profile, Settings, and password reset remain protected.
+engine and renderers but skips persistence; account Home, Analytics, Profile,
+Settings, and password reset remain protected.
+
+Signed-in completion prefers `finalize_game_run_v2`. If the connected project
+still exposes the legacy schema, a narrowly scoped adapter calls `submit_run`
+with legacy category names and raw attempt facts.
 
 ## Phase Three analytics
 

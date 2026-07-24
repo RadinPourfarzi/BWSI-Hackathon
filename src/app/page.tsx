@@ -11,6 +11,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,9 +32,7 @@ export default function Home() {
           className="flex items-center gap-3 font-black tracking-tight"
           href="/"
         >
-          <span className="grid size-9 place-items-center rounded-xl bg-[var(--blue-strong)] text-sm">
-            B/N
-          </span>
+          <BrandLogo priority size={40} />
           <span className="hidden sm:inline">{uiConfig.appName}</span>
         </Link>
         <nav className="flex items-center gap-2">

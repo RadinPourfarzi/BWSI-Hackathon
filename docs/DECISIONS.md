@@ -158,9 +158,9 @@ hosted deployments need a path to managed media.
 `public/datasets`. Offer idempotent, content-addressed Supabase Storage uploads
 and retain object paths in challenge metadata.
 
-**Consequences:** The repository remains self-contained and lightweight.
-Switching renderers to signed Storage URLs can happen through a media adapter
-without changing the challenge model.
+**Consequences:** The repository remains self-contained and lightweight. The
+runtime media adapter can switch between local media, signed current-schema
+Storage objects, and legacy Storage paths without changing the challenge model.
 
 ## ADR-009: Manifest is the dataset contract
 
@@ -198,10 +198,11 @@ benchmark claims.
 demo must remain playable while authentication or database setup is
 unavailable.
 
-**Decision:** Allow unauthenticated access only to Arcade and Training. Serve
-guest batches from the validated bundled manifest, keep active run recovery in
-the existing browser snapshot, and skip every persistence RPC. Keep account
-Home, Analytics, Profile, Settings, and password reset protected.
+**Decision:** Allow unauthenticated access only to Arcade and Training. Prefer
+readable Supabase catalog rows, fill partial batches from the validated bundled
+manifest, keep active run recovery in the existing browser snapshot, and skip
+every persistence RPC. Keep account Home, Analytics, Profile, Settings, and
+password reset protected.
 
 **Consequences:** The core learning loop works without cloud configuration and
 never invents a user identity. Guest XP, streaks, high scores, and analytics are
@@ -279,3 +280,22 @@ and use generic reset-request responses.
 
 **Consequences:** Confirmation and recovery use one reviewed boundary. Invalid
 or expired links fail closed and return the player to sign-in.
+
+## ADR-020: Normalize current and legacy Supabase catalogs at one boundary
+
+**Status:** Accepted
+
+**Context:** Existing project data uses `questions` and a `challenges` Storage
+bucket, while the newer application schema uses `challenges` and a
+`challenge-media` bucket. Requiring a destructive database replacement would
+discard working content and block signed-in play.
+
+**Decision:** Query both catalog contracts behind the server batch service,
+normalize either into the Zod challenge model, resolve media at the same
+boundary, and prefer database content before the bundled fallback. Use the
+legacy `submit_run` RPC only when the current completion function is absent.
+
+**Consequences:** Current database media appears in both modes without a
+one-time content copy, logged-in users can play against either schema, and a
+future database migration can retire the compatibility path without touching
+the game engine or renderers.

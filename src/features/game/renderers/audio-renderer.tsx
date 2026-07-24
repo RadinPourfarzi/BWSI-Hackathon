@@ -2,6 +2,7 @@
 
 import {
   AudioLines,
+  ExternalLink,
   LoaderCircle,
   RotateCcw,
   TriangleAlert,
@@ -23,12 +24,10 @@ export function AudioRenderer({
 
   useEffect(() => {
     const audio = audioRef.current;
+    audio?.load();
 
     return () => {
-      if (!audio) return;
-      audio.pause();
-      audio.removeAttribute("src");
-      audio.load();
+      audio?.pause();
     };
   }, [payload.src]);
 
@@ -61,9 +60,20 @@ export function AudioRenderer({
             </span>
           ) : null}
           {status === "error" ? (
-            <span className="inline-flex items-center gap-2 text-[var(--danger)]">
-              <TriangleAlert className="size-4" />
-              Audio playback is unavailable.
+            <span className="inline-flex flex-wrap items-center justify-center gap-2 text-[var(--danger)]">
+              <span className="inline-flex items-center gap-2">
+                <TriangleAlert className="size-4" />
+                Audio playback is unavailable.
+              </span>
+              <a
+                className="inline-flex items-center gap-1 text-[var(--blue)] underline underline-offset-4"
+                href={payload.src}
+                rel="noreferrer"
+                target="_blank"
+              >
+                Open audio
+                <ExternalLink className="size-3.5" />
+              </a>
             </span>
           ) : null}
         </div>
@@ -74,6 +84,7 @@ export function AudioRenderer({
           controlsList="nodownload"
           onCanPlay={() => setStatus("ready")}
           onError={() => setStatus("error")}
+          onLoadedMetadata={() => setStatus("ready")}
           onLoadStart={() => setStatus("loading")}
           onWaiting={() => setStatus("buffering")}
           preload="metadata"

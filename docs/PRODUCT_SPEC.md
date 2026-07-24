@@ -51,8 +51,8 @@ and new challenge types.
 
 1. The player enters as a guest or chooses Arcade or Training after signing in.
 2. The player keeps the mixed default or toggles one to three categories.
-3. The server returns a bounded database batch for authenticated players or a
-   bounded bundled-manifest batch for guests.
+3. The server prefers a bounded database batch for every player and fills
+   missing content from the bundled manifest.
 4. The client renders a challenge through its registered category renderer.
 5. The player chooses one of two configured labels.
 6. The client resolves correctness, response time, obtainable points, awarded
@@ -202,9 +202,9 @@ committed corpus contains 14 images, 12 emails, and 12 voice clips.
 
 - A configured user can sign in, choose categories, play life-bounded Arcade or
   unlimited Training, get mode-appropriate feedback, and persist progress.
-- A guest can play Arcade and Training from the bundled corpus without
-  Supabase, receives a complete local summary, and is never shown a false save
-  confirmation.
+- A guest can play Arcade and Training from readable database content or the
+  bundled fallback, receives a complete local summary, and is never shown a
+  false save confirmation.
 - Arcade ends after three misses; Training can exit after any number of
   attempts; both produce accurate summaries.
 - The scoring engine preserves each category plateau, decays monotonically to

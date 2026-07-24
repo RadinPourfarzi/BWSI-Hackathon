@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   },
   description:
     "A fast educational game for spotting AI media, scam emails, and synthetic voices.",
+  icons: {
+    icon: "/brand/bot-or-not-logo.png",
+    apple: "/brand/bot-or-not-logo.png",
+  },
 };
 
 export default function RootLayout({

@@ -16,8 +16,9 @@ deployment-ready Supabase and Vercel configuration.
   auto-advance feedback, high scores, and XP.
 - **Training:** unlimited practice, category selection, explanations, signal
   tags, and a persisted learning summary.
-- **Guest play:** Arcade and Training use the bundled validated corpus without
-  Supabase. Guest results are intentionally not added to account analytics.
+- **Guest play:** Arcade and Training prefer the readable Supabase catalog and
+  fill missing categories from the bundled validated corpus. Guest results are
+  intentionally not added to account analytics.
 - **Analytics:** overall and category accuracy, question/game totals, response
   time, score, levels, XP, streaks, category insights, and six historical
   charts. Histories are bounded to 120 sessions and small samples are labeled.
@@ -108,7 +109,7 @@ per-item attribution are in [Data sources](docs/DATA_SOURCES.md) and
 3. To use accounts and cloud persistence, fill in the Supabase values. Never
    expose or commit the service-role key. You may skip this step for guest play.
 
-4. Link the Supabase project and apply all three migrations.
+4. Link the Supabase project and apply all four migrations.
 
    ```bash
    npx supabase@latest login
@@ -123,9 +124,9 @@ per-item attribution are in [Data sources](docs/DATA_SOURCES.md) and
    npm run data:seed
    ```
 
-   Use `npm run data:upload` to copy media into the private
-   `challenge-media` bucket as well. Bundled `/public` paths remain the
-   reliable MVP default.
+   Use `npm run data:upload` to copy media into the `challenge-media` bucket as
+   well. Runtime batches resolve those Storage objects to signed URLs and use
+   bundled `/public` media when database content is unavailable.
 
 6. Start the application.
 
@@ -166,10 +167,32 @@ links exchange their short-lived code through `/auth/callback`. Redirect
 validation rejects absolute, protocol-relative, backslash, and control-character
 destinations.
 
-Without a configured session, `/app/play` and `/app/training` use the local
-validated manifest. Guest sessions keep only the active refresh-recovery
-snapshot and never call the account persistence RPC. Analytics, Profile,
+Without a configured session, `/app/play` and `/app/training` remain public.
+They use readable database challenges first and the local validated manifest
+as a bounded fallback. Guest sessions keep only the active refresh-recovery
+snapshot and never call an account persistence RPC. Analytics, Profile,
 Settings, and the account home remain protected.
+
+## Catalog and database compatibility
+
+The batch service accepts both project catalog layouts:
+
+- Current schema: `categories` plus `challenges`, with optional Storage paths
+  in challenge metadata and media in `challenge-media`.
+- Legacy schema: `questions` with `category_id`, `media_url`, `is_ai`, and
+  category metadata, with media in the `challenges` bucket.
+
+Every database row is converted to the same validated game contract. Legacy
+`audio` rows become the app’s `voice` category, email screenshots render with
+their metadata, and relative Storage paths become playable URLs. Database
+challenges are preferred; the bundled manifest fills the rest of a requested
+batch so a partial or temporarily unavailable catalog never blocks play.
+
+The compatibility migration grants read-only guest access to active catalog
+rows and only the two challenge-media buckets. User profiles, sessions,
+settings, attempts, XP, and analytics remain owner-protected. Signed-in run
+saving uses `finalize_game_run_v2` on the current schema and falls back to the
+legacy `submit_run` RPC when that is the database’s installed contract.
 
 ## Dataset workflow
 
@@ -266,7 +289,8 @@ sign-out. Record the verified production URL here only after those checks pass.
   unique `(user_id, client_run_id)` value.
 - Scam-email content is rendered only as React text. No HTML, scripts, links,
   forms, trackers, or attachments execute.
-- Challenge media is bundled locally; optional Storage objects remain private.
+- Challenge media reads are limited to the `challenges` and `challenge-media`
+  buckets; all writes remain server-managed.
 - Provider and database errors are converted to safe user-facing messages.
 - Security headers disable framing, MIME sniffing, unnecessary browser
   capabilities, and cross-origin opener sharing.
@@ -319,6 +343,12 @@ The complete presenter script is in [DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
 - **Analytics/settings unavailable:** apply the Phase 3 migration with
   `npx supabase@latest db push`.
 - **No challenges:** run `npm run data:validate` and `npm run data:seed`.
+- **Database media missing for guests:** apply
+  `20260724234000_database_media_compatibility.sql`; if migration history is
+  out of sync, run that file once in the Supabase SQL Editor.
+- **Audio will not play:** verify the Storage object exists and its MIME type is
+  audio; the player also exposes an “Open audio” fallback when a browser rejects
+  a format or URL.
 - **Authenticated E2E skipped:** set `E2E_EMAIL` and `E2E_PASSWORD`.
 - **Failed progress save:** reconnect and use the retry button; the run ID makes
   retries safe.

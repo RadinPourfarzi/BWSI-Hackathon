@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { fireEvent, render, screen } from "@testing-library/react";
-import { createElement, type ImgHTMLAttributes } from "react";
+import { createElement, StrictMode, type ImgHTMLAttributes } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { AudioRenderer } from "@/features/game/renderers/audio-renderer";
@@ -16,11 +16,13 @@ vi.mock("next/image", () => ({
       src: string;
       fill?: boolean;
       priority?: boolean;
+      unoptimized?: boolean;
     },
   ) => {
     const imageProperties = { ...properties };
     delete imageProperties.fill;
     delete imageProperties.priority;
+    delete imageProperties.unoptimized;
 
     return createElement("img", imageProperties);
   },
@@ -42,6 +44,29 @@ describe("challenge renderers", () => {
     expect(screen.getByLabelText("Email message body")).toHaveAttribute(
       "tabindex",
       "0",
+    );
+  });
+
+  it("renders a database-backed email screenshot when one is provided", () => {
+    render(
+      <EmailRenderer
+        payload={{
+          kind: "email",
+          senderName: "Security",
+          senderAddress: "security@example.com",
+          subject: "Account notice",
+          body: "Inspect the screenshot.",
+          screenshotSrc:
+            "https://project.supabase.co/storage/v1/object/public/challenges/email/example.png",
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByRole("img", { name: "Email screenshot: Account notice" }),
+    ).toHaveAttribute(
+      "src",
+      "https://project.supabase.co/storage/v1/object/public/challenges/email/example.png",
     );
   });
 
@@ -75,10 +100,15 @@ describe("challenge renderers", () => {
       kind: "audio" as const,
       src: "/fixtures/audio.mp3",
     };
-    const { container } = render(<AudioRenderer payload={payload} />);
+    const { container } = render(
+      <StrictMode>
+        <AudioRenderer payload={payload} />
+      </StrictMode>,
+    );
     const audio = container.querySelector("audio");
 
     expect(audio).not.toBeNull();
+    expect(audio).toHaveAttribute("src", payload.src);
     expect(screen.getByText("Loading audio")).toBeVisible();
     fireEvent.canPlay(audio!);
     expect(screen.queryByText("Loading audio")).not.toBeInTheDocument();

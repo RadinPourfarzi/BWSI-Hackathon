@@ -58,6 +58,7 @@ export function ImageRenderer({
             sizes="(max-width: 768px) 92vw, 768px"
             src={challenge.payload.src}
             style={{ opacity: loaded ? 1 : 0 }}
+            unoptimized
           />
         )}
       </div>

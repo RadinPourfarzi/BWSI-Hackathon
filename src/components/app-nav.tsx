@@ -14,6 +14,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { BrandLogo } from "@/components/brand-logo";
 import { Button, buttonClassName } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { signOut } from "@/features/auth/actions";
@@ -100,9 +101,7 @@ export function AppNav({
           className="flex items-center gap-3 px-2 font-black"
           href={brandHref}
         >
-          <span className="grid size-9 place-items-center rounded-xl bg-[var(--blue-strong)] text-xs">
-            B/N
-          </span>
+          <BrandLogo priority size={38} />
           Bot or Not
         </Link>
         <div className="mt-8">
@@ -167,9 +166,7 @@ export function AppNav({
 
       <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--border)] bg-[#080b12]/92 px-4 backdrop-blur lg:hidden">
         <Link className="flex items-center gap-2 font-black" href={brandHref}>
-          <span className="grid size-8 place-items-center rounded-lg bg-[var(--blue-strong)] text-[10px]">
-            B/N
-          </span>
+          <BrandLogo priority size={34} />
           Bot or Not
         </Link>
         <details className="group relative">

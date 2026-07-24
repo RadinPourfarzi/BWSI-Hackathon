@@ -1,5 +1,6 @@
 "use client";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 import type {
@@ -8,6 +9,7 @@ import type {
 } from "@/features/game/types";
 import { createBrowserSupabaseClient } from "@/lib/supabase/client";
 import type { Json } from "@/types/database";
+import type { LegacyDatabase } from "@/types/legacy-database";
 
 const persistenceResultSchema = z.object({
   sessionId: z.uuid(),
@@ -17,6 +19,104 @@ const persistenceResultSchema = z.object({
   isNewHighScore: z.boolean(),
   duplicate: z.boolean(),
 });
+
+const legacyPersistenceResultSchema = z.object({
+  session_id: z.uuid(),
+  final_score: z.number().int().nonnegative(),
+  xp_awarded: z.number().int().nonnegative(),
+  daily_streak: z.number().int().nonnegative(),
+});
+
+function legacyCategory(category: string): string {
+  return category === "voice" ? "audio" : category;
+}
+
+function isMissingModernPersistenceFunction(error: {
+  code?: string;
+  message?: string;
+}): boolean {
+  const message = error.message?.toLowerCase() ?? "";
+
+  return (
+    error.code === "PGRST202" ||
+    error.code === "42883" ||
+    (message.includes("finalize_game_run_v2") &&
+      (message.includes("could not find") ||
+        message.includes("does not exist") ||
+        message.includes("schema cache")))
+  );
+}
+
+async function persistLegacyGameRun(
+  supabase: SupabaseClient<LegacyDatabase>,
+  submission: GameRunSubmission,
+): Promise<PersistedGameResult> {
+  const questionIds = Array.from(
+    new Set(submission.attempts.map((attempt) => attempt.challengeId)),
+  );
+  const questionResult = await supabase
+    .from("questions")
+    .select("id")
+    .in("id", questionIds);
+
+  if (questionResult.error) {
+    throw new Error(
+      "Progress could not be saved. Check your connection and retry.",
+    );
+  }
+
+  const knownQuestionIds = new Set(
+    (questionResult.data ?? []).map((question) => question.id),
+  );
+  const compatibleAttempts = submission.attempts.filter((attempt) =>
+    knownQuestionIds.has(attempt.challengeId),
+  );
+
+  if (compatibleAttempts.length === 0) {
+    throw new Error(
+      "This run used fallback challenges that are not installed in the connected database, so account progress could not be saved.",
+    );
+  }
+
+  const attempts: Json = compatibleAttempts.map((attempt) => ({
+    question_id: attempt.challengeId,
+    category_id: legacyCategory(attempt.category),
+    question_index: attempt.questionNumber,
+    is_correct: attempt.isCorrect,
+    response_time_ms: attempt.responseMs,
+    combo_at_answer: attempt.comboAfter,
+  }));
+  const categories = Array.from(
+    new Set(
+      compatibleAttempts.map((attempt) => legacyCategory(attempt.category)),
+    ),
+  );
+  const { data, error } = await supabase.rpc("submit_run", {
+    p_mode: submission.mode.toUpperCase(),
+    p_categories: categories,
+    p_attempts: attempts,
+  });
+
+  if (error) {
+    throw new Error(
+      "Progress could not be saved. Check your connection and retry.",
+    );
+  }
+
+  const parsed = legacyPersistenceResultSchema.safeParse(data);
+  if (!parsed.success) {
+    throw new Error("Progress was received, but its confirmation was invalid.");
+  }
+
+  return {
+    sessionId: parsed.data.session_id,
+    score: parsed.data.final_score,
+    xpEarned: parsed.data.xp_awarded,
+    currentStreak: parsed.data.daily_streak,
+    isNewHighScore: false,
+    duplicate: false,
+  };
+}
 
 export async function persistGameRun(
   submission: GameRunSubmission,
@@ -65,6 +165,13 @@ export async function persistGameRun(
   });
 
   if (error) {
+    if (isMissingModernPersistenceFunction(error)) {
+      return persistLegacyGameRun(
+        supabase as unknown as SupabaseClient<LegacyDatabase>,
+        submission,
+      );
+    }
+
     throw new Error(
       "Progress could not be saved. Check your connection and retry.",
     );

@@ -3,11 +3,7 @@ import { z } from "zod";
 
 import { categoryIds } from "@/config/categories";
 import { gameConfig } from "@/config/game";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
-import {
-  getChallengeBatch,
-  getGuestChallengeBatch,
-} from "@/services/challenges";
+import { getChallengeBatch } from "@/services/challenges";
 
 const requestSchema = z.object({
   categories: z.array(z.enum(categoryIds)).min(1),
@@ -35,20 +31,11 @@ export async function GET(request: Request) {
     );
   }
 
-  const supabase = await createServerSupabaseClient();
-  const userResult = supabase ? await supabase.auth.getUser() : null;
-  const user = userResult?.data.user ?? null;
-  const result = user
-    ? await getChallengeBatch({
-        categories: parsed.data.categories,
-        excludeIds: parsed.data.excludeIds,
-        limit: parsed.data.limit,
-      })
-    : getGuestChallengeBatch({
-        categories: parsed.data.categories,
-        excludeIds: parsed.data.excludeIds,
-        limit: parsed.data.limit,
-      });
+  const result = await getChallengeBatch({
+    categories: parsed.data.categories,
+    excludeIds: parsed.data.excludeIds,
+    limit: parsed.data.limit,
+  });
 
   return NextResponse.json(result, {
     status: result.challenges.length > 0 || result.exhausted ? 200 : 503,

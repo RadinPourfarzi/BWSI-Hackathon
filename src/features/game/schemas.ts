@@ -25,6 +25,7 @@ const emailPayloadSchema = z.object({
   subject: z.string().trim().min(1).max(200),
   body: z.string().trim().min(1).max(2_000),
   receivedAt: z.string().trim().min(1).max(80).optional(),
+  screenshotSrc: z.string().min(1).optional(),
 });
 
 const audioPayloadSchema = z.object({
