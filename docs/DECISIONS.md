@@ -190,19 +190,22 @@ HTML injection.
 mail client or exposing unsafe content. It is unsuitable for raw-corpus
 benchmark claims.
 
-## ADR-011: No production guest mode
+## ADR-011: Bounded guest gameplay fallback
 
 **Status:** Accepted
 
-**Context:** Progress, analytics, ownership, and future classroom features need
-a stable user identity, and the product requirement explicitly excludes guest
-play.
+**Context:** Progress and analytics need stable ownership, but the hackathon
+demo must remain playable while authentication or database setup is
+unavailable.
 
-**Decision:** Keep the landing page public and require Supabase authentication
-for every application route.
+**Decision:** Allow unauthenticated access only to Arcade and Training. Serve
+guest batches from the validated bundled manifest, keep active run recovery in
+the existing browser snapshot, and skip every persistence RPC. Keep account
+Home, Analytics, Profile, Settings, and password reset protected.
 
-**Consequences:** A live Supabase project is required for end-to-end gameplay.
-Unit tests may mock auth utilities; production routes never synthesize a user.
+**Consequences:** The core learning loop works without cloud configuration and
+never invents a user identity. Guest XP, streaks, high scores, and analytics are
+not durable; the UI labels this limitation and offers sign-up after play.
 
 ## ADR-012: Reserve extension points, avoid speculative services
 

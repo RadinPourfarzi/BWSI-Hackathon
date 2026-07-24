@@ -21,7 +21,7 @@ export type AuthActionState = {
 
 const initialError: AuthActionState = {
   error:
-    "Authentication is not configured. Add the Supabase values from .env.example and restart the application.",
+    "Authentication is not configured. Put NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in a local file named .env.local (not env.download), then restart the application.",
 };
 
 function signInErrorMessage(message: string): string {

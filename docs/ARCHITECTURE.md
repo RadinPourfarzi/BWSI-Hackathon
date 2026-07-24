@@ -210,6 +210,12 @@ cookies, and sends recovery sessions to `/reset-password`. Sign-in validation
 accepts existing passwords independently of the stronger sign-up policy, and
 provider errors are mapped to non-enumerating user messages.
 
+Arcade and Training are deliberate guest exceptions. When there is no
+authenticated user, the challenge API returns bounded, randomized rows from the
+same validated local manifest used by ingestion. The client runs the identical
+engine and renderers but skips `finalize_game_run_v2`; account Home, Analytics,
+Profile, Settings, and password reset remain protected.
+
 ## Phase Three analytics
 
 `get_user_analytics` is a security-definer, owner-bound RPC. It computes

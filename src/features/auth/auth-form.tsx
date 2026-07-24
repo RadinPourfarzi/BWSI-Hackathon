@@ -4,7 +4,7 @@ import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useActionState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonClassName } from "@/components/ui/button";
 import { signIn, signUp, type AuthActionState } from "@/features/auth/actions";
 
 const initialState: AuthActionState = {};
@@ -131,6 +131,27 @@ export function AuthForm({
         {pending ? <LoaderCircle className="size-5 animate-spin" /> : null}
         {signingUp ? "Create account" : "Sign in"}
       </Button>
+
+      <div className="relative py-1 text-center">
+        <span className="relative z-10 bg-[#090d15] px-3 text-xs font-bold tracking-wider text-[var(--muted)] uppercase">
+          or
+        </span>
+        <span className="absolute top-1/2 right-0 left-0 border-t border-[var(--border)]" />
+      </div>
+
+      <Link
+        className={buttonClassName({
+          className: "w-full",
+          size: "lg",
+          variant: "secondary",
+        })}
+        href="/app/play"
+      >
+        Continue as guest
+      </Link>
+      <p className="-mt-2 text-center text-xs leading-5 text-[var(--muted)]">
+        No account needed. Guest progress is not saved.
+      </p>
 
       <p className="text-center text-sm text-[var(--muted)]">
         {signingUp ? "Already have an account?" : "New to the game?"}{" "}

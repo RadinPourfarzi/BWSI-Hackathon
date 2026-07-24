@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 
+import { GuestNotice } from "@/components/guest-notice";
 import { GameExperience } from "@/features/game/game-experience";
+import { defaultPlayerSettings } from "@/features/settings/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getShellProfile } from "@/services/profile";
 import { getPlayerSettings } from "@/services/settings";
@@ -19,6 +21,7 @@ export default async function TrainingPage() {
 
   return (
     <div className="animate-enter">
+      {!user ? <GuestNotice returnPath="/app/training" /> : null}
       <div className="mb-6">
         <p className="text-xs font-bold tracking-[0.18em] text-[var(--pink)] uppercase">
           Training
@@ -31,9 +34,10 @@ export default async function TrainingPage() {
         </p>
       </div>
       <GameExperience
+        guest={!user}
         initialBestScore={profile?.bestScore ?? 0}
         mode="training"
-        settings={settings!}
+        settings={settings ?? defaultPlayerSettings}
       />
     </div>
   );

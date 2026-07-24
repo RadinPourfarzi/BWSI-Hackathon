@@ -6,8 +6,11 @@ import { safeNextPath } from "@/lib/utils";
 import type { Database } from "@/types/database";
 
 const authenticationPages = ["/sign-in", "/sign-up", "/forgot-password"];
+const guestPlayablePages = new Set(["/app/play", "/app/training"]);
 
 function isProtectedPath(pathname: string): boolean {
+  if (guestPlayablePages.has(pathname)) return false;
+
   return (
     pathname === "/app" ||
     pathname.startsWith("/app/") ||

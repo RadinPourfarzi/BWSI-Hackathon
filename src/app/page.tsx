@@ -43,11 +43,8 @@ export default function Home() {
           >
             Sign in
           </Link>
-          <Link
-            className={buttonClassName({ size: "sm" })}
-            href="/sign-up?next=%2Fapp"
-          >
-            Start training
+          <Link className={buttonClassName({ size: "sm" })} href="/app/play">
+            Play as guest
           </Link>
         </nav>
       </header>
@@ -67,10 +64,7 @@ export default function Home() {
             and synthetic voices—one signal at a time.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              className={buttonClassName({ size: "lg" })}
-              href="/sign-up?next=%2Fapp%2Fplay"
-            >
+            <Link className={buttonClassName({ size: "lg" })} href="/app/play">
               Play your first round
               <ArrowRight className="size-5" />
             </Link>
@@ -193,7 +187,7 @@ export default function Home() {
 
       <footer className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-8 text-sm text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between sm:px-8">
         <p>Built for safer instincts online.</p>
-        <p>Open data · No guest mode · Progress stays with your account</p>
+        <p>Open data · Guest play available · Sign in to save progress</p>
       </footer>
     </main>
   );

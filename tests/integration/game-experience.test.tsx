@@ -107,4 +107,19 @@ describe("Training experience", () => {
     await new Promise((resolve) => window.setTimeout(resolve, 30));
     expect(mocks.fetchChallengeBatch).toHaveBeenCalledTimes(2);
   });
+
+  it("completes guest Training without attempting cloud persistence", async () => {
+    render(<GameExperience guest initialBestScore={0} mode="training" />);
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Start Training" }),
+    );
+    await screen.findByText(/Fixture subject 60[0-7]/);
+    fireEvent.click(screen.getByRole("button", { name: /Legitimate/i }));
+    await screen.findByText(/Fixture explanation 60[0-7]/);
+    fireEvent.click(screen.getByRole("button", { name: "Finish training" }));
+
+    expect(await screen.findByText("Guest run complete")).toBeVisible();
+    expect(mocks.persistGameRun).not.toHaveBeenCalled();
+  });
 });

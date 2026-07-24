@@ -25,8 +25,13 @@ export default function RootLayout({
   } as CSSProperties;
 
   return (
-    <html lang="en" style={animationVariables}>
-      <body>{children}</body>
+    <html
+      data-scroll-behavior="smooth"
+      lang="en"
+      style={animationVariables}
+      suppressHydrationWarning
+    >
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }

@@ -201,12 +201,26 @@ function SaveMessage({
   error,
   result,
   onRetry,
+  guest,
 }: {
   status: "idle" | "saving" | "saved" | "error";
   error: string | null;
   result: PersistedGameResult | null;
   onRetry: () => void;
+  guest: boolean;
 }) {
+  if (guest) {
+    return (
+      <div className="mt-5 rounded-xl border border-[var(--blue)]/25 bg-[var(--blue)]/8 p-4 text-sm">
+        <p className="font-bold text-[#b9ceff]">Guest run complete</p>
+        <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+          This result stays on this screen only. Create an account to save
+          future XP, streaks, scores, and analytics.
+        </p>
+      </div>
+    );
+  }
+
   if (status === "saving" || status === "idle") {
     return (
       <p
@@ -252,11 +266,13 @@ function GameOver({
   initialBestScore,
   onDiscard,
   onRetrySave,
+  guest,
 }: {
   engine: GameEngineState;
   initialBestScore: number;
   onDiscard: () => void;
   onRetrySave: () => void;
+  guest: boolean;
 }) {
   const saveStatus = useGameStore(selectSaveStatus);
   const saveError = useGameStore(selectSaveError);
@@ -267,6 +283,7 @@ function GameOver({
 
   const xpEarned = savedResult?.xpEarned ?? summary.xpEarned;
   const isNewHighScore =
+    !guest &&
     engine.mode === "arcade" &&
     (savedResult?.isNewHighScore ?? summary.score > initialBestScore);
   const bestScore = Math.max(
@@ -293,7 +310,7 @@ function GameOver({
           </h1>
           <p className="mt-3 text-[var(--muted)]">
             {summary.correct} of {summary.answered} correct ·{" "}
-            {formatNumber(xpEarned)} XP earned
+            {formatNumber(xpEarned)} {guest ? "XP preview" : "XP earned"}
           </p>
           {isNewHighScore ? (
             <Badge className="mt-4 border-[#ffd166]/35 bg-[#ffd166]/10 text-[#ffd166]">
@@ -368,6 +385,7 @@ function GameOver({
         <div className="text-center">
           <SaveMessage
             error={saveError}
+            guest={guest}
             onRetry={onRetrySave}
             result={savedResult}
             status={saveStatus}
@@ -379,13 +397,25 @@ function GameOver({
             <RotateCcw className="size-5" />
             New run
           </Button>
-          <Link
-            className={buttonClassName({ size: "lg" })}
-            href="/app/analytics"
-          >
-            View analytics
-            <ArrowRight className="size-5" />
-          </Link>
+          {guest ? (
+            <Link
+              className={buttonClassName({ size: "lg" })}
+              href={`/sign-up?next=${encodeURIComponent(
+                engine.mode === "arcade" ? "/app/play" : "/app/training",
+              )}`}
+            >
+              Create account
+              <ArrowRight className="size-5" />
+            </Link>
+          ) : (
+            <Link
+              className={buttonClassName({ size: "lg" })}
+              href="/app/analytics"
+            >
+              View analytics
+              <ArrowRight className="size-5" />
+            </Link>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -398,12 +428,14 @@ export function GameBoard({
   onRetryBatch,
   onRetrySave,
   settings,
+  guest = false,
 }: {
   initialBestScore: number;
   onDiscard: () => void;
   onRetryBatch: () => void;
   onRetrySave: () => void;
   settings: PlayerSettings;
+  guest?: boolean;
 }) {
   const engine = useGameStore(selectEngine);
   const challenge = useGameStore(selectCurrentChallenge);
@@ -505,6 +537,7 @@ export function GameBoard({
     return (
       <GameOver
         engine={engine}
+        guest={guest}
         initialBestScore={initialBestScore}
         onDiscard={onDiscard}
         onRetrySave={onRetrySave}

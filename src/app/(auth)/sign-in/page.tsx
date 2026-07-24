@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthForm } from "@/features/auth/auth-form";
+import { getPublicSupabaseConfig } from "@/lib/env";
 import { safeNextPath } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export default async function SignInPage({
 }) {
   const parameters = await searchParams;
   const nextPath = safeNextPath(parameters.next);
+  const authConfigured = Boolean(getPublicSupabaseConfig());
 
   return (
     <div className="animate-enter">
@@ -36,10 +38,11 @@ export default async function SignInPage({
       <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
         Sign in to play and keep your accuracy, XP, and streak history.
       </p>
-      {parameters.error === "configuration" ? (
+      {!authConfigured || parameters.error === "configuration" ? (
         <p className="mt-5 rounded-xl border border-[#a47627]/40 bg-[#a47627]/10 px-4 py-3 text-sm leading-6 text-[#e8c98f]">
-          Supabase is not configured yet. Copy <code>.env.example</code> to{" "}
-          <code>.env.local</code> and add your project values.
+          Account login needs a local <code>.env.local</code> file containing
+          the two public Supabase values. Files named <code>env.download</code>{" "}
+          are not loaded by Next.js. Guest play is available below.
         </p>
       ) : null}
       {parameters.error === "callback" ? (

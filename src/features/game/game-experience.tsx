@@ -50,10 +50,12 @@ export function GameExperience({
   mode,
   initialBestScore,
   settings = defaultPlayerSettings,
+  guest = false,
 }: {
   mode: GameMode;
   initialBestScore: number;
   settings?: PlayerSettings;
+  guest?: boolean;
 }) {
   const engine = useGameStore(selectEngine);
   const hydrated = useGameStore(selectHydrated);
@@ -124,11 +126,11 @@ export function GameExperience({
       engine &&
       engine.mode !== mode &&
       engine.status === "completed" &&
-      saveStatus === "saved"
+      (guest || saveStatus === "saved")
     ) {
       reset();
     }
-  }, [engine, mode, reset, saveStatus]);
+  }, [engine, guest, mode, reset, saveStatus]);
 
   useEffect(() => {
     const challengeKey = engine
@@ -227,6 +229,8 @@ export function GameExperience({
   ]);
 
   const saveCompletedRun = useCallback(async () => {
+    if (guest) return;
+
     const current = useGameStore.getState().engine;
     if (!current || current.status !== "completed") return;
 
@@ -248,13 +252,13 @@ export function GameExperience({
     } finally {
       savingRunIds.current.delete(submission.runId);
     }
-  }, [setSaveError, setSaved, setSaving]);
+  }, [guest, setSaveError, setSaved, setSaving]);
 
   useEffect(() => {
-    if (engine?.status === "completed" && saveStatus === "idle") {
+    if (!guest && engine?.status === "completed" && saveStatus === "idle") {
       void saveCompletedRun();
     }
-  }, [engine?.status, saveCompletedRun, saveStatus]);
+  }, [engine?.status, guest, saveCompletedRun, saveStatus]);
 
   async function start(categories: CategoryId[]) {
     requestController.current?.abort();
@@ -366,6 +370,7 @@ export function GameExperience({
 
   return (
     <GameBoard
+      guest={guest}
       initialBestScore={initialBestScore}
       onDiscard={discardRun}
       onRetryBatch={retryBatch}

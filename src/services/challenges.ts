@@ -1,7 +1,12 @@
+import datasetManifest from "../../data/dataset-manifest.json";
+
 import { categoryIds, type CategoryId } from "@/config/categories";
 import type { DifficultyId } from "@/config/difficulty";
 import { gameConfig } from "@/config/game";
-import { challengeSchema } from "@/features/game/schemas";
+import {
+  challengeSchema,
+  datasetManifestSchema,
+} from "@/features/game/schemas";
 import type { Challenge } from "@/features/game/types";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -28,6 +33,79 @@ function randomize<T>(values: T[]): T[] {
   return copy;
 }
 
+function normalizeBatchRequest({
+  limit,
+  categories,
+}: {
+  limit: number;
+  categories: CategoryId[];
+}) {
+  return {
+    limit: Math.min(
+      gameConfig.batch.maximumRequestSize,
+      Math.max(1, Math.floor(limit)),
+    ),
+    categories: categoryIds.filter((category) => categories.includes(category)),
+  };
+}
+
+const parsedGuestManifest = datasetManifestSchema.safeParse(datasetManifest);
+
+export function getGuestChallengeBatch({
+  limit,
+  categories = [...categoryIds],
+  excludeIds = [],
+}: {
+  limit: number;
+  categories?: CategoryId[];
+  excludeIds?: string[];
+}): ChallengeBatchResult {
+  const normalized = normalizeBatchRequest({ limit, categories });
+
+  if (normalized.categories.length === 0) {
+    return {
+      challenges: [],
+      error: "Select at least one valid challenge category.",
+      exhausted: false,
+      availableCount: 0,
+    };
+  }
+
+  if (!parsedGuestManifest.success) {
+    return {
+      challenges: [],
+      error: "The bundled guest challenges could not be validated.",
+      exhausted: false,
+      availableCount: 0,
+    };
+  }
+
+  const available = parsedGuestManifest.data.challenges.filter(
+    (challenge) =>
+      challenge.active && normalized.categories.includes(challenge.category),
+  );
+  const excluded = new Set(excludeIds);
+  const challenges = randomize(
+    available.filter((challenge) => !excluded.has(challenge.id)),
+  ).slice(0, normalized.limit);
+  const exhausted =
+    challenges.length === 0 &&
+    available.length > 0 &&
+    available.every((challenge) => excluded.has(challenge.id));
+
+  return {
+    challenges,
+    error:
+      challenges.length > 0
+        ? null
+        : exhausted
+          ? "Every bundled challenge in this selection has been used."
+          : "No bundled challenges are available for this selection.",
+    exhausted,
+    availableCount: available.length,
+  };
+}
+
 export async function getChallengeBatch({
   limit,
   categories = [...categoryIds],
@@ -37,15 +115,9 @@ export async function getChallengeBatch({
   categories?: CategoryId[];
   excludeIds?: string[];
 }): Promise<ChallengeBatchResult> {
-  const normalizedLimit = Math.min(
-    gameConfig.batch.maximumRequestSize,
-    Math.max(1, Math.floor(limit)),
-  );
-  const normalizedCategories = categoryIds.filter((category) =>
-    categories.includes(category),
-  );
+  const normalized = normalizeBatchRequest({ limit, categories });
 
-  if (normalizedCategories.length === 0) {
+  if (normalized.categories.length === 0) {
     return {
       challenges: [],
       error: "Select at least one valid challenge category.",
@@ -67,7 +139,7 @@ export async function getChallengeBatch({
   const categoryResult = await supabase
     .from("categories")
     .select("id, slug")
-    .in("slug", normalizedCategories)
+    .in("slug", normalized.categories)
     .eq("active", true);
 
   if (categoryResult.error || !categoryResult.data?.length) {
@@ -92,7 +164,7 @@ export async function getChallengeBatch({
     .select("*")
     .eq("active", true)
     .in("category_id", categoryDatabaseIds)
-    .limit(Math.max(normalizedLimit * 4, normalizedLimit));
+    .limit(Math.max(normalized.limit * 4, normalized.limit));
 
   if (challengeResult.error) {
     return {
@@ -148,7 +220,7 @@ export async function getChallengeBatch({
     .filter((challenge): challenge is Challenge => challenge !== null);
   const challenges = randomize(
     validatedChallenges.filter((challenge) => !excluded.has(challenge.id)),
-  ).slice(0, normalizedLimit);
+  ).slice(0, normalized.limit);
   const exhausted =
     challenges.length === 0 &&
     validatedChallenges.length > 0 &&

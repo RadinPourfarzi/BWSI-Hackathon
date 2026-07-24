@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthForm } from "@/features/auth/auth-form";
+import { getPublicSupabaseConfig } from "@/lib/env";
 import { safeNextPath } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -15,6 +16,7 @@ export default async function SignUpPage({
 }) {
   const parameters = await searchParams;
   const nextPath = safeNextPath(parameters.next);
+  const authConfigured = Boolean(getPublicSupabaseConfig());
 
   return (
     <div className="animate-enter">
@@ -34,9 +36,16 @@ export default async function SignUpPage({
         Train your detector.
       </h1>
       <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
-        An account is required so every attempt and explanation contributes to
-        your progress.
+        Create an account to save your attempts, explanations, XP, and streaks,
+        or continue as a guest.
       </p>
+      {!authConfigured ? (
+        <p className="mt-5 rounded-xl border border-[#a47627]/40 bg-[#a47627]/10 px-4 py-3 text-sm leading-6 text-[#e8c98f]">
+          Account creation needs a local <code>.env.local</code> file containing
+          the two public Supabase values. Files named <code>env.download</code>{" "}
+          are not loaded by Next.js. Guest play is available below.
+        </p>
+      ) : null}
       <div className="mt-8">
         <AuthForm mode="sign-up" nextPath={nextPath} />
       </div>

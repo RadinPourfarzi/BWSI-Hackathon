@@ -4,7 +4,10 @@ import { z } from "zod";
 import { categoryIds } from "@/config/categories";
 import { gameConfig } from "@/config/game";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { getChallengeBatch } from "@/services/challenges";
+import {
+  getChallengeBatch,
+  getGuestChallengeBatch,
+} from "@/services/challenges";
 
 const requestSchema = z.object({
   categories: z.array(z.enum(categoryIds)).min(1),
@@ -17,26 +20,6 @@ const requestSchema = z.object({
 });
 
 export async function GET(request: Request) {
-  const supabase = await createServerSupabaseClient();
-
-  if (!supabase) {
-    return NextResponse.json(
-      { error: "The game service is not configured." },
-      { status: 503 },
-    );
-  }
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json(
-      { error: "Sign in to load challenges." },
-      { status: 401 },
-    );
-  }
-
   const url = new URL(request.url);
   const parsed = requestSchema.safeParse({
     categories: url.searchParams.get("categories")?.split(",").filter(Boolean),
@@ -52,11 +35,20 @@ export async function GET(request: Request) {
     );
   }
 
-  const result = await getChallengeBatch({
-    categories: parsed.data.categories,
-    excludeIds: parsed.data.excludeIds,
-    limit: parsed.data.limit,
-  });
+  const supabase = await createServerSupabaseClient();
+  const userResult = supabase ? await supabase.auth.getUser() : null;
+  const user = userResult?.data.user ?? null;
+  const result = user
+    ? await getChallengeBatch({
+        categories: parsed.data.categories,
+        excludeIds: parsed.data.excludeIds,
+        limit: parsed.data.limit,
+      })
+    : getGuestChallengeBatch({
+        categories: parsed.data.categories,
+        excludeIds: parsed.data.excludeIds,
+        limit: parsed.data.limit,
+      });
 
   return NextResponse.json(result, {
     status: result.challenges.length > 0 || result.exhausted ? 200 : 503,

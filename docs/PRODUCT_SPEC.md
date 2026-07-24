@@ -2,8 +2,8 @@
 
 ## Product statement
 
-Bot or Not is the “GeoGuessr of AI detection”: an educational,
-account-based web game that builds practical instincts for recognizing
+Bot or Not is the “GeoGuessr of AI detection”: an educational web game that
+builds practical instincts for recognizing
 AI-generated images, scam emails, and AI-generated voice audio. A player sees
 one challenge, makes a fast two-choice classification, receives immediate
 feedback, and learns which signals supported the answer.
@@ -25,8 +25,8 @@ and new challenge types.
 - Keep UI, game logic, source data, and persistence clearly separated.
 - Make important scoring, difficulty, XP, animation, UI, category, and batch
   values configurable.
-- Require a real account in production so progress and analytics have a stable
-  owner.
+- Allow immediate guest play while requiring an account for durable progress
+  and analytics.
 - Preserve enough attempt-level data for future learning analytics,
   leaderboards, and multiplayer without redesigning the core tables.
 
@@ -34,7 +34,6 @@ and new challenge types.
 
 - Claiming that a single clue proves media is synthetic or malicious
 - A general-purpose AI or phishing detector
-- Public guest play
 - Public rankings, live multiplayer, classroom administration, or moderation
   tooling
 - Video, website, social-post, or text-message renderers
@@ -50,9 +49,10 @@ and new challenge types.
 
 ## Core game loop
 
-1. The authenticated player chooses Arcade or Training.
+1. The player enters as a guest or chooses Arcade or Training after signing in.
 2. The player keeps the mixed default or toggles one to three categories.
-3. The server returns a bounded authenticated batch from those categories.
+3. The server returns a bounded database batch for authenticated players or a
+   bounded bundled-manifest batch for guests.
 4. The client renders a challenge through its registered category renderer.
 5. The player chooses one of two configured labels.
 6. The client resolves correctness, response time, obtainable points, awarded
@@ -60,8 +60,9 @@ and new challenge types.
 7. Arcade shows brief feedback and advances; Training shows the explanation and
    waits for the player.
 8. The queue replenishes before it runs out and excludes active-cycle IDs.
-9. At completion, one idempotent server transaction validates and saves
-   attempts, XP, statistics, streaks, and session aggregates.
+9. At completion, authenticated runs use one idempotent server transaction to
+   validate and save attempts, XP, statistics, streaks, and session aggregates.
+   Guest runs show the same local summary without cloud persistence.
 
 ## Classification labels
 
@@ -119,17 +120,19 @@ committed corpus contains 14 images, 12 emails, and 12 voice clips.
 
 - Supabase email/password sign-up and sign-in
 - Sign-out
-- Server-enforced protected application routes
+- Server-enforced protection for account Home, Analytics, Profile, Settings,
+  and password reset
 - Cookie-based session restoration
 - Intended-destination preservation with safe local redirects
 - Useful validation, loading, configuration, and provider-error messages
-- No production guest mode
+- Guest access to Arcade and Training with clearly labeled non-persistence
 
 ### Application shell
 
 - Public game-forward home page
 - Authentication pages
-- Protected navigation for Arcade, Training, Analytics, Profile, and Settings
+- Guest navigation for Arcade and Training; protected account navigation for
+  Home, Analytics, Profile, and Settings
 - Level, XP progress, and daily streak values populated from Supabase statistics
 - Reusable button, card, progress, dialog, loading, error, and empty states
 - Responsive black/blue/white visual system with a restrained pink accent,
@@ -199,6 +202,9 @@ committed corpus contains 14 images, 12 emails, and 12 voice clips.
 
 - A configured user can sign in, choose categories, play life-bounded Arcade or
   unlimited Training, get mode-appropriate feedback, and persist progress.
+- A guest can play Arcade and Training from the bundled corpus without
+  Supabase, receives a complete local summary, and is never shown a false save
+  confirmation.
 - Arcade ends after three misses; Training can exit after any number of
   attempts; both produce accurate summaries.
 - The scoring engine preserves each category plateau, decays monotonically to

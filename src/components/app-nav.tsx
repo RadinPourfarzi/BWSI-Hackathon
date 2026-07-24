@@ -14,7 +14,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonClassName } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { signOut } from "@/features/auth/actions";
 import { cn } from "@/lib/utils";
@@ -28,12 +28,17 @@ const navigation = [
   { href: "/app/settings", label: "Settings", icon: Settings },
 ];
 
-function NavigationLinks() {
+function NavigationLinks({ guest }: { guest: boolean }) {
   const pathname = usePathname();
+  const visibleNavigation = guest
+    ? navigation.filter(
+        (item) => item.href === "/app/play" || item.href === "/app/training",
+      )
+    : navigation;
 
   return (
     <nav aria-label="Primary navigation" className="space-y-1">
-      {navigation.map((item) => {
+      {visibleNavigation.map((item) => {
         const active =
           item.href === "/app"
             ? pathname === item.href
@@ -77,64 +82,91 @@ export function AppNav({
   currentXp,
   nextLevelXp,
   streak,
+  guest = false,
 }: {
-  displayName: string;
-  level: number;
-  currentXp: number;
-  nextLevelXp: number;
-  streak: number;
+  displayName?: string;
+  level?: number;
+  currentXp?: number;
+  nextLevelXp?: number;
+  streak?: number;
+  guest?: boolean;
 }) {
+  const brandHref = guest ? "/" : "/app";
+
   return (
     <>
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-[var(--border)] bg-[#080b12]/95 px-4 py-5 backdrop-blur lg:flex lg:flex-col">
-        <Link className="flex items-center gap-3 px-2 font-black" href="/app">
+        <Link
+          className="flex items-center gap-3 px-2 font-black"
+          href={brandHref}
+        >
           <span className="grid size-9 place-items-center rounded-xl bg-[var(--blue-strong)] text-xs">
             B/N
           </span>
           Bot or Not
         </Link>
         <div className="mt-8">
-          <NavigationLinks />
+          <NavigationLinks guest={guest} />
         </div>
         <div className="mt-auto">
-          <div className="rounded-xl border border-[var(--border)] bg-white/3 p-3">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold">Level {level}</span>
-              <span className="text-[var(--muted)]">
-                {currentXp}/{nextLevelXp} XP
-              </span>
-            </div>
-            <Progress
-              className="mt-2.5"
-              label="Progress to next level"
-              max={nextLevelXp}
-              value={currentXp}
-            />
-          </div>
-          <div className="mt-3 flex items-center justify-between rounded-xl px-2 py-2">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-bold">{displayName}</p>
-              <p className="mt-0.5 flex items-center gap-1 text-xs text-[var(--muted)]">
-                <Flame className="size-3.5 text-[#ff9b52]" />
-                {streak} day streak
+          {guest ? (
+            <div className="rounded-xl border border-[var(--blue)]/25 bg-[var(--blue)]/8 p-4">
+              <p className="text-sm font-black">Playing as guest</p>
+              <p className="mt-1 text-xs leading-5 text-[var(--muted)]">
+                Play freely. Account XP, streaks, and analytics are not saved.
               </p>
-            </div>
-            <form action={signOut}>
-              <Button
-                aria-label="Sign out"
-                className="size-9 px-0"
-                type="submit"
-                variant="ghost"
+              <Link
+                className={buttonClassName({
+                  className: "mt-4 w-full",
+                  size: "sm",
+                })}
+                href="/sign-up?next=%2Fapp%2Fplay"
               >
-                <LogOut className="size-4" />
-              </Button>
-            </form>
-          </div>
+                Create account
+              </Link>
+            </div>
+          ) : (
+            <>
+              <div className="rounded-xl border border-[var(--border)] bg-white/3 p-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold">Level {level}</span>
+                  <span className="text-[var(--muted)]">
+                    {currentXp}/{nextLevelXp} XP
+                  </span>
+                </div>
+                <Progress
+                  className="mt-2.5"
+                  label="Progress to next level"
+                  max={nextLevelXp ?? 1}
+                  value={currentXp ?? 0}
+                />
+              </div>
+              <div className="mt-3 flex items-center justify-between rounded-xl px-2 py-2">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold">{displayName}</p>
+                  <p className="mt-0.5 flex items-center gap-1 text-xs text-[var(--muted)]">
+                    <Flame className="size-3.5 text-[#ff9b52]" />
+                    {streak} day streak
+                  </p>
+                </div>
+                <form action={signOut}>
+                  <Button
+                    aria-label="Sign out"
+                    className="size-9 px-0"
+                    type="submit"
+                    variant="ghost"
+                  >
+                    <LogOut className="size-4" />
+                  </Button>
+                </form>
+              </div>
+            </>
+          )}
         </div>
       </aside>
 
       <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--border)] bg-[#080b12]/92 px-4 backdrop-blur lg:hidden">
-        <Link className="flex items-center gap-2 font-black" href="/app">
+        <Link className="flex items-center gap-2 font-black" href={brandHref}>
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--blue-strong)] text-[10px]">
             B/N
           </span>
@@ -145,20 +177,34 @@ export function AppNav({
             Menu
           </summary>
           <div className="absolute top-12 right-0 w-64 rounded-xl border border-[var(--border)] bg-[#0b101a] p-3 shadow-2xl">
-            <NavigationLinks />
-            <form
-              action={signOut}
-              className="mt-2 border-t border-[var(--border)] pt-2"
-            >
-              <Button
-                className="w-full justify-start"
-                type="submit"
-                variant="ghost"
+            <NavigationLinks guest={guest} />
+            {guest ? (
+              <div className="mt-2 border-t border-[var(--border)] pt-2">
+                <Link
+                  className={buttonClassName({
+                    className: "w-full",
+                    variant: "secondary",
+                  })}
+                  href="/sign-in?next=%2Fapp%2Fplay"
+                >
+                  Sign in to save
+                </Link>
+              </div>
+            ) : (
+              <form
+                action={signOut}
+                className="mt-2 border-t border-[var(--border)] pt-2"
               >
-                <LogOut className="size-4" />
-                Sign out
-              </Button>
-            </form>
+                <Button
+                  className="w-full justify-start"
+                  type="submit"
+                  variant="ghost"
+                >
+                  <LogOut className="size-4" />
+                  Sign out
+                </Button>
+              </form>
+            )}
           </div>
         </details>
       </header>

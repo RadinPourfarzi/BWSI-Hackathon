@@ -2,14 +2,16 @@
 
 Target length: 3–5 minutes.
 
-## 1. Authentication — 30 seconds
+## 1. Guest entry and authentication — 30 seconds
 
 “Bot or Not is a game that teaches practical AI and scam detection. Every
-player signs in so XP, accuracy, streaks, and settings have a secure owner.”
+visitor can start immediately as a guest. Signing in gives XP, accuracy,
+streaks, and settings a secure owner.”
 
-Sign in with the prepared demo account. Mention that confirmation, password
-recovery, safe callback redirects, server route protection, and secure sign-out
-are built in.
+Briefly show **Play as guest**, then sign in with the prepared demo account.
+Mention that guest runs do not claim to save progress and that confirmation,
+password recovery, safe callback redirects, server route protection, and
+secure sign-out are built in.
 
 ## 2. Home and progression — 30 seconds
 

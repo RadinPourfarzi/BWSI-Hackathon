@@ -5,10 +5,10 @@ AI-generated images, scam emails, and synthetic voices. Players make a timed
 binary choice, receive immediate feedback, and build a persistent record of
 accuracy, speed, XP, levels, streaks, and category strengths.
 
-The final hackathon MVP includes authenticated Arcade and Training modes, a
-real analytics dashboard, profile and settings management, local-calendar
-streaks, resilient game restoration, automated tests, CI, and deployment-ready
-Supabase and Vercel configuration.
+The final hackathon MVP includes guest and authenticated Arcade and Training
+modes, a real analytics dashboard, profile and settings management,
+local-calendar streaks, resilient game restoration, automated tests, CI, and
+deployment-ready Supabase and Vercel configuration.
 
 ## Product tour
 
@@ -16,6 +16,8 @@ Supabase and Vercel configuration.
   auto-advance feedback, high scores, and XP.
 - **Training:** unlimited practice, category selection, explanations, signal
   tags, and a persisted learning summary.
+- **Guest play:** Arcade and Training use the bundled validated corpus without
+  Supabase. Guest results are intentionally not added to account analytics.
 - **Analytics:** overall and category accuracy, question/game totals, response
   time, score, levels, XP, streaks, category insights, and six historical
   charts. Histories are bounded to 120 sessions and small samples are labeled.
@@ -83,7 +85,8 @@ per-item attribution are in [Data sources](docs/DATA_SOURCES.md) and
 
 - Node.js 22 or newer
 - npm with lockfile support
-- A Supabase project for authentication and persistent gameplay
+- A Supabase project for authentication and persistent gameplay; optional for
+  guest-only play
 - Supabase CLI for command-line migrations
 - Playwright Chromium for browser tests
 - `ffmpeg` with the Flite filter only when regenerating bundled audio
@@ -102,7 +105,8 @@ per-item attribution are in [Data sources](docs/DATA_SOURCES.md) and
    cp .env.example .env.local
    ```
 
-3. Fill in the Supabase values. Never expose or commit the service-role key.
+3. To use accounts and cloud persistence, fill in the Supabase values. Never
+   expose or commit the service-role key. You may skip this step for guest play.
 
 4. Link the Supabase project and apply all three migrations.
 
@@ -161,6 +165,11 @@ Sign-in preserves safe local destinations. Confirmation and password-recovery
 links exchange their short-lived code through `/auth/callback`. Redirect
 validation rejects absolute, protocol-relative, backslash, and control-character
 destinations.
+
+Without a configured session, `/app/play` and `/app/training` use the local
+validated manifest. Guest sessions keep only the active refresh-recovery
+snapshot and never call the account persistence RPC. Analytics, Profile,
+Settings, and the account home remain protected.
 
 ## Dataset workflow
 
