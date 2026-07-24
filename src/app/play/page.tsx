@@ -228,7 +228,7 @@ export default function PlayPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-6 py-6">
+    <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-1 flex-col gap-3 px-4 py-4 sm:gap-4 sm:px-6 sm:py-6">
       <HudBar
         score={engine.score}
         lives={engine.lives}
@@ -240,38 +240,40 @@ export default function PlayPage() {
         answered={engine.attempts.length}
       />
 
-      <div className="relative">
-        <MediaContainer>
-          <motion.div
-            key={current.id}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: UI_CONFIG.motion.questionEnterMs / 1000,
-              ease: UI_CONFIG.motion.ease,
-            }}
-            className="flex h-full w-full items-center justify-center"
-          >
-            <ChallengeMedia question={current} />
-          </motion.div>
-        </MediaContainer>
+      <div className="flex flex-1 flex-col justify-center gap-3 sm:gap-4">
+        <div className="relative">
+          <MediaContainer>
+            <motion.div
+              key={current.id}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: UI_CONFIG.motion.questionEnterMs / 1000,
+                ease: UI_CONFIG.motion.ease,
+              }}
+              className="flex h-full w-full items-center justify-center"
+            >
+              <ChallengeMedia question={current} />
+            </motion.div>
+          </MediaContainer>
 
-        {/* "The Call": Arcade shows the fast flash over the media; Training keeps it visible. */}
-        <AnimatePresence>
-          {feedback !== null && !isTraining && (
-            <CallOverlay outcome={feedback} timedOut={timedOut} />
-          )}
-        </AnimatePresence>
+          {/* "The Call": Arcade shows the fast flash over the media; Training keeps it visible. */}
+          <AnimatePresence>
+            {feedback !== null && !isTraining && (
+              <CallOverlay outcome={feedback} timedOut={timedOut} />
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Timer/decay only exist in Arcade. */}
+        {!isTraining && (
+          <TimerBar
+            fraction={timer.fraction}
+            remainingMs={timer.remainingMs}
+            obtainablePoints={timer.obtainablePoints}
+          />
+        )}
       </div>
-
-      {/* Timer/decay only exist in Arcade. */}
-      {!isTraining && (
-        <TimerBar
-          fraction={timer.fraction}
-          remainingMs={timer.remainingMs}
-          obtainablePoints={timer.obtainablePoints}
-        />
-      )}
 
       {isTraining && feedback !== null ? (
         <TrainingResult outcome={feedback} explanation={current.explanationText} onNext={goNext} />

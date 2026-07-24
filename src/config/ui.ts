@@ -52,10 +52,12 @@ export const UI_CONFIG = {
   },
 
   /**
-   * Fixed gameplay media bounding box. Locked dimensions + object-fit: contain prevent the
-   * AI/REAL buttons from shifting when the media type changes.
+   * Gameplay media bounding box. Responsive: a viewport-relative height clamped between
+   * min/max so it shrinks on short screens (keeping the answer buttons on-screen) but stays
+   * consistent for all media types at a given viewport — so buttons never shift between
+   * questions.
    */
-  mediaBox: { heightPx: 420, widthPct: 100 },
+  mediaBox: { minPx: 200, vh: 42, maxPx: 460 },
 } as const;
 
 export type UiColorKey = keyof typeof UI_CONFIG.colors;

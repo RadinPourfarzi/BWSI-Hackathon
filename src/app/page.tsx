@@ -92,7 +92,7 @@ export default function Home() {
   const progress = profile ? Math.round(levelProgress(profile.totalXp, XP_CONFIG) * 100) : 0;
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-10 px-6 py-10">
+    <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-1 flex-col gap-8 px-6 py-8">
       <header className="flex items-center justify-between">
         <Wordmark className="text-lg" />
         <div className="flex items-center gap-2 font-mono text-xs">
@@ -119,92 +119,94 @@ export default function Home() {
         </div>
       </header>
 
-      <div>
-        <p className="text-muted font-mono text-xs tracking-[0.2em] uppercase">
-          Detect the machine
-        </p>
-        <h1 className="font-display mt-3 text-5xl leading-[1.05] font-extrabold tracking-tight">
-          Can you tell
-          <br />
-          what&apos;s <span className="text-not">real</span>?
-        </h1>
-        <p className="text-muted mt-4 max-w-md">
-          {loadingProfile
-            ? 'Loading your file…'
-            : `Split-second calls on machine-made media${profile ? `, ${profile.username}` : ''}. Real photo or AI dream. Signal or scam.`}
-        </p>
-        {profile && (
-          <div className="mt-5 max-w-xs">
-            <div className="text-muted mb-1 flex justify-between font-mono text-[0.7rem] tracking-wider uppercase">
-              <span>Level {profile.currentLevel}</span>
-              <span>{profile.totalXp.toLocaleString()} XP</span>
+      <main className="flex flex-1 flex-col justify-center gap-8 sm:gap-10">
+        <div>
+          <p className="text-muted font-mono text-xs tracking-[0.2em] uppercase">
+            Detect the machine
+          </p>
+          <h1 className="font-display mt-3 text-5xl leading-[1.05] font-extrabold tracking-tight">
+            Can you tell
+            <br />
+            what&apos;s <span className="text-not">real</span>?
+          </h1>
+          <p className="text-muted mt-4 max-w-md">
+            {loadingProfile
+              ? 'Loading your file…'
+              : `Split-second calls on machine-made media${profile ? `, ${profile.username}` : ''}. Real photo or AI dream. Signal or scam.`}
+          </p>
+          {profile && (
+            <div className="mt-5 max-w-xs">
+              <div className="text-muted mb-1 flex justify-between font-mono text-[0.7rem] tracking-wider uppercase">
+                <span>Level {profile.currentLevel}</span>
+                <span>{profile.totalXp.toLocaleString()} XP</span>
+              </div>
+              <div className="bg-edge h-1.5 overflow-hidden rounded-full">
+                <div
+                  className="from-bot to-not h-full rounded-full bg-gradient-to-r"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
             </div>
-            <div className="bg-edge h-1.5 overflow-hidden rounded-full">
-              <div
-                className="from-bot to-not h-full rounded-full bg-gradient-to-r"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <button
-          type="button"
-          onClick={() => start('ARCADE')}
-          disabled={selected.length === 0 || starting !== null}
-          className="group border-bot/40 bg-bot/10 hover:border-bot hover:bg-bot/20 flex items-center justify-between rounded-2xl border px-6 py-5 text-left transition-colors disabled:opacity-50"
-        >
-          <span className="font-display text-text text-xl font-bold">
-            {starting === 'ARCADE' ? 'Starting…' : 'Play Arcade'}
-          </span>
-          <span className="text-muted font-mono text-xs tracking-wider uppercase">
-            3 lives · decay
-          </span>
-        </button>
-        <button
-          type="button"
-          onClick={() => start('TRAINING')}
-          disabled={selected.length === 0 || starting !== null}
-          className="group border-edge hover:border-not hover:bg-not/10 flex items-center justify-between rounded-2xl border px-6 py-5 text-left transition-colors disabled:opacity-50"
-        >
-          <span className="font-display text-text text-xl font-bold">
-            {starting === 'TRAINING' ? 'Starting…' : 'Training'}
-          </span>
-          <span className="text-muted font-mono text-xs tracking-wider uppercase">
-            learn the tells
-          </span>
-        </button>
-      </div>
-
-      <div>
-        <div className="text-muted mb-2 font-mono text-xs tracking-[0.2em] uppercase">Detect</div>
-        <div className="flex flex-wrap gap-2">
-          {CATEGORY_IDS.map((id) => {
-            const active = selected.includes(id);
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => toggle(id)}
-                aria-pressed={active}
-                className={`rounded-lg border px-3 py-2 font-mono text-sm tracking-wide uppercase transition-colors ${
-                  active
-                    ? 'border-not bg-not/15 text-text'
-                    : 'border-edge text-muted hover:border-muted hover:text-text'
-                }`}
-              >
-                {CATEGORY_CONFIG[id].displayName}
-              </button>
-            );
-          })}
+          )}
         </div>
-        {selected.length === 0 && (
-          <p className="text-wrong mt-2 text-sm">Pick at least one channel to play.</p>
-        )}
-        {error && <p className="text-wrong mt-2 text-sm">{error}</p>}
-      </div>
+
+        <div className="flex flex-col gap-3">
+          <button
+            type="button"
+            onClick={() => start('ARCADE')}
+            disabled={selected.length === 0 || starting !== null}
+            className="group border-bot/40 bg-bot/10 hover:border-bot hover:bg-bot/20 flex items-center justify-between rounded-2xl border px-6 py-5 text-left transition-colors disabled:opacity-50"
+          >
+            <span className="font-display text-text text-xl font-bold">
+              {starting === 'ARCADE' ? 'Starting…' : 'Play Arcade'}
+            </span>
+            <span className="text-muted font-mono text-xs tracking-wider uppercase">
+              3 lives · decay
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={() => start('TRAINING')}
+            disabled={selected.length === 0 || starting !== null}
+            className="group border-edge hover:border-not hover:bg-not/10 flex items-center justify-between rounded-2xl border px-6 py-5 text-left transition-colors disabled:opacity-50"
+          >
+            <span className="font-display text-text text-xl font-bold">
+              {starting === 'TRAINING' ? 'Starting…' : 'Training'}
+            </span>
+            <span className="text-muted font-mono text-xs tracking-wider uppercase">
+              learn the tells
+            </span>
+          </button>
+        </div>
+
+        <div>
+          <div className="text-muted mb-2 font-mono text-xs tracking-[0.2em] uppercase">Detect</div>
+          <div className="flex flex-wrap gap-2">
+            {CATEGORY_IDS.map((id) => {
+              const active = selected.includes(id);
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => toggle(id)}
+                  aria-pressed={active}
+                  className={`rounded-lg border px-3 py-2 font-mono text-sm tracking-wide uppercase transition-colors ${
+                    active
+                      ? 'border-not bg-not/15 text-text'
+                      : 'border-edge text-muted hover:border-muted hover:text-text'
+                  }`}
+                >
+                  {CATEGORY_CONFIG[id].displayName}
+                </button>
+              );
+            })}
+          </div>
+          {selected.length === 0 && (
+            <p className="text-wrong mt-2 text-sm">Pick at least one channel to play.</p>
+          )}
+          {error && <p className="text-wrong mt-2 text-sm">{error}</p>}
+        </div>
+      </main>
     </div>
   );
 }
