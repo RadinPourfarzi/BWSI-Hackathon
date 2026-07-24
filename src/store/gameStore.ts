@@ -38,6 +38,8 @@ interface GameActions {
   answer: (choiceIsAi: boolean, now?: number) => AnswerOutcome | null;
   /** Advance to the next question (or end the run if the queue is empty). */
   next: (now?: number) => void;
+  /** Append newly fetched questions to the queue (background top-up); dedupes by id. */
+  enqueue: (questions: Question[]) => void;
   endRun: () => void;
   reset: () => void;
   /** Active difficulty tier for the current question index. */
@@ -61,6 +63,8 @@ export interface GameStore extends GameActions {
   status: GameStatus;
   questionStartedAt: number | null;
   lastOutcome: AnswerOutcome | null;
+  /** Ids of every question loaded into this run (current + queue + already shown). */
+  loadedIds: string[];
 }
 
 /** Fisher–Yates shuffle (returns a new array; does not mutate input). */
@@ -88,6 +92,7 @@ const initialState = {
   status: 'idle' as GameStatus,
   questionStartedAt: null as number | null,
   lastOutcome: null as AnswerOutcome | null,
+  loadedIds: [] as string[],
 };
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -98,6 +103,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const filtered = pool.filter((q) => enabledCategories.includes(q.categoryId));
     const queue = shuffle(filtered);
     const current = queue.shift() ?? null;
+    const loadedIds = [...(current ? [current.id] : []), ...queue.map((q) => q.id)];
     set({
       ...initialState,
       mode,
@@ -109,6 +115,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
       lives: mode === 'ARCADE' ? activeConfig.game.arcadeLives : Number.POSITIVE_INFINITY,
       status: current ? 'running' : 'gameover',
       questionStartedAt: current ? (now ?? Date.now()) : null,
+      loadedIds,
     });
   },
 
@@ -201,6 +208,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
       questionIndex: state.questionIndex + 1,
       questionStartedAt: now ?? Date.now(),
       lastOutcome: null,
+    });
+  },
+
+  enqueue: (questions) => {
+    const state = get();
+    const known = new Set(state.loadedIds);
+    const fresh = questions.filter((q) => !known.has(q.id));
+    if (fresh.length === 0) {
+      return;
+    }
+    set({
+      queue: [...state.queue, ...fresh],
+      loadedIds: [...state.loadedIds, ...fresh.map((q) => q.id)],
     });
   },
 

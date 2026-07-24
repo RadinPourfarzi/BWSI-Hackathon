@@ -17,10 +17,14 @@ export function useGameEngine() {
   const attempts = useGameStore((s) => s.attempts);
   const lastOutcome = useGameStore((s) => s.lastOutcome);
   const remainingInQueue = useGameStore((s) => s.queue.length);
+  const enabledCategories = useGameStore((s) => s.enabledCategories);
+  const loadedIds = useGameStore((s) => s.loadedIds);
+  const config = useGameStore((s) => s.config);
 
   const startRun = useGameStore((s) => s.startRun);
   const answer = useGameStore((s) => s.answer);
   const next = useGameStore((s) => s.next);
+  const enqueue = useGameStore((s) => s.enqueue);
   const endRun = useGameStore((s) => s.endRun);
   const reset = useGameStore((s) => s.reset);
 
@@ -36,9 +40,13 @@ export function useGameEngine() {
     attempts,
     lastOutcome,
     remainingInQueue,
+    enabledCategories,
+    loadedIds,
+    config,
     startRun,
     answer,
     next,
+    enqueue,
     endRun,
     reset,
   };

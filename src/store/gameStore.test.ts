@@ -89,6 +89,25 @@ describe('answering', () => {
   });
 });
 
+describe('enqueue', () => {
+  it('appends fresh questions and dedupes by id', () => {
+    store().startRun({
+      mode: 'ARCADE',
+      pool: DUMMY_QUESTIONS.slice(0, 3),
+      enabledCategories: ALL,
+      now: T0,
+    });
+    const before = store().queue.length;
+    const extra = DUMMY_QUESTIONS.slice(3, 6);
+    store().enqueue(extra);
+    expect(store().queue.length).toBe(before + extra.length);
+
+    // Re-enqueuing already-loaded questions is a no-op.
+    store().enqueue(DUMMY_QUESTIONS.slice(0, 6));
+    expect(store().queue.length).toBe(before + extra.length);
+  });
+});
+
 describe('game over', () => {
   it('ends the Arcade run once lives reach 0', () => {
     store().startRun({ mode: 'ARCADE', pool: DUMMY_QUESTIONS, enabledCategories: ALL, now: T0 });

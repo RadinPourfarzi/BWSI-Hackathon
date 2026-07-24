@@ -258,6 +258,20 @@ export type Database = {
     };
     Functions: {
       get_active_config: { Args: never; Returns: Json };
+      sample_questions: {
+        Args: { p_categories: string[]; p_exclude?: string[]; p_limit: number };
+        Returns: {
+          category_id: string;
+          created_at: string;
+          difficulty_rating: string;
+          explanation_text: string | null;
+          id: string;
+          is_active: boolean;
+          is_ai: boolean;
+          media_url: string;
+          metadata: Json;
+        }[];
+      };
       score_attempt: {
         Args: {
           p_category_id: string;
