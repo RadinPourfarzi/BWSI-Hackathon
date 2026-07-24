@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'AI Detect',
+  title: 'Bot Or Not',
   description: 'The GeoGuessr of AI detection — spot AI-generated media under time pressure.',
 };
 

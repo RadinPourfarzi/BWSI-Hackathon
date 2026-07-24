@@ -34,7 +34,7 @@ export default function Home() {
       <header className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-xl">🕵️</span>
-          <span className="text-lg font-semibold tracking-tight">AI Detect</span>
+          <span className="text-lg font-semibold tracking-tight">Bot Or Not</span>
         </div>
         <div className="flex items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
           <span className="rounded-md bg-zinc-100 px-2 py-1 dark:bg-zinc-800">Level 1</span>
