@@ -32,3 +32,20 @@ export function getServiceSupabaseConfig(): ServiceSupabaseConfig | null {
 
   return parsed.success ? parsed.data : null;
 }
+
+export function getSiteUrl(): string {
+  try {
+    const configured = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "");
+    if (
+      (configured.protocol === "http:" || configured.protocol === "https:") &&
+      !configured.username &&
+      !configured.password
+    ) {
+      return configured.origin;
+    }
+  } catch {
+    // Fall through to the local development origin.
+  }
+
+  return "http://localhost:3000";
+}

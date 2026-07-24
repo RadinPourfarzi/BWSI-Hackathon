@@ -13,6 +13,7 @@ export const gameConfig = {
   },
   maximumRecordedAttempts: 500,
   localStorage: {
+    // Preserve Phase 2 keys so the product rename does not erase active runs.
     categorySelection: "ai-detection-game:categories:v1",
     activeRun: "ai-detection-game:active-run:v1",
   },

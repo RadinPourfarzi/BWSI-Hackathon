@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { gameConfig } from "@/config/game";
 import { useGameStore } from "@/features/game/store";
@@ -63,6 +63,18 @@ describe("game store coordination", () => {
 
     expect(useGameStore.getState().engine?.runId).toBe(runId);
     expect(useGameStore.getState().engine?.status).toBe("paused");
+  });
+
+  it("keeps gameplay usable when browser storage is unavailable", () => {
+    const storage = vi
+      .spyOn(Storage.prototype, "setItem")
+      .mockImplementation(() => {
+        throw new DOMException("Storage is disabled", "SecurityError");
+      });
+
+    expect(startStore).not.toThrow();
+    expect(useGameStore.getState().engine?.runId).toBe(runId);
+    storage.mockRestore();
   });
 
   it("accepts only the active batch result and clears transient errors", () => {

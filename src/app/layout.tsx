@@ -6,8 +6,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Signal or Synthetic",
-    template: "%s · Signal or Synthetic",
+    default: "Bot or Not",
+    template: "%s · Bot or Not",
   },
   description:
     "A fast educational game for spotting AI media, scam emails, and synthetic voices.",

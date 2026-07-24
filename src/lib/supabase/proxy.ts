@@ -2,12 +2,17 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { getPublicSupabaseConfig } from "@/lib/env";
+import { safeNextPath } from "@/lib/utils";
 import type { Database } from "@/types/database";
 
-const authenticationPages = ["/sign-in", "/sign-up"];
+const authenticationPages = ["/sign-in", "/sign-up", "/forgot-password"];
 
 function isProtectedPath(pathname: string): boolean {
-  return pathname === "/app" || pathname.startsWith("/app/");
+  return (
+    pathname === "/app" ||
+    pathname.startsWith("/app/") ||
+    pathname === "/reset-password"
+  );
 }
 
 export async function updateSession(
@@ -66,10 +71,12 @@ export async function updateSession(
   }
 
   if (user && authenticationPage) {
-    const destination = request.nextUrl.clone();
-    destination.pathname = "/app";
-    destination.search = "";
-    return NextResponse.redirect(destination);
+    return NextResponse.redirect(
+      new URL(
+        safeNextPath(request.nextUrl.searchParams.get("next")),
+        request.url,
+      ),
+    );
   }
 
   return response;

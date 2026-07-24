@@ -1,3 +1,3 @@
 export const uiConfig = {
-  appName: "Signal or Synthetic",
+  appName: "Bot or Not",
 } as const;

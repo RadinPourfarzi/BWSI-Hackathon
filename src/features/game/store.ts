@@ -76,15 +76,29 @@ export type GameStore = {
 function persistEngine(engine: GameEngineState | null): void {
   if (typeof window === "undefined") return;
 
-  if (!engine) {
-    window.sessionStorage.removeItem(gameConfig.localStorage.activeRun);
-    return;
-  }
+  try {
+    if (engine) {
+      window.sessionStorage.setItem(
+        gameConfig.localStorage.activeRun,
+        serializeGameState(engine),
+      );
+      return;
+    }
 
-  window.sessionStorage.setItem(
-    gameConfig.localStorage.activeRun,
-    serializeGameState(engine),
-  );
+    window.sessionStorage.removeItem(gameConfig.localStorage.activeRun);
+  } catch {
+    // Storage can be disabled; the in-memory run must remain playable.
+  }
+}
+
+function readPersistedEngine(): string | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    return window.sessionStorage.getItem(gameConfig.localStorage.activeRun);
+  } catch {
+    return null;
+  }
 }
 
 function updateEngine(
@@ -124,9 +138,7 @@ export const useGameStore = create<GameStore>((set) => ({
       return;
     }
 
-    const serialized = window.sessionStorage.getItem(
-      gameConfig.localStorage.activeRun,
-    );
+    const serialized = readPersistedEngine();
     const restored = serialized ? deserializeGameState(serialized) : null;
     const engine =
       restored && ["loading", "playing", "feedback"].includes(restored.status)
@@ -138,7 +150,7 @@ export const useGameStore = create<GameStore>((set) => ({
         : restored;
 
     if (serialized && !engine) {
-      window.sessionStorage.removeItem(gameConfig.localStorage.activeRun);
+      persistEngine(null);
     }
 
     if (engine) persistEngine(engine);

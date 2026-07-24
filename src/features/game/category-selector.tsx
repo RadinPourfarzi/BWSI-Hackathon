@@ -14,8 +14,8 @@ import {
 import { gameConfig, type GameMode } from "@/config/game";
 import { cn } from "@/lib/utils";
 
-function readSavedCategories(): CategoryId[] {
-  if (typeof window === "undefined") return [...categoryIds];
+function readSavedCategories(fallback: CategoryId[]): CategoryId[] {
+  if (typeof window === "undefined") return fallback;
 
   try {
     const value: unknown = JSON.parse(
@@ -25,9 +25,9 @@ function readSavedCategories(): CategoryId[] {
     const saved = categoryIds.filter(
       (category) => Array.isArray(value) && value.includes(category),
     );
-    return saved.length > 0 ? saved : [...categoryIds];
+    return saved.length > 0 ? saved : fallback;
   } catch {
-    return [...categoryIds];
+    return fallback;
   }
 }
 
@@ -35,23 +35,25 @@ export function CategorySelector({
   mode,
   disabled,
   error,
+  initialCategories = [...categoryIds],
   onStart,
 }: {
   mode: GameMode;
   disabled: boolean;
   error: string | null;
+  initialCategories?: CategoryId[];
   onStart: (categories: CategoryId[]) => void;
 }) {
-  const [selected, setSelected] = useState<CategoryId[]>([...categoryIds]);
+  const [selected, setSelected] = useState<CategoryId[]>(initialCategories);
   const [selectionMessage, setSelectionMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const timeout = window.setTimeout(
-      () => setSelected(readSavedCategories()),
+      () => setSelected(readSavedCategories(initialCategories)),
       0,
     );
     return () => window.clearTimeout(timeout);
-  }, []);
+  }, [initialCategories]);
 
   function toggleCategory(categoryId: CategoryId) {
     const isSelected = selected.includes(categoryId);
@@ -66,10 +68,14 @@ export function CategorySelector({
     );
     setSelected(next);
     setSelectionMessage(null);
-    window.localStorage.setItem(
-      gameConfig.localStorage.categorySelection,
-      JSON.stringify(next),
-    );
+    try {
+      window.localStorage.setItem(
+        gameConfig.localStorage.categorySelection,
+        JSON.stringify(next),
+      );
+    } catch {
+      // The current selection still works when browser storage is unavailable.
+    }
   }
 
   const ModeIcon = mode === "arcade" ? Gamepad2 : GraduationCap;

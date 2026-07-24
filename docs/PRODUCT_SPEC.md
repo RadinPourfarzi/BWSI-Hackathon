@@ -2,16 +2,18 @@
 
 ## Product statement
 
-Signal or Synthetic is the “GeoGuessr of AI detection”: an educational,
+Bot or Not is the “GeoGuessr of AI detection”: an educational,
 account-based web game that builds practical instincts for recognizing
 AI-generated images, scam emails, and AI-generated voice audio. A player sees
 one challenge, makes a fast two-choice classification, receives immediate
 feedback, and learns which signals supported the answer.
 
-Phase two is a complete playable hackathon experience. It favors a small,
-strongly typed system over enterprise complexity while preserving clean
-extension points for video, websites, social posts, text messages, multiplayer,
-leaderboards, classrooms, and new challenge types.
+Phase three is the complete hackathon MVP. It favors a small, strongly typed
+system over enterprise complexity while adding real analytics, long-term
+progression, local-day streaks, profile editing, durable settings, recovery
+flows, CI, and deployment readiness. Clean extension points remain for video,
+websites, social posts, text messages, multiplayer, leaderboards, classrooms,
+and new challenge types.
 
 ## Goals
 
@@ -133,6 +135,27 @@ committed corpus contains 14 images, 12 emails, and 12 voice clips.
 - Responsive black/blue/white visual system with a restrained pink accent,
   subtle transitions, and minimal gradients
 
+### Analytics and progression
+
+- Real aggregates from persisted completed sessions and attempts
+- Overall, mode, category, score, speed, XP, level, combo, and streak metrics
+- Six responsive historical charts bounded to the latest 120 sessions
+- Explicit dates, sample sizes, accessible text equivalents, and honest
+  small-sample states
+- Configuration-driven, indefinitely increasing levels
+- Auditable XP history and idempotent session rewards
+- Local-calendar daily activity based on the browser UTC offset recorded at
+  completion
+
+### Profile and settings
+
+- Display name, email, join date, progression, strongest category, recent
+  activity, and secure sign-out
+- Safe display-name updates only; no internal identifiers are exposed
+- Account-backed category defaults, sound effects, volume, motion, keyboard
+  hints, and abandon confirmation
+- Local preference cache for responsive interaction and offline recovery
+
 ### Persistence and analytics
 
 - Store complete sessions and per-question attempts in one atomic transaction
@@ -195,6 +218,12 @@ committed corpus contains 14 images, 12 emails, and 12 voice clips.
   manifest without hand-editing challenge rows.
 - Required formatting, lint, typecheck, unit/integration-test, production-build,
   and supported Playwright commands pass before the branch is published.
+- Analytics, Profile, and Settings render persisted user data and useful empty
+  or unavailable states.
+- Password recovery completes through a safe local callback, and protected
+  routes reject expired or missing sessions.
+- CI enforces locked dependencies, formatting, lint, types, tests, dataset
+  validation, the production build, and Playwright.
 
 ## Safety and educational framing
 

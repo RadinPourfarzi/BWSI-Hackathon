@@ -29,7 +29,7 @@ per category, and exact option balance within every category.
 - Accessed: 2026-07-24
 - Method: Generated specifically for this project, converted to 768 × 768 WebP,
   hashed, and released with the starter data
-- Attribution: “Generated for Signal or Synthetic; released with the starter
+- Attribution: “Generated for Bot or Not; released with the starter
   data.”
 
 The prompts describe ordinary, non-sensitive scenes. No training-dataset claim

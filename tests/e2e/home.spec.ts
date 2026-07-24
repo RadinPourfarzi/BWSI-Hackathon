@@ -5,6 +5,7 @@ test("home page presents the game and authentication routes", async ({
 }) => {
   await page.goto("/");
 
+  await expect(page.getByText("Bot or Not", { exact: true })).toBeVisible();
   await expect(
     page.getByRole("heading", { name: /Can you tell what is real/i }),
   ).toBeVisible();

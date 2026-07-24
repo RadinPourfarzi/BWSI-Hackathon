@@ -36,7 +36,7 @@ export function AudioRenderer({
     const audio = audioRef.current;
     if (!audio || status === "error") return;
     audio.currentTime = 0;
-    void audio.play();
+    void audio.play().catch(() => setStatus("error"));
   }
 
   return (

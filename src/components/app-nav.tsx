@@ -89,9 +89,9 @@ export function AppNav({
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-[var(--border)] bg-[#080b12]/95 px-4 py-5 backdrop-blur lg:flex lg:flex-col">
         <Link className="flex items-center gap-3 px-2 font-black" href="/app">
           <span className="grid size-9 place-items-center rounded-xl bg-[var(--blue-strong)] text-xs">
-            S/S
+            B/N
           </span>
-          Signal or Synthetic
+          Bot or Not
         </Link>
         <div className="mt-8">
           <NavigationLinks />
@@ -136,9 +136,9 @@ export function AppNav({
       <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-[var(--border)] bg-[#080b12]/92 px-4 backdrop-blur lg:hidden">
         <Link className="flex items-center gap-2 font-black" href="/app">
           <span className="grid size-8 place-items-center rounded-lg bg-[var(--blue-strong)] text-[10px]">
-            S/S
+            B/N
           </span>
-          Signal or Synthetic
+          Bot or Not
         </Link>
         <details className="group relative">
           <summary className="list-none rounded-lg border border-[var(--border)] px-3 py-2 text-sm font-bold">

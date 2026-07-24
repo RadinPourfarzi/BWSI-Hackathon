@@ -32,7 +32,7 @@ export default function Home() {
           href="/"
         >
           <span className="grid size-9 place-items-center rounded-xl bg-[var(--blue-strong)] text-sm">
-            S/S
+            B/N
           </span>
           <span className="hidden sm:inline">{uiConfig.appName}</span>
         </Link>

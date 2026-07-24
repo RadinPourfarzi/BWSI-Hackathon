@@ -147,6 +147,8 @@ export type Database = {
           initial_lives: number | null;
           remaining_lives: number | null;
           new_high_score: boolean;
+          activity_date: string | null;
+          timezone_offset_minutes: number | null;
           started_at: string;
           completed_at: string | null;
           created_at: string;
@@ -173,6 +175,8 @@ export type Database = {
           initial_lives?: number | null;
           remaining_lives?: number | null;
           new_high_score?: boolean;
+          activity_date?: string | null;
+          timezone_offset_minutes?: number | null;
           started_at?: string;
           completed_at?: string | null;
           created_at?: string;
@@ -337,6 +341,43 @@ export type Database = {
         };
         Relationships: [];
       };
+      user_settings: {
+        Row: {
+          user_id: string;
+          default_categories: string[];
+          sound_effects: boolean;
+          reduced_motion: string;
+          volume: number;
+          show_keyboard_shortcuts: boolean;
+          confirm_abandon: boolean;
+          timezone_offset_minutes: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          default_categories?: string[];
+          sound_effects?: boolean;
+          reduced_motion?: string;
+          volume?: number;
+          show_keyboard_shortcuts?: boolean;
+          confirm_abandon?: boolean;
+          timezone_offset_minutes?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          default_categories?: string[];
+          sound_effects?: boolean;
+          reduced_motion?: string;
+          volume?: number;
+          show_keyboard_shortcuts?: boolean;
+          confirm_abandon?: boolean;
+          timezone_offset_minutes?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -366,6 +407,23 @@ export type Database = {
           p_enabled_categories: string[];
           p_attempts: Json;
           p_summary: Json;
+        };
+        Returns: Json;
+      };
+      finalize_game_run_v2: {
+        Args: {
+          p_run_id: string;
+          p_mode: Database["public"]["Enums"]["session_mode"];
+          p_enabled_categories: string[];
+          p_attempts: Json;
+          p_summary: Json;
+          p_timezone_offset_minutes: number;
+        };
+        Returns: Json;
+      };
+      get_user_analytics: {
+        Args: {
+          p_session_limit?: number;
         };
         Returns: Json;
       };

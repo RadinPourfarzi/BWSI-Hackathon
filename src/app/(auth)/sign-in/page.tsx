@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; next?: string }>;
+  searchParams: Promise<{ error?: string; message?: string; next?: string }>;
 }) {
   const parameters = await searchParams;
   const nextPath = safeNextPath(parameters.next);
@@ -23,9 +23,9 @@ export default async function SignInPage({
         href="/"
       >
         <span className="grid size-9 place-items-center rounded-xl bg-[var(--blue-strong)] text-xs">
-          S/S
+          B/N
         </span>
-        Signal or Synthetic
+        Bot or Not
       </Link>
       <p className="mt-10 text-sm font-bold tracking-[0.18em] text-[var(--blue)] uppercase lg:mt-0">
         Welcome back
@@ -46,6 +46,14 @@ export default async function SignInPage({
         <p className="mt-5 rounded-xl border border-[var(--danger)]/30 bg-[var(--danger)]/8 px-4 py-3 text-sm text-[#efb4b7]">
           The confirmation link could not be completed. Request a new link or
           try signing in.
+        </p>
+      ) : null}
+      {parameters.message === "password-updated" ? (
+        <p
+          className="mt-5 rounded-xl border border-[var(--success)]/25 bg-[var(--success)]/8 px-4 py-3 text-sm text-[#a8ead3]"
+          role="status"
+        >
+          Your password was updated. Sign in with the new password.
         </p>
       ) : null}
       <div className="mt-8">

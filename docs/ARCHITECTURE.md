@@ -2,7 +2,7 @@
 
 ## System overview
 
-Signal or Synthetic is a Next.js App Router application with a small
+Bot or Not is a Next.js App Router application with a small
 client-side game core and Supabase as the system of record.
 
 ```mermaid
@@ -175,17 +175,18 @@ early instead of silently breaking scoring.
 
 The normalized schema uses:
 
-- `profiles` and `user_stats` for the account shell
+- `profiles`, `user_stats`, and `user_settings` for the account shell
 - `categories` and `challenges` for the active catalog
 - `game_sessions` and `question_attempts` for gameplay facts
 - `analytics_snapshots` for materialized historical summaries
 - `xp_history` for an auditable progression ledger
 - `daily_streaks` for calendar-level activity
 
-An `auth.users` trigger creates the profile and user stats. The first non-empty
-completed session creates the first daily-streak row. All user-owned tables use
-RLS with `auth.uid()`. Authenticated users can read active categories and
-challenges, but only secure functions create attempts or finalize a session.
+An `auth.users` trigger creates the profile, stats, and settings rows. The first
+non-empty completed session creates the first daily-streak row. All user-owned
+tables use RLS with `auth.uid()`. Authenticated users can read active categories
+and challenges, but only secure functions create attempts or finalize a
+session.
 `client_run_id` is unique per user, making completion retries idempotent. The
 service-role ingestion script is server-only.
 
@@ -202,6 +203,52 @@ with a sanitized local `next` path. Auth actions validate inputs with Zod.
 Supabase sends confirmation links to `/auth/callback`, which exchanges the code
 and restores the intended destination. Missing environment variables produce a
 configuration message rather than a false logged-in state.
+
+Password recovery uses the same PKCE-compatible callback. The callback accepts
+only a sanitized local destination, exchanges the one-time code into secure
+cookies, and sends recovery sessions to `/reset-password`. Sign-in validation
+accepts existing passwords independently of the stronger sign-up policy, and
+provider errors are mapped to non-enumerating user messages.
+
+## Phase Three analytics
+
+`get_user_analytics` is a security-definer, owner-bound RPC. It computes
+complete summary aggregates in PostgreSQL and returns at most 120 recent
+completed sessions for trend rendering. Category performance comes from
+attempt facts; charts use session aggregates, so the browser never downloads a
+large attempt history. Recharts is imported only by the Analytics route.
+
+Every chart has a textual equivalent. Fewer than three applicable sessions
+produce a sample-size empty state instead of a misleading line.
+
+## Local-calendar streaks
+
+The browser submits its UTC offset when a completed run is persisted.
+`finalize_game_run_v2` calls the original authoritative scoring transaction,
+then atomically assigns the session to the corresponding local date, reconciles
+the daily bonus, recomputes consecutive-day islands, stores an aggregate
+snapshot, and returns the corrected streak. Duplicate run IDs skip every
+second award and date mutation.
+
+The offset is also stored in user settings and on the session for auditability.
+This MVP deliberately records offsets rather than named IANA zones. A later
+version can add a zone name to preserve daylight-saving history without
+changing daily activity rows.
+
+## Preferences and offline behavior
+
+`user_settings` is a one-to-one, RLS-protected account table. Server components
+load durable preferences; a small local cache applies motion and interaction
+settings immediately. Gameplay pauses before refresh, optionally confirms
+abandonment, and displays an offline notice. A loaded question remains
+answerable without a connection; refills and persistence expose retry states.
+
+## Diagnostics and deployment
+
+`/api/health` returns only application status, configuration presence, and a
+timestamp—never credentials. The production build has no runtime dependency on
+the service-role key. GitHub Actions applies the same format, lint, type, test,
+dataset, build, and browser gates documented for local use.
 
 ## Future multiplayer
 

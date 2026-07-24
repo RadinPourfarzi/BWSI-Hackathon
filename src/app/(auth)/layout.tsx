@@ -11,9 +11,9 @@ export default function AuthenticationLayout({
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgb(79_140_255/0.17),transparent_38%),radial-gradient(circle_at_70%_80%,rgb(255_79_163/0.09),transparent_34%)]" />
         <Link className="relative flex items-center gap-3 font-black" href="/">
           <span className="grid size-10 place-items-center rounded-xl bg-[var(--blue-strong)] text-sm">
-            S/S
+            B/N
           </span>
-          Signal or Synthetic
+          Bot or Not
         </Link>
         <blockquote className="relative max-w-lg">
           <p className="text-3xl leading-tight font-black tracking-tight">

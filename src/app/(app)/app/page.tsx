@@ -1,12 +1,15 @@
 import {
   ArrowRight,
+  BarChart3,
   BrainCircuit,
   Flame,
   Gauge,
   Images,
   MailWarning,
   Mic2,
+  Settings,
   Trophy,
+  UserRound,
 } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -14,6 +17,8 @@ import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { buttonClassName } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { xpRequiredForLevel } from "@/config/xp";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { formatNumber } from "@/lib/utils";
 import { getShellProfile } from "@/services/profile";
@@ -28,6 +33,10 @@ export default async function DashboardPage() {
   if (!user) redirect("/sign-in");
 
   const profile = await getShellProfile(user);
+  const currentLevelStart = xpRequiredForLevel(profile.level);
+  const nextLevelStart = xpRequiredForLevel(profile.level + 1);
+  const levelXp = Math.max(0, profile.totalXp - currentLevelStart);
+  const levelTarget = Math.max(1, nextLevelStart - currentLevelStart);
 
   return (
     <div className="animate-enter">
@@ -62,8 +71,8 @@ export default async function DashboardPage() {
                 Complete one mixed round.
               </h2>
               <p className="mt-3 leading-7 text-[var(--muted)]">
-                Twelve challenges across images, email, and voice. Keep a combo
-                alive for a larger score multiplier.
+                A rotating mix of images, email, and voice. Keep a combo alive
+                for a larger score multiplier.
               </p>
               <div className="mt-7 flex flex-wrap gap-2">
                 <Badge>
@@ -152,6 +161,70 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
         ))}
+      </section>
+
+      <section className="mt-5 grid gap-4 lg:grid-cols-[1fr_2fr]">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold tracking-wider text-[var(--muted)] uppercase">
+                  Progression
+                </p>
+                <p className="mt-2 text-2xl font-black">
+                  Level {profile.level}
+                </p>
+              </div>
+              <Badge>{formatNumber(profile.totalXp)} total XP</Badge>
+            </div>
+            <Progress
+              className="mt-5"
+              label="Progress to the next level"
+              max={levelTarget}
+              value={levelXp}
+            />
+            <p className="mt-2 text-xs text-[var(--muted)]">
+              {formatNumber(levelXp)} of {formatNumber(levelTarget)} XP toward
+              level {profile.level + 1}
+            </p>
+          </CardContent>
+        </Card>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[
+            {
+              href: "/app/analytics",
+              label: "Analytics",
+              description: "Track accuracy, speed, and category trends.",
+              icon: BarChart3,
+            },
+            {
+              href: "/app/profile",
+              label: "Profile",
+              description: "Review progression and recent activity.",
+              icon: UserRound,
+            },
+            {
+              href: "/app/settings",
+              label: "Settings",
+              description: "Tune categories, sound, motion, and controls.",
+              icon: Settings,
+            },
+          ].map((action) => (
+            <Link
+              className="group rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 transition-all hover:-translate-y-0.5 hover:border-[var(--blue)]/50"
+              href={action.href}
+              key={action.href}
+            >
+              <action.icon className="size-5 text-[var(--blue)]" />
+              <h2 className="mt-4 font-black">{action.label}</h2>
+              <p className="mt-2 text-xs leading-5 text-[var(--muted)]">
+                {action.description}
+              </p>
+              <ArrowRight className="mt-4 size-4 text-[var(--blue)] transition-transform group-hover:translate-x-1" />
+            </Link>
+          ))}
+        </div>
       </section>
     </div>
   );

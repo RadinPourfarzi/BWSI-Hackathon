@@ -30,8 +30,7 @@ const generatedImageSource = {
   sourceDataset: "Project-generated AI image starter set",
   originalSourceUrl: "https://openai.com/index/image-generation-api/",
   license: "CC0-1.0 project data release",
-  attribution:
-    "Generated for Signal or Synthetic; released with the starter data.",
+  attribution: "Generated for Bot or Not; released with the starter data.",
 };
 
 const realImageSource = {

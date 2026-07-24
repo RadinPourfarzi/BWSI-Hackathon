@@ -55,12 +55,13 @@ export async function persistGameRun(
     averageResponseMs: submission.summary.averageResponseMs,
     categoryBreakdown: submission.summary.categoryBreakdown as Json,
   };
-  const { data, error } = await supabase.rpc("finalize_game_run", {
+  const { data, error } = await supabase.rpc("finalize_game_run_v2", {
     p_run_id: submission.runId,
     p_mode: submission.mode,
     p_enabled_categories: submission.enabledCategories,
     p_attempts: attempts,
     p_summary: summary,
+    p_timezone_offset_minutes: new Date().getTimezoneOffset(),
   });
 
   if (error) {

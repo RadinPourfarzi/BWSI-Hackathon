@@ -23,9 +23,9 @@ export default async function SignUpPage({
         href="/"
       >
         <span className="grid size-9 place-items-center rounded-xl bg-[var(--blue-strong)] text-xs">
-          S/S
+          B/N
         </span>
-        Signal or Synthetic
+        Bot or Not
       </Link>
       <p className="mt-10 text-sm font-bold tracking-[0.18em] text-[var(--pink)] uppercase lg:mt-0">
         Create your profile

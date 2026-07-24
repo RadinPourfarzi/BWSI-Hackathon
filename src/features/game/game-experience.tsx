@@ -8,6 +8,10 @@ import { Button, buttonClassName } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { CategoryId } from "@/config/categories";
 import { gameConfig, type GameMode } from "@/config/game";
+import {
+  defaultPlayerSettings,
+  type PlayerSettings,
+} from "@/features/settings/types";
 import { CategorySelector } from "@/features/game/category-selector";
 import {
   createGameRunSubmission,
@@ -45,9 +49,11 @@ function isAbortError(error: unknown): boolean {
 export function GameExperience({
   mode,
   initialBestScore,
+  settings = defaultPlayerSettings,
 }: {
   mode: GameMode;
   initialBestScore: number;
+  settings?: PlayerSettings;
 }) {
   const engine = useGameStore(selectEngine);
   const hydrated = useGameStore(selectHydrated);
@@ -90,16 +96,28 @@ export function GameExperience({
       useGameStore.getState().pause(performance.now());
     }
 
-    window.addEventListener("beforeunload", pauseBeforeUnload);
+    function handleBeforeUnload(event: BeforeUnloadEvent) {
+      pauseBeforeUnload();
+      const current = useGameStore.getState().engine;
+      if (
+        settings.confirmAbandon &&
+        current &&
+        current.status !== "completed"
+      ) {
+        event.preventDefault();
+      }
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
-      window.removeEventListener("beforeunload", pauseBeforeUnload);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       requestController.current?.abort();
       unmountPauseTimer.current = window.setTimeout(
         () => useGameStore.getState().pause(performance.now()),
         0,
       );
     };
-  }, []);
+  }, [settings.confirmAbandon]);
 
   useEffect(() => {
     if (
@@ -281,6 +299,14 @@ export function GameExperience({
   }
 
   function discardRun() {
+    if (
+      settings.confirmAbandon &&
+      engine?.status !== "completed" &&
+      !window.confirm("Discard this run? Unsaved progress will be lost.")
+    ) {
+      return;
+    }
+
     requestController.current?.abort();
     refillBlockedAt.current = null;
     reset();
@@ -331,6 +357,7 @@ export function GameExperience({
       <CategorySelector
         disabled={startPending}
         error={startError}
+        initialCategories={settings.defaultCategories}
         mode={mode}
         onStart={(categories) => void start(categories)}
       />
@@ -343,6 +370,7 @@ export function GameExperience({
       onDiscard={discardRun}
       onRetryBatch={retryBatch}
       onRetrySave={() => void saveCompletedRun()}
+      settings={settings}
     />
   );
 }

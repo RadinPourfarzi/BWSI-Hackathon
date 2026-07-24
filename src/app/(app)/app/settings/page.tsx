@@ -1,57 +1,41 @@
 import type { Metadata } from "next";
-import { Database, KeyRound, Settings2 } from "lucide-react";
+import { redirect } from "next/navigation";
 
-import { Card, CardContent } from "@/components/ui/card";
+import { SettingsForm } from "@/features/settings/settings-form";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getPlayerSettings } from "@/services/settings";
 
 export const metadata: Metadata = {
   title: "Settings",
 };
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const supabase = await createServerSupabaseClient();
+  if (!supabase)
+    redirect("/sign-in?error=configuration&next=%2Fapp%2Fsettings");
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/sign-in?next=%2Fapp%2Fsettings");
+
+  const settings = await getPlayerSettings(user.id);
+
   return (
     <div className="animate-enter">
       <p className="text-xs font-bold tracking-[0.18em] text-[var(--blue)] uppercase">
         Settings
       </p>
       <h1 className="mt-2 text-3xl font-black tracking-tight">
-        Account and game
+        Make the game yours
       </h1>
-      <p className="mt-2 text-[var(--muted)]">
-        Production authentication and progress are tied to your Supabase
-        account.
+      <p className="mt-2 max-w-2xl text-[var(--muted)]">
+        Preferences follow your account. A local copy keeps interactions
+        consistent while the network reconnects.
       </p>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-3">
-        {[
-          {
-            icon: KeyRound,
-            title: "Authentication",
-            description:
-              "Email and password sessions use secure HTTP-only Supabase cookies.",
-          },
-          {
-            icon: Database,
-            title: "Progress storage",
-            description:
-              "Attempts, XP, accuracy, sessions, and streaks are saved to your profile.",
-          },
-          {
-            icon: Settings2,
-            title: "Game balance",
-            description:
-              "Difficulty, scoring, animation, XP, and category labels are configuration-driven.",
-          },
-        ].map((item) => (
-          <Card key={item.title}>
-            <CardContent className="p-6">
-              <item.icon className="size-6 text-[var(--blue)]" />
-              <h2 className="mt-5 font-black">{item.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
-                {item.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="mt-8">
+        <SettingsForm initialSettings={settings} />
       </div>
     </div>
   );

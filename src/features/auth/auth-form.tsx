@@ -87,14 +87,27 @@ export function AuthForm({
           autoComplete={signingUp ? "new-password" : "current-password"}
           className="mt-2 h-12 w-full rounded-xl border border-[var(--border)] bg-[#090d15] px-4 text-sm placeholder:text-[#59657a]"
           id="password"
-          minLength={8}
+          minLength={signingUp ? 8 : 1}
           name="password"
-          placeholder="At least 8 characters"
+          placeholder={
+            signingUp ? "At least 8 characters" : "Enter your password"
+          }
           required
           type="password"
         />
         <FieldError errors={state.fieldErrors?.password} id="password-error" />
       </div>
+
+      {!signingUp ? (
+        <div className="-mt-1 text-right">
+          <Link
+            className="text-xs font-bold text-[var(--blue)] hover:text-white"
+            href="/forgot-password"
+          >
+            Forgot password?
+          </Link>
+        </div>
+      ) : null}
 
       {state.error ? (
         <p

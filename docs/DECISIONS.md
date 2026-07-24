@@ -217,3 +217,62 @@ ranked scoring, but do not build unused services.
 
 **Consequences:** The current system stays understandable. Future features have
 an evolution path without carrying premature operational complexity today.
+
+## ADR-016: Bounded server-side analytics
+
+**Status:** Accepted
+
+**Context:** The dashboard needs complete metrics and useful trends without
+shipping an unbounded attempt history or adding chart cost to gameplay.
+
+**Decision:** Aggregate complete summary values and category facts in an
+owner-bound PostgreSQL RPC. Return only the latest 120 completed session
+aggregates for trends. Load Recharts only on the Analytics route.
+
+**Consequences:** The dashboard remains fast as histories grow. Very old
+session-level points are intentionally omitted from charts while all-time
+summary values remain complete.
+
+## ADR-017: Local-day streaks use recorded UTC offsets
+
+**Status:** Accepted
+
+**Context:** A database UTC date does not match a player’s local calendar day,
+and duplicate saves must never increment a streak twice.
+
+**Decision:** Submit and validate the browser UTC offset during the idempotent
+completion RPC. Record the resolved activity date and offset on the session,
+reconcile daily XP, and recompute streak islands in the same transaction.
+
+**Consequences:** Local days are correct at play time with no location
+permission or notification service. The offset is not a named timezone, so a
+future version should add IANA zones for long-term daylight-saving semantics.
+
+## ADR-018: Durable settings with a local interaction cache
+
+**Status:** Accepted
+
+**Context:** Preferences should follow an account while still applying
+immediately during transient network loss.
+
+**Decision:** Store supported settings in an owner-only Supabase row and cache
+the validated values in local storage. Keep profile editing limited to a
+bounded display name.
+
+**Consequences:** Account behavior is consistent across sessions, local
+interaction remains responsive, and no secrets or internal IDs enter the
+preferences surface.
+
+## ADR-019: Password recovery shares the safe callback boundary
+
+**Status:** Accepted
+
+**Context:** Email/password login needs a complete recovery path without adding
+an open redirect or leaking whether an account exists.
+
+**Decision:** Send recovery links through `/auth/callback`, validate every
+destination as same-origin and local, exchange the one-time code into cookies,
+and use generic reset-request responses.
+
+**Consequences:** Confirmation and recovery use one reviewed boundary. Invalid
+or expired links fail closed and return the player to sign-in.

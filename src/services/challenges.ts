@@ -73,9 +73,9 @@ export async function getChallengeBatch({
   if (categoryResult.error || !categoryResult.data?.length) {
     return {
       challenges: [],
-      error:
-        categoryResult.error?.message ??
-        "No active challenge categories are seeded.",
+      error: categoryResult.error
+        ? "Challenge categories are temporarily unavailable."
+        : "No active challenge categories are seeded.",
       exhausted: false,
       availableCount: 0,
     };
@@ -97,7 +97,7 @@ export async function getChallengeBatch({
   if (challengeResult.error) {
     return {
       challenges: [],
-      error: challengeResult.error.message,
+      error: "Challenges could not be loaded right now.",
       exhausted: false,
       availableCount: 0,
     };

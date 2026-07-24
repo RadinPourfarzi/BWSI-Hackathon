@@ -55,6 +55,7 @@ import type {
   GameEngineState,
   PersistedGameResult,
 } from "@/features/game/types";
+import type { PlayerSettings } from "@/features/settings/types";
 import { cn, formatNumber } from "@/lib/utils";
 
 function useQuestionClock(engine: GameEngineState | null): number {
@@ -396,11 +397,13 @@ export function GameBoard({
   onDiscard,
   onRetryBatch,
   onRetrySave,
+  settings,
 }: {
   initialBestScore: number;
   onDiscard: () => void;
   onRetryBatch: () => void;
   onRetrySave: () => void;
+  settings: PlayerSettings;
 }) {
   const engine = useGameStore(selectEngine);
   const challenge = useGameStore(selectCurrentChallenge);
@@ -545,6 +548,36 @@ export function GameBoard({
 
   function choose(choice: BinaryChoice, answeredAtMs: number) {
     answer(choice, answeredAtMs);
+    if (!settings.soundEffects || settings.volume === 0) return;
+
+    const attempt = useGameStore.getState().engine?.attempts.at(-1);
+    const AudioContextClass =
+      window.AudioContext ??
+      (
+        window as typeof window & {
+          webkitAudioContext?: typeof AudioContext;
+        }
+      ).webkitAudioContext;
+    if (!attempt || !AudioContextClass) return;
+
+    try {
+      const context = new AudioContextClass();
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.frequency.value = attempt.isCorrect ? 660 : 220;
+      gain.gain.value = Math.min(0.12, settings.volume / 800);
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start();
+      oscillator.stop(context.currentTime + 0.08);
+      oscillator.addEventListener(
+        "ended",
+        () => void context.close().catch(() => undefined),
+        { once: true },
+      );
+    } catch {
+      // Sound effects are optional; gameplay must continue without Web Audio.
+    }
   }
 
   return (
@@ -625,7 +658,12 @@ export function GameBoard({
         </div>
       ) : null}
 
-      <Card className="overflow-hidden">
+      <Card
+        className="overflow-hidden"
+        data-category={challenge.category}
+        data-challenge-id={challenge.id}
+        data-testid="challenge-card"
+      >
         <div className="border-b border-[var(--border)] px-5 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2">
@@ -713,9 +751,11 @@ export function GameBoard({
                     <X className="mr-2 inline size-5" />
                   ) : null}
                   {label}
-                  <span className="absolute right-2 bottom-1.5 text-[9px] font-bold tracking-wider text-[var(--muted)] uppercase">
-                    {shortcut}
-                  </span>
+                  {settings.showKeyboardShortcuts ? (
+                    <span className="absolute right-2 bottom-1.5 text-[9px] font-bold tracking-wider text-[var(--muted)] uppercase">
+                      {shortcut}
+                    </span>
+                  ) : null}
                 </button>
               );
             })}

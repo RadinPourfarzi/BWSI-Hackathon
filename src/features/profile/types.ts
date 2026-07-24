@@ -10,3 +10,19 @@ export type ShellProfile = {
   bestScore: number;
   categoryAccuracy: Record<string, number>;
 };
+
+export type RecentActivity = {
+  id: string;
+  mode: "arcade" | "training";
+  score: number;
+  xpEarned: number;
+  correct: number;
+  answered: number;
+  completedAt: string;
+};
+
+export type PlayerProfile = ShellProfile & {
+  joinDate: string | null;
+  strongestCategory: string | null;
+  recentActivity: RecentActivity[];
+};
