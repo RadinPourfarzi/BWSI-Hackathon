@@ -43,3 +43,12 @@ next-env.d.ts
 # local dev server logs
 devlog.txt
 devlog.err.txt
+
+phishing-email-samples/
+
+# Re-downloadable LibriSpeech source (extract_real_voices.py fetches on demand)
+scripts/tts/data/
+
+# Python caches
+__pycache__/
+*.pyc
