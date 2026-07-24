@@ -1,4 +1,4 @@
-# Data Formats & Templates — AI Detection Gamedditionall
+# Data Formats & Templates — AI Detection Game
 
 > Standardized shapes for content, config, storage, and client↔server payloads.
 > Pairs with `database-schema.md` (persistence) and `project-plan.md` (product spec).
