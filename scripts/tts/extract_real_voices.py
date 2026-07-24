@@ -30,8 +30,8 @@ URL = f"https://www.openslr.org/resources/12/{SUBSET}.tar.gz"
 OUT_DIR = os.path.join(os.path.dirname(__file__), "output", "real")
 
 N_CLIPS = 18
-DUR_MIN, DUR_MAX = 4.0, 8.5
-WORDS_MIN, WORDS_MAX = 8, 18
+DUR_MIN, DUR_MAX = 4.8, 6.6
+WORDS_MIN, WORDS_MAX = 10, 24
 # Archaic / distinctly literary tokens we avoid so real clips read as neutral
 # everyday speech (fairness: topic must not betray the label).
 BLOCK = {
@@ -120,11 +120,17 @@ def main() -> None:
                     continue
                 info = sf.info(flac)
                 dur = info.frames / info.samplerate
-                if not (DUR_MIN <= dur <= DUR_MAX):
+                # Cheap raw prefilter (allow headroom; trimming shrinks duration).
+                if not (DUR_MIN <= dur <= DUR_MAX + 1.5):
                     continue
                 audio, sr = sf.read(flac, dtype="float32")
                 audio = process(audio, sr, rms_dbfs=tgt["rms_dbfs"],
                                 peak_dbfs=tgt["peak_dbfs"], trim_db=tgt["trim_silence_db"])
+                # Enforce the band on the FINAL (post-trim) duration so silence
+                # trimming can't push a clip outside the target range.
+                pdur = len(audio) / sr
+                if not (DUR_MIN <= pdur <= DUR_MAX):
+                    continue
                 # LibriSpeech is 16 kHz; keep native SR (do not upsample — resampling
                 # would be a synthetic artifact). Store true SR in the manifest.
                 idx += 1
