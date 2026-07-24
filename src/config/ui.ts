@@ -14,16 +14,16 @@ export const UI_CONFIG = {
    * reserved for outcome feedback only.
    */
   colors: {
-    ink900: '#141020', // page background (violet-black)
-    ink800: '#1c1730', // raised surface / HUD bar
-    ink700: '#262040', // cards, panels
-    edge: '#332b52', // hairlines, borders
-    text: '#f2eee8', // primary text (warm off-white)
-    muted: '#9e96b4', // secondary text, labels
-    bot: '#9b6dff', // BOT / AI world (synthetic violet)
-    botBright: '#b492ff',
-    not: '#ff8a5b', // NOT / REAL world (human amber)
-    notBright: '#ff9e77',
+    ink900: '#0a0f1c', // page background (blue-black)
+    ink800: '#121b2e', // raised surface / HUD bar
+    ink700: '#1c2740', // cards, panels
+    edge: '#2c3a57', // hairlines, borders
+    text: '#edf1f8', // primary text (cool off-white)
+    muted: '#94a1ba', // secondary text, labels
+    bot: '#3e7cf9', // BOT / AI world (electric blue)
+    botBright: '#6e9bfb',
+    not: '#ed9121', // NOT / REAL world (warm orange)
+    notBright: '#f4a63c',
     correct: '#35d6a4', // outcome only
     wrong: '#ff4d6d', // outcome only
   },

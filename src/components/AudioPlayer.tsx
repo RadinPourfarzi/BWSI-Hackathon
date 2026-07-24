@@ -115,7 +115,7 @@ export function AudioPlayer({
           type="button"
           onClick={toggle}
           aria-label={playing ? 'Pause clip' : 'Play clip'}
-          className="bg-bot text-ink-900 hover:bg-bot-bright flex h-12 w-12 shrink-0 items-center justify-center rounded-full shadow-[0_0_24px_rgba(155,109,255,0.35)] transition-colors"
+          className="bg-bot text-ink-900 hover:bg-bot-bright flex h-12 w-12 shrink-0 items-center justify-center rounded-full shadow-[0_0_24px_rgba(62,124,249,0.35)] transition-colors"
         >
           {playing ? (
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">

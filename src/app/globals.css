@@ -6,17 +6,17 @@
  * (bg-ink-900, text-bot, font-display, ...). "Signal vs. Synthetic" identity, dark-only.
  */
 @theme {
-  --color-ink-900: #141020;
-  --color-ink-800: #1c1730;
-  --color-ink-700: #262040;
-  --color-edge: #332b52;
-  --color-text: #f2eee8;
-  --color-muted: #9e96b4;
+  --color-ink-900: #0a0f1c;
+  --color-ink-800: #121b2e;
+  --color-ink-700: #1c2740;
+  --color-edge: #2c3a57;
+  --color-text: #edf1f8;
+  --color-muted: #94a1ba;
 
-  --color-bot: #9b6dff;
-  --color-bot-bright: #b492ff;
-  --color-not: #ff8a5b;
-  --color-not-bright: #ff9e77;
+  --color-bot: #3e7cf9;
+  --color-bot-bright: #6e9bfb;
+  --color-not: #ed9121;
+  --color-not-bright: #f4a63c;
 
   --color-correct: #35d6a4;
   --color-wrong: #ff4d6d;
@@ -52,7 +52,7 @@ body {
   z-index: 1;
 }
 
-/* Accessible focus ring in the brand violet. */
+/* Accessible focus ring in the brand blue. */
 :focus-visible {
   outline: 2px solid var(--color-bot-bright);
   outline-offset: 2px;

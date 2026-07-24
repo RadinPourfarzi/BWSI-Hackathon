@@ -23,13 +23,13 @@ export function TrendCharts({ trends }: { trends: DailyTrend[] }) {
     speed: Number((t.avgSpeedMs / 1000).toFixed(2)),
   }));
 
-  const axis = { fontSize: 12, fill: '#9e96b4' } as const;
+  const axis = { fontSize: 12, fill: '#94a1ba' } as const;
   const tooltip = {
     contentStyle: {
-      background: '#1c1730',
-      border: '1px solid #332b52',
+      background: '#121b2e',
+      border: '1px solid #2c3a57',
       borderRadius: 8,
-      color: '#f2eee8',
+      color: '#edf1f8',
     },
   } as const;
 
@@ -41,11 +41,11 @@ export function TrendCharts({ trends }: { trends: DailyTrend[] }) {
         </div>
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={data} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#332b52" />
-            <XAxis dataKey="day" tick={axis} stroke="#332b52" />
-            <YAxis domain={[0, 100]} tick={axis} stroke="#332b52" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#2c3a57" />
+            <XAxis dataKey="day" tick={axis} stroke="#2c3a57" />
+            <YAxis domain={[0, 100]} tick={axis} stroke="#2c3a57" />
             <Tooltip {...tooltip} />
-            <Line type="monotone" dataKey="accuracy" stroke="#35d6a4" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="accuracy" stroke="#3e7cf9" strokeWidth={2} dot={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -56,11 +56,11 @@ export function TrendCharts({ trends }: { trends: DailyTrend[] }) {
         </div>
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={data} margin={{ top: 5, right: 10, bottom: 5, left: -20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#332b52" />
-            <XAxis dataKey="day" tick={axis} stroke="#332b52" />
-            <YAxis tick={axis} stroke="#332b52" />
+            <CartesianGrid strokeDasharray="3 3" stroke="#2c3a57" />
+            <XAxis dataKey="day" tick={axis} stroke="#2c3a57" />
+            <YAxis tick={axis} stroke="#2c3a57" />
             <Tooltip {...tooltip} />
-            <Line type="monotone" dataKey="speed" stroke="#9b6dff" strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="speed" stroke="#ed9121" strokeWidth={2} dot={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>

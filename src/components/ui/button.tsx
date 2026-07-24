@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 // (BOT violet primary, amber/ink surfaces). Same API: variant + size + asChild.
 const variants = {
   primary:
-    'bg-bot text-ink-900 hover:bg-bot-bright shadow-[0_10px_30px_rgba(155,109,255,0.25)]',
+    'bg-bot text-ink-900 hover:bg-bot-bright shadow-[0_10px_30px_rgba(62,124,249,0.25)]',
   secondary: 'border border-edge bg-ink-700 text-text hover:border-bot/40 hover:bg-ink-800',
   ghost: 'text-muted hover:bg-white/5 hover:text-text',
   danger: 'border border-wrong/40 bg-wrong/10 text-wrong hover:bg-wrong/15',
