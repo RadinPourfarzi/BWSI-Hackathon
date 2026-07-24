@@ -4,6 +4,7 @@
 > making non-trivial changes. This file is the condensed, directive-focused summary.
 >
 > Reference docs:
+>
 > - `docs/database-schema.md` — canonical Supabase Postgres schema (DDL, RLS, triggers,
 >   `submit_run` RPC, analytics queries, seed data).
 > - `docs/data-formats.md` — TS domain types, per-category `metadata` shapes, storage
@@ -34,7 +35,7 @@ engagement is the primary design goal**. Target build window is a 6–8 hour hac
 - **Server-authoritative progression.** Score, XP, level, and streak are recomputed and
   persisted by the `submit_run()` RPC from raw per-attempt facts (response time, question
   index, correctness, combo). The client never sends trusted score/XP values. Client-side
-  *correctness* validation is the accepted MVP trade-off, isolated to the fetch/submit RPCs
+  _correctness_ validation is the accepted MVP trade-off, isolated to the fetch/submit RPCs
   so anti-cheat can be tightened later without touching gameplay code.
 - **Decouple engine from UI.** Game business logic (timers, scoring, life deduction, combo)
   lives in custom hooks (`useGameEngine`, `useScoringTimer`), never inside render components.
@@ -79,8 +80,8 @@ Components stay small and single-purpose (e.g., `TimerBar.tsx`, `MediaContainer.
 
 ## Core mechanics (implement from config; values here are examples)
 
-- **Game modes:** *Arcade* (3 lives, score decay, combo, ends at 0 lives, persists stats)
-  and *Training* (unlimited lives, no decay/penalties, shows correctness + explanation
+- **Game modes:** _Arcade_ (3 lives, score decay, combo, ends at 0 lives, persists stats)
+  and _Training_ (unlimited lives, no decay/penalties, shows correctness + explanation
   placeholder). Both share the same question-sampling engine.
 - **Scoring — Plateau + Exponential Ease-In Decay.** Obtainable points:
   `S(t) = M` for `t ≤ t_p`, else `max(0, round(M − α·(t − t_p)^β))`.
@@ -89,7 +90,7 @@ Components stay small and single-purpose (e.g., `TimerBar.tsx`, `MediaContainer.
 - **Combo:** consecutive correct answers raise the multiplier; awarded points =
   `S(t) × combo`. A wrong answer resets combo to `1×`.
 - **Difficulty progression:** MVP does NOT filter question content difficulty. Difficulty
-  ramps purely via evolving *game constraints* (max points, timer, plateau, decay) keyed on
+  ramps purely via evolving _game constraints_ (max points, timer, plateau, decay) keyed on
   question-count thresholds in `/config/difficulty.ts`. Questions still carry a
   `difficulty_rating` column for future content-based filtering.
 - **Category grace periods:** consumption-heavy media (audio) pauses timer/decay for a
