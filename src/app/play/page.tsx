@@ -35,6 +35,7 @@ export default function PlayPage() {
   const [runResult, setRunResult] = useState<RunResult | null>(null);
   const prefetchingRef = useRef(false);
   const submittedRef = useRef(false);
+  const [timedOut, setTimedOut] = useState(false);
 
   const handleAnswer = useCallback(
     (choiceIsAi: boolean) => {
@@ -45,6 +46,7 @@ export default function PlayPage() {
       if (outcome === null) {
         return;
       }
+      setTimedOut(false);
       setFeedback(outcome);
       // Arcade auto-advances after a brief flash; Training waits for a manual Next.
       if (!isTraining) {
@@ -57,7 +59,26 @@ export default function PlayPage() {
     [status, feedback, answer, next, isTraining],
   );
 
+  // Timer expiry (Arcade) — count as a wrong answer: lose a life, reset combo, 0 points.
+  const handleTimeout = useCallback(() => {
+    if (status !== 'running' || feedback !== null || current === null) {
+      return;
+    }
+    const outcome = answer(!current.isAi); // force incorrect
+    if (outcome === null) {
+      return;
+    }
+    setTimedOut(true);
+    setFeedback(outcome);
+    window.setTimeout(() => {
+      setTimedOut(false);
+      setFeedback(null);
+      next();
+    }, UI_CONFIG.motion.callMs);
+  }, [status, feedback, current, answer, next]);
+
   const goNext = useCallback(() => {
+    setTimedOut(false);
     setFeedback(null);
     next();
   }, [next]);
@@ -82,6 +103,18 @@ export default function PlayPage() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [handleAnswer, goNext, feedback, isTraining]);
+
+  // Time's up (Arcade only) — auto-resolve the question as wrong.
+  useEffect(() => {
+    if (isTraining || status !== 'running' || feedback !== null || current === null) {
+      return;
+    }
+    if (timer.remainingMs > 0) {
+      return;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- timeout resolves the question
+    handleTimeout();
+  }, [isTraining, status, feedback, current, timer.remainingMs, handleTimeout]);
 
   // Background top-up: fetch more questions when the queue runs low (project-plan §7).
   useEffect(() => {
@@ -225,7 +258,9 @@ export default function PlayPage() {
 
         {/* "The Call": Arcade shows the fast flash over the media; Training keeps it visible. */}
         <AnimatePresence>
-          {feedback !== null && !isTraining && <CallOverlay outcome={feedback} />}
+          {feedback !== null && !isTraining && (
+            <CallOverlay outcome={feedback} timedOut={timedOut} />
+          )}
         </AnimatePresence>
       </div>
 

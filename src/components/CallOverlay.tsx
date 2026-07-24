@@ -11,12 +11,13 @@ import { feedbackMessage, UI_CONFIG } from '@/config';
  * message is resolved once per outcome (useMemo) so the ~60fps timer re-renders during the
  * flash don't re-roll it and cause flicker.
  */
-export function CallOverlay({ outcome }: { outcome: AnswerOutcome }) {
+export function CallOverlay({ outcome, timedOut }: { outcome: AnswerOutcome; timedOut?: boolean }) {
   const correct = outcome.isCorrect;
-  const message = useMemo(
+  const rolled = useMemo(
     () => feedbackMessage(correct, outcome.comboAfter),
     [correct, outcome.comboAfter],
   );
+  const message = timedOut ? "Time's up" : rolled;
   const color = correct ? 'var(--color-correct)' : 'var(--color-wrong)';
 
   return (
