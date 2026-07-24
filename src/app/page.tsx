@@ -106,7 +106,7 @@ export default function Home() {
             href="/analytics"
             className="border-edge text-muted hover:text-text rounded-md border px-2 py-1 tracking-wide uppercase transition-colors"
           >
-            Record
+            Analytics
           </Link>
           <form action={signOut}>
             <button

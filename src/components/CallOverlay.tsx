@@ -1,5 +1,6 @@
 'use client';
 
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { AnswerOutcome } from '@/store/gameStore';
 import { feedbackMessage, UI_CONFIG } from '@/config';
@@ -7,11 +8,15 @@ import { feedbackMessage, UI_CONFIG } from '@/config';
 /**
  * "The Call" — a fast, out-of-the-way answer flash + a short streak-aware message. Emerald
  * for correct, red for wrong (the brief's cue). No sweep/stamp; speed is the point. The
- * message is resolved once per outcome so it doesn't flicker between renders.
+ * message is resolved once per outcome (useMemo) so the ~60fps timer re-renders during the
+ * flash don't re-roll it and cause flicker.
  */
 export function CallOverlay({ outcome }: { outcome: AnswerOutcome }) {
   const correct = outcome.isCorrect;
-  const message = feedbackMessage(correct, outcome.comboAfter);
+  const message = useMemo(
+    () => feedbackMessage(correct, outcome.comboAfter),
+    [correct, outcome.comboAfter],
+  );
   const color = correct ? 'var(--color-correct)' : 'var(--color-wrong)';
 
   return (
