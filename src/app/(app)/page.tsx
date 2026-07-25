@@ -169,13 +169,14 @@ function HomeInner() {
       handledModeRef.current !== modeParam
     ) {
       handledModeRef.current = modeParam;
-      void start(modeParam === 'training' ? 'TRAINING' : 'ARCADE').finally(() => {
-        // Clear the mode query to keep retriggers intentional (sidebar click adds it again).
-        router.replace('/');
-        handledModeRef.current = null;
+      void start(modeParam === 'training' ? 'TRAINING' : 'ARCADE').then((ok) => {
+        // Keep one-shot behavior per URL state; allow retry on failure.
+        if (!ok) {
+          handledModeRef.current = null;
+        }
       });
     }
-  }, [modeParam, start, starting, router]);
+  }, [modeParam, start, starting]);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
