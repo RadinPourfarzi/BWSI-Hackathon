@@ -45,6 +45,13 @@ html.light {
   --color-not-bright: #e59322;
 }
 
+/* Light mode reads cleaner flat — drop the dark drop-shadows and accent glows. */
+html.light *,
+html.light *::before,
+html.light *::after {
+  box-shadow: none !important;
+}
+
 /* Smooth theme switch (disabled under reduced motion below). */
 *,
 *::before,
