@@ -1,6 +1,7 @@
 'use client';
 
 import { BarChart3, Dumbbell, Flame, Home, LogOut, Swords } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -126,6 +127,7 @@ export function AppNav(props: AppNavProps) {
       <aside className="border-edge bg-ink-900/95 fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r px-4 py-5 backdrop-blur lg:flex">
         <div className="flex items-center justify-between px-2">
           <Link href="/" className="flex items-center gap-2">
+            <Image src="/logo.png" alt="Bot or Not logo" width={28} height={28} className="rounded" />
             <Wordmark className="text-base" />
           </Link>
           <ThemeToggle />
