@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useActionState, useState } from 'react';
+import { Suspense, useActionState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { signIn, signUp, type AuthActionState } from '@/app/auth/actions';
@@ -13,16 +13,16 @@ const initialState: AuthActionState = { error: null };
 function LoginForm() {
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') ?? '/';
-  const [mode, setMode] = useState<'signin' | 'signup'>(
-    searchParams.get('mode') === 'signup' ? 'signup' : 'signin',
-  );
+  const mode: 'signin' | 'signup' = searchParams.get('mode') === 'signup' ? 'signup' : 'signin';
 
   const action = mode === 'signin' ? signIn : signUp;
   const [state, formAction, pending] = useActionState(action, initialState);
+  const signInHref = `/login?mode=signin&redirect=${encodeURIComponent(redirectTo)}`;
+  const signUpHref = `/login?mode=signup&redirect=${encodeURIComponent(redirectTo)}`;
 
   const tabClass = (active: boolean) =>
     cn(
-      'flex-1 rounded-lg px-4 py-2 font-mono text-sm uppercase tracking-wide transition-colors',
+      'flex-1 rounded-lg px-4 py-2 text-center font-mono text-sm uppercase tracking-wide transition-colors',
       active ? 'bg-text text-ink-900' : 'text-muted hover:text-text',
     );
 
@@ -44,20 +44,18 @@ function LoginForm() {
       }
     >
       <div className="border-edge mb-5 flex gap-1 rounded-xl border p-1">
-        <button
-          type="button"
+        <Link
+          href={signInHref}
           className={tabClass(mode === 'signin')}
-          onClick={() => setMode('signin')}
         >
           Sign in
-        </button>
-        <button
-          type="button"
+        </Link>
+        <Link
+          href={signUpHref}
           className={tabClass(mode === 'signup')}
-          onClick={() => setMode('signup')}
         >
           Sign up
-        </button>
+        </Link>
       </div>
 
       <form action={formAction} className="flex flex-col gap-3">

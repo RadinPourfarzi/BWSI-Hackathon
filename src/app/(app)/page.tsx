@@ -42,6 +42,21 @@ const CATEGORY_PRESENTATION: Record<
 };
 
 const PREVIEW_SRC = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/challenges/image/ai/ai1.jpg`;
+const REQUEST_TIMEOUT_MS = 10000;
+
+async function withTimeout<T>(promise: PromiseLike<T>, timeoutMs = REQUEST_TIMEOUT_MS): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error('Request timed out. Please try again.')), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 
 export default function Home() {
   return (
@@ -70,30 +85,39 @@ function HomeInner() {
     let active = true;
 
     (async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        if (active) {
+      try {
+        const {
+          data: { user },
+        } = await withTimeout(supabase.auth.getUser());
+        if (!active) return;
+
+        if (!user) {
           setIsGuest(true);
-          setLoadingProfile(false);
+          return;
         }
-        return;
+
+        const profileResult = await withTimeout(
+          supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+        );
+        const { data } = profileResult;
+        if (!active) return;
+        if (data) {
+          setProfile({
+            id: data.id,
+            username: data.username,
+            totalXp: data.total_xp,
+            currentLevel: data.current_level,
+            dailyStreak: data.daily_streak,
+            lastPlayedAt: data.last_played_at,
+            createdAt: data.created_at,
+          });
+        }
+      } catch {
+        if (!active) return;
+        setIsGuest(true);
+      } finally {
+        if (active) setLoadingProfile(false);
       }
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
-      if (!active) return;
-      if (data) {
-        setProfile({
-          id: data.id,
-          username: data.username,
-          totalXp: data.total_xp,
-          currentLevel: data.current_level,
-          dailyStreak: data.daily_streak,
-          lastPlayedAt: data.last_played_at,
-          createdAt: data.created_at,
-        });
-      }
-      setLoadingProfile(false);
     })();
 
     return () => {
@@ -105,26 +129,28 @@ function HomeInner() {
     setSelected((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]));
 
   const start = useCallback(
-    async (mode: GameMode) => {
-      if (selected.length === 0 || starting) return;
+    async (mode: GameMode): Promise<boolean> => {
+      if (selected.length === 0 || starting) return false;
       setError(null);
       setStarting(mode);
       try {
         const supabase = createClient();
-        const [config, batch] = await Promise.all([
+        const [config, batch] = await withTimeout(Promise.all([
           fetchActiveConfig(supabase),
           fetchQuestionBatch(supabase, { categories: selected, limit: GAME_CONFIG.batchSize }),
-        ]);
+        ]));
         if (batch.length === 0) {
           setError('No questions available for the selected categories.');
           setStarting(null);
-          return;
+          return false;
         }
         startRun({ mode, pool: batch, enabledCategories: selected, config });
         router.push('/play');
+        return true;
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to start game.');
         setStarting(null);
+        return false;
       }
     },
     [selected, starting, startRun, router],
@@ -137,11 +163,19 @@ function HomeInner() {
   // once per distinct value (works on first load and on same-page sidebar navigation).
   const handledModeRef = useRef<string | null>(null);
   useEffect(() => {
-    if ((modeParam === 'arcade' || modeParam === 'training') && handledModeRef.current !== modeParam) {
+    if (
+      (modeParam === 'arcade' || modeParam === 'training') &&
+      starting === null &&
+      handledModeRef.current !== modeParam
+    ) {
       handledModeRef.current = modeParam;
-      void start(modeParam === 'training' ? 'TRAINING' : 'ARCADE');
+      void start(modeParam === 'training' ? 'TRAINING' : 'ARCADE').finally(() => {
+        // Clear the mode query to keep retriggers intentional (sidebar click adds it again).
+        router.replace('/');
+        handledModeRef.current = null;
+      });
     }
-  }, [modeParam, start]);
+  }, [modeParam, start, starting, router]);
 
   return (
     <div className="mx-auto w-full max-w-6xl px-5 py-8 sm:px-8 sm:py-12">
@@ -155,7 +189,7 @@ function HomeInner() {
           </h1>
           <p className="text-muted mt-5 max-w-md text-lg leading-8">
             {loadingProfile
-              ? 'Loading your file…'
+              ? 'Loading your profile…'
               : `Train your instincts to spot AI images, phishing scams, and voice deepfakes${
                   profile ? `, ${profile.username}` : ''
                 }.`}
