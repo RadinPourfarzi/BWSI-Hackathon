@@ -9,9 +9,9 @@
 > - `docs/data-formats.md` — TS domain types, per-category `metadata` shapes, storage
 >   layout, seed CSV/JSON templates, client↔server payloads, and `/config` file templates.
 >
-> **Status:** Early stage. As of writing, the repo contains only `README.md` and the
-> spec — no application code yet. Follow the architecture below when scaffolding so the
-> first implementation matches the plan.
+> **Status:** Scaffolded (Phase 0 complete). Next.js 16 App Router app initialized with
+> the toolchain below. Implementation follows the phased plan; the game engine, categories,
+> and Supabase wiring are built in subsequent phases.
 
 ## What we're building
 
@@ -48,34 +48,40 @@ engagement is the primary design goal**. Target build window is a 6–8 hour hac
 
 ## Tech stack
 
-- **Frontend:** React (Next.js App Router, or Vite + React).
-- **Language:** TypeScript (strict mode).
-- **Styling / animation:** Tailwind CSS + Framer Motion.
-- **State:** React Context + Zustand (or a lightweight custom store) for game engine state.
+- **Framework:** Next.js **16** (App Router) — ⚠️ Next 16 / React 19 / Tailwind **v4**
+  have breaking changes vs. older versions. Read `node_modules/next/dist/docs/` before
+  writing Next-specific code (per `AGENTS.md`). Do not assume pre-16 APIs/conventions.
+- **Language:** TypeScript, strict mode. No implicit `any`.
+- **React:** 19. **Styling / animation:** Tailwind CSS v4 + Framer Motion.
+- **State:** Zustand for game-engine state.
 - **Backend / Auth / DB / Storage:** Supabase (Auth, Postgres, Storage public bucket for
   media). Auth is email/password only — **no guest mode** for MVP (all progress must persist
   from session one).
-- **Charts (analytics):** lightweight lib such as Recharts or Chart.js.
+- **Charts (analytics):** Recharts.
+- **Testing:** Vitest **3** + React Testing Library + jsdom. (Note: Vitest 4 pulls in
+  `rolldown` whose native binding fails to install on Windows via npm; `@vitejs/plugin-react`
+  is pinned to v4 and `jsdom` to v25 for ESM/CJS compatibility with Vitest 3.)
 
-## Planned project structure
+## Project structure
+
+Source lives under `src/` with the `@/*` import alias → `src/*`.
 
 ```
-/src/categories
-  ├── ImageCategory.tsx
-  ├── EmailCategory.tsx
-  ├── AudioCategory.tsx
-  └── CategoryRegistry.ts
-/config
-  ├── game.ts          # Lives count, batch size, default mode toggles
-  ├── scoring.ts       # Plateau durations, decay multipliers, base points, combo multipliers
-  ├── difficulty.ts    # Escalation steps (time limits, decay acceleration)
-  ├── xp.ts            # XP payout rates, level curves, streak bonuses
-  ├── categories.ts    # Media type constants, grace periods
-  └── ui.ts            # Animation durations, visual thresholds
+src/
+  app/          # Next.js App Router routes
+  categories/   # ImageCategory.tsx, EmailCategory.tsx, AudioCategory.tsx, CategoryRegistry.ts
+  components/    # Small single-purpose UI (TimerBar, MediaContainer, ComboBadge, ...)
+  config/        # game.ts, scoring.ts, difficulty.ts, xp.ts, categories.ts, ui.ts
+  hooks/         # useGameEngine, useScoringTimer
+  lib/           # scoring/difficulty pure fns, supabaseClient, mappers, dummy data
+  store/         # Zustand game store
+  types/         # models.ts (domain + DB types)
 ```
 
-Components stay small and single-purpose (e.g., `TimerBar.tsx`, `MediaContainer.tsx`,
-`ComboBadge.tsx`).
+Config file responsibilities:
+`game.ts` (lives, batch size, prefetch threshold) · `scoring.ts` (decay β, combo
+multipliers) · `difficulty.ts` (escalation tiers) · `xp.ts` (XP/level curve) ·
+`categories.ts` (grace periods) · `ui.ts` (animation/visual, client-only).
 
 ## Core mechanics (implement from config; values here are examples)
 
@@ -131,8 +137,17 @@ Tables: `profiles`, `categories`, `questions` (`is_ai BOOLEAN`, `difficulty_rati
 
 ## Build / test / lint
 
-_No toolchain exists yet._ Once the app is scaffolded, record the exact verified commands
-here (install, dev, build, run all tests, run a single test, lint/typecheck).
+All verified working (npm, Node 20):
+
+- Install: `npm install`
+- Dev server: `npm run dev`
+- Production build: `npm run build`
+- Typecheck: `npm run typecheck` (`tsc --noEmit`)
+- Lint: `npm run lint` (`eslint`)
+- Format: `npm run format` / `npm run format:check` (Prettier)
+- All tests: `npm run test` (`vitest run`); watch: `npm run test:watch`
+- **Single test file:** `npm run test -- src/lib/scoring.test.ts`
+- **Single test by name:** `npm run test -- -t "plateau"`
 
 ## Repo notes
 

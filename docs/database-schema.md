@@ -329,7 +329,7 @@ CREATE OR REPLACE FUNCTION score_attempt(
   p_question_idx INTEGER,
   p_response_ms  INTEGER,
   p_is_correct   BOOLEAN,
-  p_combo        INTEGER    -- 0-based index into scoring.comboMultipliers
+  p_combo        INTEGER    -- 1-based consecutive-correct streak (combo_at_answer); 0 if wrong
 )
 RETURNS INTEGER LANGUAGE plpgsql IMMUTABLE AS $$
 DECLARE
@@ -369,7 +369,8 @@ BEGIN
     v_s := GREATEST(0, round(v_m - v_alpha * power((p_response_ms - v_plateau) / 1000.0, v_beta)));
   END IF;
 
-  v_idx  := LEAST(GREATEST(p_combo, 0), jsonb_array_length(v_mults) - 1);
+  -- combo_at_answer is a 1-based streak; the multiplier array is 0-based, so subtract 1.
+  v_idx  := LEAST(GREATEST(p_combo - 1, 0), jsonb_array_length(v_mults) - 1);
   RETURN GREATEST(0, round(v_s * (v_mults ->> v_idx)::numeric))::int;
 END;
 $$;

@@ -1,0 +1,101 @@
+@import 'tailwindcss';
+
+/*
+ * Design tokens — MIRROR of src/config/ui.ts (keep in sync). ui.ts is the source of truth
+ * for JS/Framer values; these @theme tokens expose the same values as Tailwind utilities
+ * (bg-ink-900, text-bot, font-display, ...). "Signal vs. Synthetic" identity, dark-only.
+ */
+@theme {
+  --color-ink-900: #06090f;
+  --color-ink-800: #101827;
+  --color-ink-700: #1c2740;
+  --color-edge: #2c3a57;
+  --color-text: #edf1f8;
+  --color-muted: #94a1ba;
+
+  --color-bot: #3e7cf9;
+  --color-bot-bright: #6e9bfb;
+  --color-not: #ed9121;
+  --color-not-bright: #f4a63c;
+
+  --color-correct: #35d6a4;
+  --color-wrong: #ff4d6d;
+
+  --font-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-body), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+}
+
+html {
+  color-scheme: dark;
+}
+
+/* Light theme: same blue/orange accents on a soft, cool light base. */
+html.light {
+  color-scheme: light;
+  --color-ink-900: #eef2f8;
+  --color-ink-800: #ffffff;
+  --color-ink-700: #f3f6fb;
+  --color-edge: #d6dfea;
+  --color-text: #121a2b;
+  --color-muted: #566683;
+  --color-bot: #2f6ff2;
+  --color-bot-bright: #5a8cf5;
+  --color-not: #cf7a10;
+  --color-not-bright: #e59322;
+}
+
+/* Light mode reads cleaner flat — drop the dark drop-shadows and accent glows. */
+html.light *,
+html.light *::before,
+html.light *::after {
+  box-shadow: none !important;
+}
+
+/* Smooth theme switch (disabled under reduced motion below). */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+body {
+  background: var(--color-ink-900);
+  color: var(--color-text);
+}
+
+/* Subtle film grain over the ink base — kills the flat-digital void. */
+.grain::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Keep app content above the grain layer. */
+.grain > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Accessible focus ring in the brand blue. */
+:focus-visible {
+  outline: 2px solid var(--color-bot-bright);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

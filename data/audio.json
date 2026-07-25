@@ -1,0 +1,29 @@
+{
+  "notes": "Source of truth for the AI audio-detection category. AI clips are rendered locally with Kokoro-82M (Apache-2.0) across distinct voices; real clips are extracted from LibriSpeech test-clean (CC BY 4.0) by scripts/tts/extract_real_voices.py. Fairness principle: the tell is voice authenticity only. Both sets are neutral everyday sentences, clean, loudness-normalized to the same target, trimmed to a similar length band. difficulty: 1=easy, 2=medium, 3=hard.",
+  "target": {
+    "sample_rate": 24000,
+    "rms_dbfs": -20.0,
+    "peak_dbfs": -1.0,
+    "trim_silence_db": 40
+  },
+  "ai": [
+    { "id": "ai-01", "voice": "af_heart",    "accent": "US", "gender": "F", "difficulty": 1, "text": "The delivery driver said the package should arrive between noon and four, so please keep an eye out for the doorbell." },
+    { "id": "ai-02", "voice": "af_bella",    "accent": "US", "gender": "F", "difficulty": 2, "text": "I'm pretty sure we left the umbrella in the back seat of the car, so check there before buying a new one." },
+    { "id": "ai-03", "voice": "af_nicole",   "accent": "US", "gender": "F", "difficulty": 3, "text": "Could you remind me to water the plants before we leave on Friday?" },
+    { "id": "ai-04", "voice": "af_sarah",    "accent": "US", "gender": "F", "difficulty": 2, "text": "The team meeting got pushed to next Tuesday because half of us are traveling, and the client wanted everyone there." },
+    { "id": "ai-05", "voice": "af_aoede",    "accent": "US", "gender": "F", "difficulty": 1, "text": "There's leftover pasta and some salad in the fridge if you get hungry tonight, and the bread on the counter is fresh." },
+    { "id": "ai-06", "voice": "am_michael",  "accent": "US", "gender": "M", "difficulty": 2, "text": "We should book the train tickets this weekend, before the good window seats are all gone." },
+    { "id": "ai-07", "voice": "am_adam",     "accent": "US", "gender": "M", "difficulty": 3, "text": "The library closes early on Sundays, so let's head over first thing in the morning and grab coffee on the way." },
+    { "id": "ai-08", "voice": "am_eric",     "accent": "US", "gender": "M", "difficulty": 1, "text": "My phone battery died about halfway through the movie last night, so I missed the ending and everyone keeps spoiling it." },
+    { "id": "ai-09", "voice": "am_fenrir",   "accent": "US", "gender": "M", "difficulty": 2, "text": "They repainted the upstairs hallway a light gray over the weekend, and it feels much brighter." },
+    { "id": "ai-10", "voice": "am_liam",     "accent": "US", "gender": "M", "difficulty": 3, "text": "Remember to grab your badge from the drawer, because the front desk won't let you past the lobby without it." },
+    { "id": "ai-11", "voice": "bf_emma",     "accent": "UK", "gender": "F", "difficulty": 2, "text": "The recipe calls for two cups of flour, a pinch of salt, and one egg, but I always add extra butter." },
+    { "id": "ai-12", "voice": "bf_isabella", "accent": "UK", "gender": "F", "difficulty": 1, "text": "It rained most of the week and the yard is a mess, but the forecast finally looks clear for the weekend." },
+    { "id": "ai-13", "voice": "bf_alice",    "accent": "UK", "gender": "F", "difficulty": 3, "text": "I parked on the third level near the elevator, right by the stairs, so we shouldn't have trouble finding it later." },
+    { "id": "ai-14", "voice": "bf_lily",     "accent": "UK", "gender": "F", "difficulty": 2, "text": "Let's split the bill evenly between the four of us tonight and sort out who owes what for parking later on." },
+    { "id": "ai-15", "voice": "bm_george",   "accent": "UK", "gender": "M", "difficulty": 1, "text": "The printer on the second floor is out of toner again, so anything urgent goes to the front office." },
+    { "id": "ai-16", "voice": "bm_lewis",    "accent": "UK", "gender": "M", "difficulty": 2, "text": "She said the delivery was left with a neighbor across the street, so we should knock on their door before it's late." },
+    { "id": "ai-17", "voice": "bm_daniel",   "accent": "UK", "gender": "M", "difficulty": 3, "text": "We watched the sunset from the end of the pier, then walked back along the beach and picked up dinner on the way." },
+    { "id": "ai-18", "voice": "bm_fable",    "accent": "UK", "gender": "M", "difficulty": 2, "text": "The dentist rescheduled my cleaning to the same time next month, which works out better anyway." }
+  ]
+}
