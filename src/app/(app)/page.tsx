@@ -21,7 +21,7 @@ const CATEGORY_PRESENTATION: Record<
   image: {
     icon: ImageIcon,
     blurb: 'Inspect texture, geometry, hands, reflections, and repeated detail.',
-    optionA: 'AI',
+    optionA: 'Fake',
     optionB: 'Real',
     accent: 'text-bot',
   },
@@ -35,7 +35,7 @@ const CATEGORY_PRESENTATION: Record<
   audio: {
     icon: AudioLines,
     blurb: 'Listen for cadence, breath, transitions, and synthetic artifacts.',
-    optionA: 'AI',
+    optionA: 'Fake',
     optionB: 'Real',
     accent: 'text-bot',
   },
@@ -287,7 +287,7 @@ function HomeInner() {
                 <p className="text-not font-mono text-[0.65rem] font-bold tracking-[0.2em] uppercase">
                   Live challenge
                 </p>
-                <p className="text-muted mt-1 text-sm font-semibold">Guess if it&apos;s real or AI</p>
+                <p className="text-muted mt-1 text-sm font-semibold">Guess if it&apos;s real or fake</p>
               </div>
               <Badge>Sample</Badge>
             </div>
@@ -301,7 +301,7 @@ function HomeInner() {
             <div className="p-4">
               {revealed ? (
                 <p className="text-muted text-center text-sm leading-6">
-                  It&apos;s <span className="text-correct font-bold">AI-generated</span>. The tells
+                  It&apos;s <span className="text-correct font-bold">fake</span>. The tells
                   get subtler as you climb.
                 </p>
               ) : (

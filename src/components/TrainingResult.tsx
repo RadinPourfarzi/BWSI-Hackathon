@@ -20,7 +20,7 @@ export function TrainingResult({
       <div className={`border-edge bg-ink-700 rounded-xl border border-l-4 px-4 py-3 ${edge}`}>
         <div className="font-display text-text font-bold">
           {outcome.isCorrect ? 'Correct.' : 'Not quite.'}{' '}
-          <span className="text-muted">It was {outcome.correctIsAi ? 'AI' : 'REAL'}.</span>
+          <span className="text-muted">It was {outcome.correctIsAi ? 'FAKE' : 'REAL'}.</span>
         </div>
         {explanation && <p className="text-muted mt-1 text-sm leading-relaxed">{explanation}</p>}
       </div>
