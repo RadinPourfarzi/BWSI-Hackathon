@@ -18,6 +18,7 @@ import { CallOverlay } from '@/components/CallOverlay';
 import { TrainingResult } from '@/components/TrainingResult';
 import { GameOverSummary } from '@/components/GameOverSummary';
 import { computeRunXp } from '@/lib/progression';
+import { playCorrect, playGameOver, playWrong } from '@/lib/sfx';
 import { UI_CONFIG, XP_CONFIG } from '@/config';
 import type { AnswerOutcome } from '@/store/gameStore';
 import type { RunResult } from '@/types/models';
@@ -49,6 +50,7 @@ export default function PlayPage() {
       }
       setTimedOut(false);
       setFeedback(outcome);
+      (outcome.isCorrect ? playCorrect : playWrong)();
       // Arcade auto-advances after a brief flash; Training waits for a manual Next.
       if (!isTraining) {
         window.setTimeout(() => {
@@ -71,6 +73,7 @@ export default function PlayPage() {
     }
     setTimedOut(true);
     setFeedback(outcome);
+    playWrong();
     window.setTimeout(() => {
       setTimedOut(false);
       setFeedback(null);
@@ -172,11 +175,25 @@ export default function PlayPage() {
           attempts: engine.attempts,
         });
         setRunResult(result);
+        // Refresh server components (the shell reads profile for the nav) so the new
+        // XP/level/streak show immediately, without a manual page reload.
+        router.refresh();
       } catch {
         // Keep the client-side estimate on screen if submission fails.
       }
     })();
-  }, [status, engine.mode, engine.attempts, enabledCategories]);
+  }, [status, engine.mode, engine.attempts, enabledCategories, router]);
+
+  // Game-over sound (once per run).
+  const gameOverSfxRef = useRef(false);
+  useEffect(() => {
+    if (status === 'gameover' && !gameOverSfxRef.current) {
+      gameOverSfxRef.current = true;
+      playGameOver();
+    } else if (status !== 'gameover') {
+      gameOverSfxRef.current = false;
+    }
+  }, [status]);
 
   // No active run (e.g. hard refresh) — send the player back to start one.
   if (status === 'idle') {

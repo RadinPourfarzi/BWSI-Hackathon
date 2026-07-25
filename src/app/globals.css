@@ -6,8 +6,8 @@
  * (bg-ink-900, text-bot, font-display, ...). "Signal vs. Synthetic" identity, dark-only.
  */
 @theme {
-  --color-ink-900: #0a0f1c;
-  --color-ink-800: #121b2e;
+  --color-ink-900: #06090f;
+  --color-ink-800: #101827;
   --color-ink-700: #1c2740;
   --color-edge: #2c3a57;
   --color-text: #edf1f8;
@@ -28,6 +28,30 @@
 
 html {
   color-scheme: dark;
+}
+
+/* Light theme: same blue/orange accents on a soft, cool light base. */
+html.light {
+  color-scheme: light;
+  --color-ink-900: #eef2f8;
+  --color-ink-800: #ffffff;
+  --color-ink-700: #f3f6fb;
+  --color-edge: #d6dfea;
+  --color-text: #121a2b;
+  --color-muted: #566683;
+  --color-bot: #2f6ff2;
+  --color-bot-bright: #5a8cf5;
+  --color-not: #cf7a10;
+  --color-not-bright: #e59322;
+}
+
+/* Smooth theme switch (disabled under reduced motion below). */
+*,
+*::before,
+*::after {
+  transition-property: background-color, border-color;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
 }
 
 body {

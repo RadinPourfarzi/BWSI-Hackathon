@@ -14,8 +14,8 @@ export const UI_CONFIG = {
    * reserved for outcome feedback only.
    */
   colors: {
-    ink900: '#0a0f1c', // page background (blue-black)
-    ink800: '#121b2e', // raised surface / HUD bar
+    ink900: '#06090f', // page background (blue-black)
+    ink800: '#101827', // raised surface / HUD bar
     ink700: '#1c2740', // cards, panels
     edge: '#2c3a57', // hairlines, borders
     text: '#edf1f8', // primary text (cool off-white)

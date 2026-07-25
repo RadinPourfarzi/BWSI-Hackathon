@@ -253,7 +253,7 @@ function HomeInner() {
                 <p className="text-not font-mono text-[0.65rem] font-bold tracking-[0.2em] uppercase">
                   Live challenge
                 </p>
-                <p className="text-muted mt-1 text-sm font-semibold">Inspect every detail</p>
+                <p className="text-muted mt-1 text-sm font-semibold">Guess if it&apos;s real or AI</p>
               </div>
               <Badge>Sample</Badge>
             </div>
@@ -264,24 +264,9 @@ function HomeInner() {
               className="aspect-square w-full object-cover"
               draggable={false}
             />
-            <div className="grid grid-cols-2 gap-3 p-4">
-              <div
-                className={cn(
-                  'rounded-xl border py-4 text-center font-bold transition-colors',
-                  revealed
-                    ? 'border-correct/60 bg-correct/15 text-correct'
-                    : 'border-bot/50 bg-bot/12 text-bot',
-                )}
-              >
-                AI
-              </div>
-              <div className="border-edge rounded-xl border bg-white/4 py-4 text-center font-bold">
-                Real
-              </div>
-            </div>
-            <div className="px-4 pb-4 text-center">
+            <div className="p-4">
               {revealed ? (
-                <p className="text-muted text-sm">
+                <p className="text-muted text-center text-sm leading-6">
                   It&apos;s <span className="text-correct font-bold">AI-generated</span>. The tells
                   get subtler as you climb.
                 </p>
@@ -289,7 +274,7 @@ function HomeInner() {
                 <button
                   type="button"
                   onClick={() => setRevealed(true)}
-                  className="text-muted hover:text-text font-mono text-xs tracking-wide uppercase transition-colors"
+                  className="border-edge text-text hover:border-bot hover:bg-bot/10 w-full rounded-xl border py-3 font-bold transition-colors"
                 >
                   Show answer
                 </button>

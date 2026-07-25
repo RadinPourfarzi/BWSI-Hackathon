@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { Button, buttonClassName } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Wordmark } from '@/components/Wordmark';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { signOut } from '@/app/auth/actions';
 import { cn } from '@/lib/utils';
 
@@ -123,9 +124,12 @@ export function AppNav(props: AppNavProps) {
   return (
     <>
       <aside className="border-edge bg-ink-900/95 fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r px-4 py-5 backdrop-blur lg:flex">
-        <Link href="/" className="flex items-center gap-2 px-2">
-          <Wordmark className="text-base" />
-        </Link>
+        <div className="flex items-center justify-between px-2">
+          <Link href="/" className="flex items-center gap-2">
+            <Wordmark className="text-base" />
+          </Link>
+          <ThemeToggle />
+        </div>
         <div className="mt-8">
           <NavigationLinks guest={guest} />
         </div>
@@ -141,6 +145,10 @@ export function AppNav(props: AppNavProps) {
           </summary>
           <div className="border-edge bg-ink-800 absolute top-12 right-0 w-64 rounded-xl border p-3 shadow-2xl">
             <NavigationLinks guest={guest} />
+            <div className="border-edge mt-2 flex items-center justify-between border-t px-1 pt-2">
+              <span className="text-muted font-mono text-xs tracking-wide uppercase">Theme</span>
+              <ThemeToggle />
+            </div>
             <div className="border-edge mt-2 border-t pt-2">
               <AccountPanel {...props} />
             </div>

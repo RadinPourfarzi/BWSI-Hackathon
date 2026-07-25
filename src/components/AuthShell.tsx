@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { InputHTMLAttributes, ReactNode } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Wordmark } from '@/components/Wordmark';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 /** Centered card layout shared by the auth screens (login, forgot, reset). */
 export function AuthShell({
@@ -16,7 +17,10 @@ export function AuthShell({
   footer?: ReactNode;
 }) {
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-6 py-10">
+    <div className="relative mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-6 py-10">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
       <div className="mb-6 text-center">
         <Link href="/" className="inline-block">
           <Wordmark className="text-2xl" />
